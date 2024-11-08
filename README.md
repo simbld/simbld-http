@@ -50,25 +50,12 @@ actix-web = "4.0"
 
 Simbld-HTTP provides full API documentation that is auto-generated using Rust's built-in documentation tool, `cargo doc`.
 
-To generate and view the documentation locally:
-
-```bash
-cargo doc --no-deps --open
-```
----
-What does this command do?
-
-**`Generate HTML Documentation`**: This explains that cargo doc generates HTML documentation using source code comments.
-
-**`Open in Browser`**: This describes that the --open option of the command automatically opens the generated documentation in the default browser.
-
-This is useful for exploring all public modules, enums, and functions with their descriptions and examples.
-
-What happens when you run this command?
-
-**`HTML Documentation is Generated`**: Rust processes the inline comments (///) in the source code and creates a detailed API reference in HTML format.
-
-**`Documentation Opens Automatically`**: The --open flag opens the generated HTML documentation in your default web browser.
+The `cargo doc --no-deps --open` command:
+- Generates HTML documentation from your source code comments (///)
+- Creates a detailed API reference showing all public modules, enums and functions
+- Automatically opens generated documentation in your default web browser
+- Exclude dependency documentation with --no-deps option
+This is useful for exploring and reviewing your crate's full API documentation.
 
 ## Online Documentation:
 
@@ -89,7 +76,7 @@ fn main() {
 
 # **🤝 Contributing to Simbld-HTTP**
 
-We welcome contributions! the goal here is to create an exhaustive library of HTTP code and their detailed description for our Rust projects.
+We welcome contributions! The goal is to create an exhaustive library of HTTP codes and their detailed descriptions for Rust projects.
 
 ## Fork this repository.
 
