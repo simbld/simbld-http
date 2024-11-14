@@ -61,7 +61,7 @@ The `cargo doc --no-deps --open` command:
 - Exclude dependency documentation with --no-deps option
   This is useful for exploring and reviewing your crate's full API documentation.
 
-## Online Documentation:
+## Online Documentation
 
 For developers who prefer online access, we are working on hosting the documentation using either **`GitHub Pages`** or **`docs.rs`**.
 
@@ -82,17 +82,17 @@ fn main() {
 
 We welcome contributions! The goal is to create an exhaustive library of HTTP codes and their detailed descriptions for Rust projects.
 
-## Fork this repository.
+## Fork this repository
 
 Clone your fork:
 
-```
+```bash
 git clone git@github.com:your-username/simbld-http.git
 ```
 
 Create a branch for your changes:
 
-```
+```bash
 git checkout -b your-contribution
 ```
 
