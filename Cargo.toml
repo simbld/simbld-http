@@ -1,0 +1,54 @@
+[package]
+keywords = [
+  "http",
+  "response",
+  "status",
+  "code",
+  "headers",
+  "body",
+  "json",
+  "library",
+  "rust",
+  "crawler",
+  "client",
+  "server",
+  "information",
+  "error",
+  "success",
+  "failure",
+  "request",
+  "local",
+  "redirection",
+  "webdav",
+  "unofficial",
+  "apache",
+  "deprecated",
+  "laravel",
+  "spring",
+  "twitter",
+  "shopify",
+  "microsoft",
+  "arcgis",
+  "iis",
+  "nginx",
+  "cpanel",
+  "cloudflare",
+  "qualys",
+  "pantheon",
+]
+name = "simbld-http"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Simon Bullado <s_bullado51@hotmail.com>"]
+repository = "<https://github.com/simbld/simbld-http>"
+description = "A comprehensive HTTP response library for Rust."
+exclude = ["tests/", "examples/", "*.bak"]
+
+[lib]
+name = "simbld_http"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+actix-web = "4.0"
