@@ -9,43 +9,7 @@ description = "A comprehensive HTTP response library for Rust."
 exclude = ["tests/", "examples/", "*.bak"]
 categories = ["web-programming", "development-tools", "network-programming"]
 readme = "README.md"
-keywords = [
-  "http",
-  "response",
-  "status",
-  "code",
-  "headers",
-  "body",
-  "json",
-  "library",
-  "rust",
-  "crawler",
-  "client",
-  "server",
-  "information",
-  "error",
-  "success",
-  "failure",
-  "request",
-  "local",
-  "redirection",
-  "webdav",
-  "unofficial",
-  "apache",
-  "deprecated",
-  "laravel",
-  "spring",
-  "twitter",
-  "shopify",
-  "microsoft",
-  "arcgis",
-  "iis",
-  "nginx",
-  "cpanel",
-  "cloudflare",
-  "qualys",
-  "pantheon",
-]
+keywords = ["http", "response", "code", "library", "error"]
 
 [lib]
 name = "simbld_http"
