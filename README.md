@@ -16,7 +16,7 @@ It supports both standard families (1xx to 5xx) and custom extensions (6xx and 7
 - **Robust utilities**:
 
   - Helpers for paginated JSON responses and generic HTTP responses.
-  - Conversion tools to retrieve numeric values (`u16`/`i16`) for each code.
+  - Conversion tools to retrieve numeric values (`u16`/` u16`) for each code.
 
 - **Extensibility**: Easily add new families or helpers as needed.
 
@@ -24,15 +24,16 @@ It supports both standard families (1xx to 5xx) and custom extensions (6xx and 7
 
 ## **Structure of Families**
 
-| Family  | Description                                                              |
-| ------- | ------------------------------------------------------------------------ |
-| **1xx** | Informational responses (e.g., `Continue`, `Processing`).                |
-| **2xx** | Successful responses (e.g., `OK`, `Created`).                            |
-| **3xx** | Redirection responses (e.g., `Moved Permanently`, `Temporary Redirect`). |
-| **4xx** | Client errors (e.g., `Bad Request`, `Unauthorized`).                     |
-| **5xx** | Server errors (e.g., `Internal Server Error`, `Service Unavailable`).    |
-| **6xx** | Server/service-specific operations (e.g., `Service Timeout`).            |
-| **7xx** | Crawler-related responses (e.g., `Rate Limited`, `Crawl Blocked`).       |
+| Family  | Description                                                             |
+| ------- | ----------------------------------------------------------------------- |
+| **1xx** | Informational responses (e.g., `Continue`, `Processing`)                |
+| **2xx** | Successful responses (e.g., `OK`, `Created`)                            |
+| **3xx** | Redirection responses (e.g., `Moved Permanently`, `Temporary Redirect`) |
+| **4xx** | Client errors (e.g., `Bad Request`, `Unauthorized`)                     |
+| **5xx** | Server errors (e.g., `Internal Server Error`, `Service Unavailable`)    |
+| **6xx** | Service operations (e.g., `Service Timeout`)                            |
+| **7xx** | Crawler responses (e.g., `Rate Limited`, `Crawl Blocked`)               |
+| **9xx** | Local API errors (e.g., `InsufficientFunds`, `ExpiredCard`)             |
 
 ---
 
@@ -42,9 +43,8 @@ To use Simbld-HTTP in your Rust project, add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-simbld-http = { git = "https://github.com/simbld/simbld-http.git" }
-serde = { version = "1.0", features = ["derive"] }
-actix-web = "4.0"
+simbld-http = "0.1.0"
+
 ```
 
 # 🎯 Documentation
@@ -70,12 +70,36 @@ For developers who prefer online access, we are working on hosting the documenta
 ## Example: Retrieve a Crawler Code
 
 ```rust
-use simbld-http::responses::ResponsesCrawlerCodes;
+use simbld_http::responses::ResponsesCrawlerCodes;
+use strum::EnumProperty;
 
 fn main() {
-    let code = ResponsesCrawlerCodes::RateLimited;
-    println!("Code: {}, Description: {}", code.to_u16(), code.description());
+    let code = ResponsesCrawlerCodes::ParsingErrorHeader;
+    println!(
+        "Code: {}, Description: {}",
+        code.to_u16(),
+        code.get_str("Description").unwrap()
+    );
 }
+```
+
+To run the code, use the following command:
+
+```bash
+cargo run --example
+cargo run --example usage
+```
+
+## Example: Using the Middleware
+
+```bash
+cargo run --example middleware_usage
+```
+
+## Vérification du fonctionnement pour voir les en-têtes de la réponse
+
+```bash
+curl -i http://127.0.0.1:8080/
 ```
 
 # **🤝 Contributing to Simbld-HTTP**
@@ -93,7 +117,8 @@ git clone git@github.com:your-username/simbld-http.git
 Create a branch for your changes:
 
 ```bash
-git checkout -b your-contribution
+git switch -c feature/votre-fonctionnalité
+
 ```
 
 Test your changes:
