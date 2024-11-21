@@ -1,28 +1,122 @@
-### Overview
+### 🌟 Simbld-HTTP
 
 ---
 
-**_`Simbld-HTTP`_** is a comprehensive and modular Rust library designed to manage HTTP response codes. It provides an organized structure for standard and custom HTTP response codes, complete with explicit descriptions and tools for simplified manipulation.
-It supports both standard families (1xx to 5xx) and custom extensions (6xx and 7xx).
+**_`Simbld-HTTP`_** is a modular and comprehensive Rust library designed for managing HTTP response codes. Whether you're building APIs, handling custom response codes, or integrating middleware, Simbld-HTTP provides an organized and extensible framework to simplify your workflow.
 
 ---
 
-## **Key Features**
+### **✨ Key Features**
 
-- **Organized HTTP response families**:
-  - Standard families: `1xx`, `2xx`, `3xx`, `4xx`, `5xx`.
-  - Custom extensions: `0`, `-x`, `-xx`, `-xxx`, `6xx`, `7xx`.
-  - Explicit descriptions for each code.
-- **Robust utilities**:
+**Support for Standard and Custom HTTP Codes:**
 
-  - Helpers for paginated JSON responses and generic HTTP responses.
-  - Conversion tools to retrieve numeric values (`u16`/` u16`) for each code.
+_Handles all standard HTTP response families: 1xx to 5xx.
+Extends with custom families: 6xx, 7xx, and 9xx.
+Includes detailed descriptions for every status code._
 
-- **Extensibility**: Easily add new families or helpers as needed.
+**Extensive Utilities:**
+
+_JSON and XML response formatting.
+Helpers for paginated and generic HTTP responses.
+Middleware integration for Actix Web._
+
+**Easy Extensibility:**
+
+_Add new families or custom helpers with minimal effort._
 
 ---
 
-## **Structure of Families**
+### 🚀 Why Choose Simbld-HTTP?
+
+**Developer-Friendly:** _Intuitive API with detailed documentation._
+**Modular Design:** _Use only the parts you need for your project._
+**Future-Proof:** _Easily extend to accommodate evolving HTTP standards and custom needs._
+**Battle-Tested:** _Includes robust tests to ensure reliability._
+
+---
+
+### 📦 Installation
+
+` Add Simbld-HTTP to your ``Cargo.toml `:
+
+```toml
+[dependencies]
+simbld-http = "0.1.0"
+
+```
+
+---
+
+### 📚 Documentation
+
+##### Local Documentation
+
+Run the following command to generate and open the documentation:
+
+```bash
+cargo doc --no-deps --open
+```
+
+###### This will
+
+- _Generate detailed API documentation from inline comments (///)._
+- _Display all public modules, enums, and methods._
+
+##### Online Documentation
+
+The full documentation will be available on **docs.rs** after publishing. Stay tuned for updates!
+
+---
+
+### 🔧 Usage Examples
+
+##### Basic Usage
+
+```bash
+use simbld_http::responses::ResponsesTypes;
+
+let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
+println!("Code: {}, Description: {}", response.to_u16(), response.description());
+```
+
+##### Retrieve a Crawler Code
+
+```bash
+use simbld_http::responses::ResponsesCrawlerCodes;
+use strum::EnumProperty;
+
+fn main() {
+    let code = ResponsesCrawlerCodes::ParsingErrorHeader;
+    println!(
+        "Code: {}, Description: {}",
+        code.to_u16(),
+        code.get_str("Description").unwrap()
+    );
+}
+
+```
+
+##### Run the example with
+
+```bash
+cargo run --example usage
+```
+
+##### Using the Middleware
+
+```bash
+cargo run --example middleware_usage
+```
+
+##### Test the middleware response with _**curl**_
+
+```bash
+curl -i http://127.0.0.1:8080/
+```
+
+---
+
+### **⚙️ Structure of Families**
 
 | Family  | Description                                                             |
 | ------- | ----------------------------------------------------------------------- |
@@ -37,94 +131,53 @@ It supports both standard families (1xx to 5xx) and custom extensions (6xx and 7
 
 ---
 
-# 🛠️ Installation
+### **🤝 Contributing to Simbld-HTTP**
 
-To use Simbld-HTTP in your Rust project, add the following to your `Cargo.toml`:
+We welcome contributions to Simbld-HTTP! Help us make this library the go-to solution for HTTP response code management in Rust.
 
-```toml
-[dependencies]
-simbld-http = "0.1.0"
+###### `1` Fork this repository
 
-```
-
-# 🎯 Documentation
-
-### Local Documentation
-
-Simbld-HTTP provides full API documentation that is auto-generated using Rust's built-in documentation tool, `cargo doc`.
-
-The `cargo doc --no-deps --open` command:
-
-- Generates HTML documentation from your source code comments (///)
-- Creates a detailed API reference showing all public modules, enums and functions
-- Automatically opens generated documentation in your default web browser
-- Exclude dependency documentation with --no-deps option
-  This is useful for exploring and reviewing your crate's full API documentation.
-
-## Online Documentation
-
-For developers who prefer online access, we are working on hosting the documentation using either **`GitHub Pages`** or **`docs.rs`**.
-
-# 🛠️ Usage
-
-## Example: Retrieve a Crawler Code
-
-```rust
-use simbld_http::responses::ResponsesCrawlerCodes;
-use strum::EnumProperty;
-
-fn main() {
-    let code = ResponsesCrawlerCodes::ParsingErrorHeader;
-    println!(
-        "Code: {}, Description: {}",
-        code.to_u16(),
-        code.get_str("Description").unwrap()
-    );
-}
-```
-
-To run the code, use the following command:
+###### `2` Clone your fork
 
 ```bash
-cargo run --example
-cargo run --example usage
+git clone git@github.com:<your-username>/simbld-http.git
+
 ```
 
-## Example: Using the Middleware
+###### `3` Create a branch for your changes
 
 ```bash
-cargo run --example middleware_usage
+git switch -c feature/<your-feature-name>
+
+
 ```
 
-## Vérification du fonctionnement pour voir les en-têtes de la réponse
+###### `4` Test your changes
 
 ```bash
-curl -i http://127.0.0.1:8080/
-```
-
-# **🤝 Contributing to Simbld-HTTP**
-
-We welcome contributions! The goal is to create an exhaustive library of HTTP codes and their detailed descriptions for Rust projects.
-
-## Fork this repository
-
-Clone your fork:
-
-```bash
-git clone git@github.com:your-username/simbld-http.git
-```
-
-Create a branch for your changes:
-
-```bash
-git switch -c feature/votre-fonctionnalité
-
-```
-
-Test your changes:
-
-```rust
 cargo test
+
 ```
 
-Open a pull request.
+###### `5` Open a pull request
+
+---
+
+### 📜 License
+
+This project is licensed under the **MIT** License. See the **LICENSE** file for details.
+
+---
+
+<p align="center">
+  🛠️  
+  <a href="https://crates.io/crates/simbld-http">
+    <img src="https://img.shields.io/crates/v/simbld-http.svg" alt="Crates.io">
+  </a>
+  <a href="https://docs.rs/simbld-http">
+    <img src="https://docs.rs/simbld-http/badge.svg" alt="Docs.rs">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
+  </a>
+</p>
