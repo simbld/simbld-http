@@ -1,6 +1,6 @@
+use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum_macros::{EnumIter, EnumProperty};
-use crate::helpers::to_u16_helper::ToU16;
 
 #[derive(IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
 #[repr(u16)]
@@ -195,5 +195,11 @@ pub enum ResponsesLocalApiCodes {
 impl ToU16 for ResponsesLocalApiCodes {
   fn to_u16(self) -> u16 {
     self.into() // Conversion`Into<u16>`
+  }
+}
+
+impl FromU16 for ResponsesLocalApiCodes {
+  fn from_u16(code: u16) -> Option<Self> {
+    Self::try_from(code).ok() // Conversion`TryFrom<u16>`
   }
 }
