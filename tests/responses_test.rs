@@ -101,3 +101,24 @@ fn test_response_types_mapping() {
     panic!("Expected LocalApiError variant");
   }
 }
+
+#[test]
+fn test_responses_types_from_u16() {
+  let response = ResponsesTypes::from_u16(404);
+  assert!(matches!(response, Some(ResponsesTypes::ClientError(_))));
+}
+
+#[test]
+fn test_responses_types_to_u16() {
+  let response = ResponsesTypes::ClientError(ResponsesClientCodes::NotFound);
+  assert_eq!(response.to_u16(), 404);
+}
+
+#[test]
+fn test_responses_types_description() {
+  let response = ResponsesTypes::ClientError(ResponsesClientCodes::NotFound);
+  assert_eq!(
+    response.description(),
+    "The server cannot find the requested resource, indicating a non-existent or inaccessible URI"
+  );
+}
