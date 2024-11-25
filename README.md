@@ -2,27 +2,39 @@
 
 - **Nouvelle fonctionnalité : Gestion des cookies**
 
-_Ajout de helpers pour inclure des cookies directement dans les réponses :_
+###### Ajout de helpers pour inclure des cookies directement dans les réponses
 
-`ok_with_cookie`: Générer une réponse OK avec un cookie attaché.
-`bad_request_with_cookie`: Générer une réponse Bad Request avec un cookie attaché.
+`ok_with_cookie`: _Générer une réponse OK avec un cookie attaché._
+`bad_request_with_cookie`: _Générer une réponse Bad Request avec un cookie attaché._
 
 - **Nouvelle fonctionnalité : Headers dynamiques**
 
-_Ajout de helpers pour ajouter dynamiquement des headers personnalisés dans les réponses :_
+###### Ajout de helpers pour ajouter dynamiquement des headers personnalisés dans les réponses
 
-`ok_with_headers`: Générer une réponse OK avec des headers personnalisés.
-`bad_request_with_headers`: Générer une réponse Bad Request avec des headers personnalisés.
+`ok_with_headers`: _Générer une réponse OK avec des headers personnalisés._
+`bad_request_with_headers`: _Générer une réponse Bad Request avec des headers personnalisés._
 
 - **Amélioration du Middleware :**
 
-_Le middleware ajoute maintenant :_
-`x-status-description` : Une description associée au code de statut HTTP.
-`x-response-time-ms` : La durée de traitement de la requête en millisecondes.
+###### Le middleware ajoute maintenant
+
+`x-status-description` : _Une description associée au code de statut HTTP._
+`x-response-time-ms` : _La durée de traitement de la requête en millisecondes._
+
+### 📚 Documentation et Exemples Complets
+
+_Des exemples complets, y compris des cas d'utilisation détaillés et des intégrations avancées, sont disponibles dans le repository GitHub du projet_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
+
+##### Exemples inclus
+
+- **Basic Usage** : _Une introduction à l'utilisation de simbld-http_.
+
+- **Middleware Integration** : _Démonstration de l'intégration dans un serveur Actix Web avec un middleware personnalisé._
+- **Response Helpers** : _Utilisation des helpers pour créer des réponses avec cookies ou headers personnalisés._
 
 ---
 
-### 🌟 Simbld-HTTP
+### 🌟 Simbld-HTTP (v0.1.0)
 
 ---
 
@@ -132,7 +144,7 @@ cargo run --example usage
 cargo run --example middleware_usage
 ```
 
-##### Test the middleware response with _**curl**_
+##### Test the middleware response with **_curl_**
 
 ```bash
 curl -i http://127.0.0.1:8080/
