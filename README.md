@@ -1,36 +1,36 @@
-### 🆕 Changelog (Version 0.2.0)
+### 🆕 Changelog (Version 0.2.1)
 
-- **Nouvelle fonctionnalité : Gestion des cookies**
+- **New Feature: Cookie Management**
 
-###### Ajout de helpers pour inclure des cookies directement dans les réponses
+###### Added helpers to include cookies directly in responses
 
-`ok_with_cookie`: _Générer une réponse OK avec un cookie attaché._
-`bad_request_with_cookie`: _Générer une réponse Bad Request avec un cookie attaché._
+`ok_with_cookie`: _Generate an OK response with an attached cookie._
+`bad_request_with_cookie`: _Generate a Bad Request response with an attached cookie._
 
-- **Nouvelle fonctionnalité : Headers dynamiques**
+- **New Feature: Dynamic Headers**
 
-###### Ajout de helpers pour ajouter dynamiquement des headers personnalisés dans les réponses
+###### Added helpers to dynamically add custom headers in responses
 
-`ok_with_headers`: _Générer une réponse OK avec des headers personnalisés._
-`bad_request_with_headers`: _Générer une réponse Bad Request avec des headers personnalisés._
+`ok_with_headers`: _Generate an OK response with custom headers._
+`bad_request_with_headers`: _Generate a Bad Request response with custom headers._
 
-- **Amélioration du Middleware :**
+- **Middleware Improvement:**
 
-###### Le middleware ajoute maintenant
+###### The middleware now adds
 
-`x-status-description` : _Une description associée au code de statut HTTP._
-`x-response-time-ms` : _La durée de traitement de la requête en millisecondes._
+`x-status-description`: _A description associated with the HTTP status code._
+`x-response-time-ms`: _The request processing time in milliseconds._
 
-### 📚 Documentation et Exemples Complets
+### 📚 Complete Documentation and Examples
 
-_Des exemples complets, y compris des cas d'utilisation détaillés et des intégrations avancées, sont disponibles dans le repository GitHub du projet_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
+_Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub repository_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
 
-##### Exemples inclus
+##### Included Examples
 
-- **Basic Usage** : _Une introduction à l'utilisation de simbld-http_.
+- **Basic Usage**: _An introduction to using simbld-http_.
 
-- **Middleware Integration** : _Démonstration de l'intégration dans un serveur Actix Web avec un middleware personnalisé._
-- **Response Helpers** : _Utilisation des helpers pour créer des réponses avec cookies ou headers personnalisés._
+- **Middleware Integration**: _Demonstration of integration into an Actix Web server with custom middleware._
+- **Response Helpers**: _Using helpers to create responses with cookies or custom headers._
 
 ---
 
