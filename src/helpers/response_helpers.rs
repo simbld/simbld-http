@@ -1,3 +1,4 @@
+use crate::helpers::to_u16_helper::ToU16;
 use crate::responses::ResponsesTypes;
 use crate::responses::*;
 use strum::EnumProperty;
@@ -49,7 +50,7 @@ pub fn get_response_by_code(code: u16) -> Option<ResponsesTypes> {
 
 /// Matches the input code with predefined HTTP response codes and returns the corresponding description as a static string if a match is found.
 pub fn get_description_by_code(code: u16) -> Option<&'static str> {
-  if let Some(response_type) = get_response_by_code(code) {
+  if let Some(response_type) = ResponsesTypes::from_u16(code) {
     Some(response_type.description())
   } else {
     None

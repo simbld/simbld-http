@@ -3,6 +3,7 @@ use actix_web::http::header::{HeaderName, HeaderValue};
 use actix_web::{dev::ServiceRequest, dev::ServiceResponse, Error};
 use futures_util::future::{ok, LocalBoxFuture, Ready};
 use std::task::{Context, Poll};
+use std::time::Instant;
 
 pub struct ResponseMiddleware;
 
@@ -45,14 +46,13 @@ where
 
   fn call(&self, req: ServiceRequest) -> Self::Future {
     let fut = self.service.call(req);
+    let start_time = Instant::now();
 
     Box::pin(async move {
       let mut res = fut.await?;
 
-      // Get the status code
+      // Add description
       let status_code = res.status().as_u16();
-
-      // Add the description to the headers
       if let Some(description) =
         crate::helpers::response_helpers::get_description_by_code(status_code)
       {
@@ -61,6 +61,13 @@ where
           HeaderValue::from_str(description).unwrap(),
         );
       }
+
+      // Add processing time
+      let duration = start_time.elapsed();
+      res.headers_mut().insert(
+        HeaderName::from_static("x-response-time-ms"),
+        HeaderValue::from_str(&format!("{}", duration.as_millis())).unwrap(),
+      );
 
       Ok(res)
     })

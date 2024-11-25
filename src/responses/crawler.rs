@@ -1,4 +1,4 @@
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum_macros::{EnumIter, EnumProperty};
 
@@ -45,5 +45,11 @@ pub enum ResponsesCrawlerCodes {
 impl ToU16 for ResponsesCrawlerCodes {
   fn to_u16(self) -> u16 {
     self.into() // Conversion`Into<u16>`
+  }
+}
+
+impl FromU16 for ResponsesCrawlerCodes {
+  fn from_u16(code: u16) -> Option<Self> {
+    Self::try_from(code).ok() // Conversion`TryFrom<u16>`
   }
 }
