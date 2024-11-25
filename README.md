@@ -1,3 +1,27 @@
+### 🆕 Changelog (Version 0.2.0)
+
+- **Nouvelle fonctionnalité : Gestion des cookies**
+
+_Ajout de helpers pour inclure des cookies directement dans les réponses :_
+
+`ok_with_cookie`: Générer une réponse OK avec un cookie attaché.
+`bad_request_with_cookie`: Générer une réponse Bad Request avec un cookie attaché.
+
+- **Nouvelle fonctionnalité : Headers dynamiques**
+
+_Ajout de helpers pour ajouter dynamiquement des headers personnalisés dans les réponses :_
+
+`ok_with_headers`: Générer une réponse OK avec des headers personnalisés.
+`bad_request_with_headers`: Générer une réponse Bad Request avec des headers personnalisés.
+
+- **Amélioration du Middleware :**
+
+_Le middleware ajoute maintenant :_
+`x-status-description` : Une description associée au code de statut HTTP.
+`x-response-time-ms` : La durée de traitement de la requête en millisecondes.
+
+---
+
 ### 🌟 Simbld-HTTP
 
 ---
@@ -41,7 +65,7 @@ _Add new families or custom helpers with minimal effort._
 
 ```toml
 [dependencies]
-simbld-http = "0.1.0"
+simbld-http = "0.2.0"
 
 ```
 
