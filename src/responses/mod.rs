@@ -16,8 +16,21 @@ pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
 pub use success::ResponsesSuccessCodes;
 
+use crate::helpers::response_macros::*;
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use strum::EnumProperty;
+
+/// Generate all responses dynamically
+fn generate_all_responses() {
+  ResponsesInformationalCodes::generate_responses();
+  ResponsesSuccessCodes::generate_responses();
+  ResponsesRedirectionCodes::generate_responses();
+  ResponsesClientCodes::generate_responses();
+  ResponsesServerCodes::generate_responses();
+  ResponsesServiceCodes::generate_responses();
+  ResponsesCrawlerCodes::generate_responses();
+  ResponsesLocalApiCodes::generate_responses();
+}
 
 /// Enum representing all HTTP response families.
 #[derive(Debug, Clone, Copy)]
