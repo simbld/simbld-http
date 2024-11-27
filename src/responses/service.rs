@@ -1,8 +1,8 @@
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-use strum_macros::{EnumIter, EnumProperty};
+use strum_macros::{EnumIter, EnumProperty, Display};
 
-#[derive(IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
+#[derive(Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
 #[repr(u16)]
 
 pub enum ResponsesServiceCodes {

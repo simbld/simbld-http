@@ -1,12 +1,3 @@
-pub mod client;
-pub mod crawler;
-pub mod informational;
-pub mod local;
-pub mod redirection;
-pub mod server;
-pub mod service;
-pub mod success;
-
 pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
 pub use informational::ResponsesInformationalCodes;
@@ -16,11 +7,32 @@ pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
 pub use success::ResponsesSuccessCodes;
 
-use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
+mod client;
+mod crawler;
+mod informational;
+mod local;
+mod redirection;
+mod server;
+mod service;
+mod success;
+
+generate_response_functions!(ResponsesInformationalCodes, informational);
+generate_response_functions!(ResponsesSuccessCodes, success);
+generate_response_functions!(ResponsesRedirectionCodes, redirection);
+generate_response_functions!(ResponsesClientCodes, client);
+generate_response_functions!(ResponsesServerCodes, server);
+generate_response_functions!(ResponsesServiceCodes, service);
+generate_response_functions!(ResponsesCrawlerCodes, crawler);
+generate_response_functions!(ResponsesLocalApiCodes, local);
+
+use crate::helpers::from_u16_helper::FromU16;
+use crate::helpers::to_u16_helper::ToU16;
+
 use strum::EnumProperty;
+use strum_macros::EnumProperty;
 
 /// Enum representing all HTTP response families.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, EnumProperty)]
 pub enum ResponsesTypes {
   Informational(ResponsesInformationalCodes),
   Success(ResponsesSuccessCodes),

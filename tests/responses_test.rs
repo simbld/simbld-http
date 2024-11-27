@@ -1,11 +1,9 @@
 use simbld_http::helpers::to_u16_helper::ToU16;
 use simbld_http::responses::{
-  client::ResponsesClientCodes, crawler::ResponsesCrawlerCodes,
-  informational::ResponsesInformationalCodes, local::ResponsesLocalApiCodes,
-  redirection::ResponsesRedirectionCodes, server::ResponsesServerCodes,
-  service::ResponsesServiceCodes, success::ResponsesSuccessCodes, ResponsesTypes,
+  ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesInformationalCodes, ResponsesLocalApiCodes,
+  ResponsesRedirectionCodes, ResponsesServerCodes, ResponsesServiceCodes, ResponsesSuccessCodes,
+  ResponsesTypes,
 };
-
 use strum::EnumProperty;
 
 #[test]

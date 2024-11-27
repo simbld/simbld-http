@@ -1,39 +1,41 @@
 use actix_service::{Service, Transform};
-use actix_web::http::header::{HeaderName, HeaderValue};
-use actix_web::{dev::ServiceRequest, dev::ServiceResponse, Error};
+use actix_web::{
+  dev::{ServiceRequest, ServiceResponse},
+  http::header::{HeaderName, HeaderValue},
+  Error,
+};
 use futures_util::future::{ok, LocalBoxFuture, Ready};
 use std::task::{Context, Poll};
 use std::time::Instant;
+use uuid::Uuid;
 
-pub struct ResponseMiddleware;
+pub struct HttpInterceptor;
 
-impl<S, B> Transform<S, ServiceRequest> for ResponseMiddleware
+impl<S, B> Transform<S, ServiceRequest> for HttpInterceptor
 where
-  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-  S::Future: 'static,
+  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
   B: 'static,
 {
   type Response = ServiceResponse<B>;
   type Error = Error;
-  type Transform = ResponseMiddlewareService<S>;
+  type Transform = HttpInterceptorService<S>;
   type InitError = ();
   type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
   fn new_transform(&self, service: S) -> Self::Future {
-    ok(ResponseMiddlewareService {
+    ok(HttpInterceptorService {
       service,
     })
   }
 }
 
-pub struct ResponseMiddlewareService<S> {
+pub struct HttpInterceptorService<S> {
   service: S,
 }
 
-impl<S, B> Service<ServiceRequest> for ResponseMiddlewareService<S>
+impl<S, B> Service<ServiceRequest> for HttpInterceptorService<S>
 where
-  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-  S::Future: 'static,
+  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
   B: 'static,
 {
   type Response = ServiceResponse<B>;
@@ -47,11 +49,22 @@ where
   fn call(&self, req: ServiceRequest) -> Self::Future {
     let fut = self.service.call(req);
     let start_time = Instant::now();
+    let request_id = Uuid::new_v4().to_string();
 
     Box::pin(async move {
       let mut res = fut.await?;
 
-      // Add description
+      res.headers_mut().insert(
+        HeaderName::from_static("x-request-id"),
+        HeaderValue::from_str(&request_id).unwrap(),
+      );
+
+      let duration = start_time.elapsed().as_millis();
+      res.headers_mut().insert(
+        HeaderName::from_static("x-response-time-ms"),
+        HeaderValue::from_str(&duration.to_string()).unwrap(),
+      );
+
       let status_code = res.status().as_u16();
       if let Some(description) =
         crate::helpers::response_helpers::get_description_by_code(status_code)
@@ -61,13 +74,6 @@ where
           HeaderValue::from_str(description).unwrap(),
         );
       }
-
-      // Add processing time
-      let duration = start_time.elapsed();
-      res.headers_mut().insert(
-        HeaderName::from_static("x-response-time-ms"),
-        HeaderValue::from_str(&format!("{}", duration.as_millis())).unwrap(),
-      );
 
       Ok(res)
     })
