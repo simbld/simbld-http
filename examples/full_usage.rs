@@ -1,18 +1,16 @@
 use actix_web::{web, App, HttpServer};
 use simbld_http::helpers::{
-  http_interceptor_helper::HttpInterceptor, http_interceptor_helper2::HttpInterceptor2,
-  response_middleware_helper::ResponseMiddleware, response_middleware_helper2::ResponseMiddleware2,
+  http_interceptor_helper::HttpInterceptor, unified_middleware_helper::UnifiedMiddleware,
 };
+use simbld_http::responses::*;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   HttpServer::new(|| {
     App::new()
-      .wrap(ResponseMiddleware) // General-purpose middleware
-      .wrap(HttpInterceptor) // Middleware for HTTP code descriptions
-      .wrap(ResponseMiddleware2) // Another general-purpose middleware
-      .wrap(HttpInterceptor2) // Another middleware for HTTP code descriptions
-      .route("/", web::get().to(index))
+      .wrap(UnifiedMiddleware) // Applies a custom middleware
+      .wrap(HttpInterceptor) // Applies another custom middleware
+      .route("/", web::get().to(home)) // Modify here to call the `home` function
       .route("/custom", web::get().to(custom_example))
   })
   .bind("127.0.0.1:8080")?
@@ -20,10 +18,24 @@ async fn main() -> std::io::Result<()> {
   .await
 }
 
-async fn index() -> impl actix_web::Responder {
-  simbld_http::responses::success::ok() // Example response
+// Renamed `index` to `home`
+async fn home() -> impl actix_web::Responder {
+  ok()
 }
 
 async fn custom_example() -> impl actix_web::Responder {
-  simbld_http::responses::client::bad_request() // Another example response
+  bad_request()
+}
+
+// Renamed to avoid conflict
+async fn detailed_index() -> impl actix_web::Responder {
+  let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
+  let duration = std::time::Duration::from_millis(120);
+  let cors_origin = Some("http://example.com");
+
+  simbld_http::helpers::response_helpers::get_enriched_response_with_metadata(
+    response,
+    cors_origin,
+    duration,
+  )
 }
