@@ -25,11 +25,33 @@ generate_response_functions!(ResponsesServiceCodes, service);
 generate_response_functions!(ResponsesCrawlerCodes, crawler);
 generate_response_functions!(ResponsesLocalApiCodes, local);
 
-use crate::helpers::from_u16_helper::FromU16;
-use crate::helpers::to_u16_helper::ToU16;
-
+use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use strum::EnumProperty;
 use strum_macros::EnumProperty;
+
+/// Generate simple functions (snake_case)
+generate_http_response_functions!(
+  ResponsesInformationalCodes,
+  ResponsesSuccessCodes,
+  ResponsesRedirectionCodes,
+  ResponsesClientCodes,
+  ResponsesServerCodes,
+  ResponsesServiceCodes,
+  ResponsesCrawlerCodes,
+  ResponsesLocalApiCodes
+);
+
+/// Generate functions with metadata (snake_case)
+generate_http_response_with_metadata!(
+  ResponsesInformationalCodes,
+  ResponsesSuccessCodes,
+  ResponsesRedirectionCodes,
+  ResponsesClientCodes,
+  ResponsesServerCodes,
+  ResponsesServiceCodes,
+  ResponsesCrawlerCodes,
+  ResponsesLocalApiCodes
+);
 
 /// Enum representing all HTTP response families.
 #[derive(Debug, Clone, Copy, EnumProperty)]
