@@ -16,15 +16,6 @@ mod server;
 mod service;
 mod success;
 
-generate_response_functions!(ResponsesInformationalCodes, informational);
-generate_response_functions!(ResponsesSuccessCodes, success);
-generate_response_functions!(ResponsesRedirectionCodes, redirection);
-generate_response_functions!(ResponsesClientCodes, client);
-generate_response_functions!(ResponsesServerCodes, server);
-generate_response_functions!(ResponsesServiceCodes, service);
-generate_response_functions!(ResponsesCrawlerCodes, crawler);
-generate_response_functions!(ResponsesLocalApiCodes, local);
-
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use strum::EnumProperty;
 use strum_macros::EnumProperty;
