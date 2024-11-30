@@ -515,6 +515,14 @@ pub fn is_origin_allowed(origin: &str, allowed_origins: &[&str]) -> bool {
   allowed_origins.contains(&origin)
 }
 
+pub fn ok() -> (u16, &'static str) {
+  (200, "Ok")
+}
+
+pub fn bad_request() -> (u16, &'static str) {
+  (400, "Bad Request")
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
