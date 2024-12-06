@@ -1,12 +1,4 @@
-pub use client::ResponsesClientCodes;
-pub use crawler::ResponsesCrawlerCodes;
-pub use informational::ResponsesInformationalCodes;
-pub use local::ResponsesLocalApiCodes;
-pub use redirection::ResponsesRedirectionCodes;
-pub use server::ResponsesServerCodes;
-pub use service::ResponsesServiceCodes;
-pub use success::ResponsesSuccessCodes;
-
+pub mod actix_responder;
 mod client;
 mod crawler;
 mod informational;
@@ -16,33 +8,21 @@ mod server;
 mod service;
 mod success;
 
+pub use actix_responder::CustomResponse;
+pub use client::ResponsesClientCodes;
+pub use crawler::ResponsesCrawlerCodes;
+pub use informational::ResponsesInformationalCodes;
+pub use local::ResponsesLocalApiCodes;
+pub use redirection::ResponsesRedirectionCodes;
+pub use server::ResponsesServerCodes;
+pub use service::ResponsesServiceCodes;
+use strum::IntoEnumIterator;
+pub use success::ResponsesSuccessCodes;
+pub mod wrapper;
+
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use strum::EnumProperty;
 use strum_macros::EnumProperty;
-
-/// Generate simple functions (snake_case)
-generate_http_response_functions!(
-  ResponsesInformationalCodes,
-  ResponsesSuccessCodes,
-  ResponsesRedirectionCodes,
-  ResponsesClientCodes,
-  ResponsesServerCodes,
-  ResponsesServiceCodes,
-  ResponsesCrawlerCodes,
-  ResponsesLocalApiCodes
-);
-
-/// Generate functions with metadata (snake_case)
-generate_http_response_with_metadata!(
-  ResponsesInformationalCodes,
-  ResponsesSuccessCodes,
-  ResponsesRedirectionCodes,
-  ResponsesClientCodes,
-  ResponsesServerCodes,
-  ResponsesServiceCodes,
-  ResponsesCrawlerCodes,
-  ResponsesLocalApiCodes
-);
 
 /// Enum representing all HTTP response families.
 #[derive(Debug, Clone, Copy, EnumProperty)]
@@ -56,6 +36,17 @@ pub enum ResponsesTypes {
   CrawlerError(ResponsesCrawlerCodes),
   LocalApiError(ResponsesLocalApiCodes),
 }
+
+generate_http_response_functions!(
+  ResponsesClientCodes,
+  ResponsesCrawlerCodes,
+  ResponsesInformationalCodes,
+  ResponsesLocalApiCodes,
+  ResponsesRedirectionCodes,
+  ResponsesServerCodes,
+  ResponsesServiceCodes,
+  ResponsesSuccessCodes
+);
 
 impl ResponsesTypes {
   /// Converts a `u16` to a `ResponsesTypes` corresponding to one of the families.
@@ -113,6 +104,33 @@ impl ResponsesTypes {
       },
       ResponsesTypes::LocalApiError(code_enum) => {
         code_enum.get_str("Description").unwrap_or("No description")
+      },
+    }
+  }
+
+  pub fn get_response_description(&self) -> (u16, &'static str) {
+    match self {
+      ResponsesTypes::Informational(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::Success(code) => (code.to_u16(), code.get_str("Description").unwrap_or("")),
+      ResponsesTypes::Redirection(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::ClientError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::ServerError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::ServiceError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::CrawlerError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::LocalApiError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
       },
     }
   }

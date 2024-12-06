@@ -1,6 +1,6 @@
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-use strum_macros::{EnumIter, EnumProperty, Display};
+use strum_macros::{Display, EnumIter, EnumProperty};
 
 #[derive(Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
 #[repr(u16)]
