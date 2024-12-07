@@ -1,12 +1,8 @@
 use actix_web::{web, App, HttpServer, Responder};
 use simbld_http::helpers::http_interceptor_helper::HttpInterceptor;
-use crate::helpers::response_functions::ResponseFunctions;
-use strum::IntoEnumIterator;
-use inflector::Inflector;
-
 
 async fn test_response() -> impl Responder {
-  simbld_http::responses::ResponsesSuccessCodes::Ok
+  actix_web::HttpResponse::Ok().finish()
 }
 
 #[actix_web::main]
