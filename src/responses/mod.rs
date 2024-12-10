@@ -1,12 +1,13 @@
 pub mod actix_responder;
-mod client;
-mod crawler;
-mod informational;
-mod local;
-mod redirection;
-mod server;
-mod service;
-mod success;
+pub mod client;
+pub mod crawler;
+pub mod informational;
+pub mod local;
+pub mod redirection;
+pub mod server;
+pub mod service;
+pub mod success;
+pub mod wrapper;
 
 pub use actix_responder::CustomResponse;
 pub use client::ResponsesClientCodes;
@@ -16,12 +17,12 @@ pub use local::ResponsesLocalApiCodes;
 pub use redirection::ResponsesRedirectionCodes;
 pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
-use strum::IntoEnumIterator;
 pub use success::ResponsesSuccessCodes;
-pub mod wrapper;
+pub use wrapper::ResponseWrapper;
 
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use strum::EnumProperty;
+use strum::IntoEnumIterator;
 use strum_macros::EnumProperty;
 
 /// Enum representing all HTTP response families.
