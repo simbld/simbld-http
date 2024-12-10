@@ -1,11 +1,14 @@
-/// Core library module exposing helpers and responses
 #[macro_use]
 pub mod helpers;
+pub mod mocks;
 pub mod responses;
+pub mod utils;
 
-// HTTP Middleware and Interceptors
+pub use helpers::auth_middleware::AuthMiddleware;
 pub use helpers::http_interceptor_helper::HttpInterceptor;
 pub use helpers::unified_middleware_helper::UnifiedMiddleware;
+pub use mocks::mock_responses::MockResponses;
+pub use responses::wrapper::ResponseWrapper;
 
 pub use inflector::Inflector;
 pub use strum::IntoEnumIterator;
@@ -25,6 +28,8 @@ mod tests {
   use crate::helpers::response_functions::ResponseFunctions;
   use crate::helpers::response_helpers::ok;
   use crate::responses::ResponsesSuccessCodes;
+  use crate::MockResponses;
+  use crate::ResponseWrapper;
 
   #[test]
   fn test_snake_case_function_generation() {
@@ -33,5 +38,11 @@ mod tests {
 
     let response = ok();
     assert_eq!(response, (200, "Ok"));
+  }
+
+  #[test]
+  fn test_snake_case_function_generation_with_mock() {
+    let output = ResponseWrapper::<MockResponses>::generate_responses();
+    assert!(output.contains("fn ok() -> (u16, &'static str) { (200, Ok) }"));
   }
 }
