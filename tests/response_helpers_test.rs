@@ -1,5 +1,20 @@
+use simbld_http::helpers::response_helpers;
 use simbld_http::helpers::{response_with_cookie_helper::*, response_with_headers_helper::*};
+use simbld_http::responses::{wrapper::ResponseWrapper, *};
 use std::collections::HashMap;
+
+/// Example of dynamic response generation
+fn main() {
+  // Generate functions for all HTTP status codes
+  ResponseWrapper::<ResponsesInformationalCodes>::generate_responses();
+  ResponseWrapper::<ResponsesSuccessCodes>::generate_responses();
+  ResponseWrapper::<ResponsesRedirectionCodes>::generate_responses();
+  ResponseWrapper::<ResponsesClientCodes>::generate_responses();
+  ResponseWrapper::<ResponsesServerCodes>::generate_responses();
+  ResponseWrapper::<ResponsesServiceCodes>::generate_responses();
+  ResponseWrapper::<ResponsesCrawlerCodes>::generate_responses();
+  ResponseWrapper::<ResponsesLocalApiCodes>::generate_responses();
+}
 
 #[test]
 fn test_ok_with_cookie() {
@@ -56,4 +71,15 @@ fn test_helper_headers_output() {
 
   let response = bad_request_with_headers(headers.clone());
   println!("Bad Request with Headers: {}", response);
+}
+
+#[test]
+fn test_example_response_with_metadata() {
+  let response = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
+  let enriched_response = response_helpers::get_enriched_response_with_metadata(
+    response,
+    Some("http://example.com"),
+    std::time::Duration::from_millis(200),
+  );
+  println!("{}", enriched_response);
 }
