@@ -101,11 +101,11 @@ mod tests {
   }
 
   #[actix_web::test]
-async fn test_http_interceptor_adds_header() {
+  async fn test_http_interceptor_adds_header() {
     let app = test::init_service(
-        App::new()
-            .wrap(HttpInterceptor)
-            .route("/", web::get().to(|| async { HttpResponse::Ok().finish() })),
+      App::new()
+        .wrap(HttpInterceptor)
+        .route("/", web::get().to(|| async { HttpResponse::Ok().finish() })),
     )
     .await;
 
@@ -114,14 +114,14 @@ async fn test_http_interceptor_adds_header() {
 
     assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
     let header_value = resp
-        .headers()
-        .get("x-status-description")
-        .expect("Header 'x-status-description' is missing")
-        .to_str()
-        .unwrap();
+      .headers()
+      .get("x-status-description")
+      .expect("Header 'x-status-description' is missing")
+      .to_str()
+      .unwrap();
     assert_eq!(
         header_value,
         "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
     );
-}
+  }
 }
