@@ -187,6 +187,8 @@ pub enum ResponsesLocalApiCodes {
   InvalidCard = 981,
   #[strum(props(Description = "The operation to disable a physical card is not allowed"))]
   CannotDisablePhysicalCard = 982,
+  #[strum(props(Description = "The token is missing from the request"))]
+  MissingToken = 983,
   #[strum(props(
     Description = "Unofficial HTTP status code LinkedIn that is returned by the server as a generic, or catch-all error code. The reason for the HTTP response varies based on the service or host"
   ))]
