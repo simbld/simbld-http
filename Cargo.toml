@@ -29,5 +29,6 @@ url = "2.1.0"
 inflector = { version = "0.11", package = "Inflector" }
 uuid = { version = "1.11.0", features = ["v4"] }
 log = "0.4.8"
-chrono = "0.4.19"
+chrono = "0.4.39"
 paste = "1.0.15"
+lazy_static = "1.5.0"
