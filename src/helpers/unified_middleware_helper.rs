@@ -15,18 +15,17 @@ use std::time::{Duration, Instant};
 
 /// Unified middleware managing CORS, advanced logs, and rate limiting.
 pub struct UnifiedMiddleware {
-  allowed_origins: Vec<String>,
-  rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
-  max_requests: u64,
-  window_duration: Duration,
+  pub allowed_origins: Vec<String>,
+  pub rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
+  pub max_requests: usize,
+  pub window_duration: std::time::Duration,
 }
-
 impl UnifiedMiddleware {
   pub fn new(allowed_origins: Vec<String>, max_requests: u64, window_duration: Duration) -> Self {
     Self {
       allowed_origins,
       rate_limiters: Arc::new(Mutex::new(HashMap::new())),
-      max_requests,
+      max_requests: max_requests.try_into().unwrap(),
       window_duration,
     }
   }
@@ -48,7 +47,7 @@ where
       service,
       allowed_origins: self.allowed_origins.clone(),
       rate_limiters: Arc::clone(&self.rate_limiters),
-      max_requests: self.max_requests,
+      max_requests: self.max_requests as u64,
       window_duration: self.window_duration,
     })
   }
@@ -139,5 +138,59 @@ where
         },
       }
     })
+  }
+}
+
+#[cfg(test)]
+/// Ce module contient des tests pour le middleware unifié.
+///
+/// # Tests
+///
+/// * `test_rate_limiting` - Vérifie que la limitation de débit fonctionne correctement.
+///   - Initialise le middleware avec une limite de 2 requêtes par fenêtre de 60 secondes.
+///   - Envoie trois requêtes et vérifie que les deux premières réussissent et que la troisième échoue avec un statut `TOO_MANY_REQUESTS`.
+mod tests {
+  use super::*;
+  use actix_web::{test, web, App, HttpResponse};
+  use std::time::Duration;
+
+  #[actix_web::test]
+  async fn test_rate_limiting() {
+    let middleware = UnifiedMiddleware::new(
+      vec!["http://allowed-origin.com".to_string()],
+      2, // Limit to 2 requests per window
+      Duration::from_secs(60),
+    );
+
+    let app = test::init_service(
+      App::new()
+        .wrap(middleware)
+        .route("/test", web::get().to(|| async { HttpResponse::Ok().finish() })),
+    )
+    .await;
+
+    // First request
+    let req1 = test::TestRequest::get()
+      .uri("/test")
+      .insert_header(("Origin", "http://allowed-origin.com"))
+      .to_request();
+    let resp = test::call_service(&app, req1).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+
+    // Second request
+    let req2 = test::TestRequest::get()
+      .uri("/test")
+      .insert_header(("Origin", "http://allowed-origin.com"))
+      .to_request();
+    let resp = test::call_service(&app, req2).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+
+    // Third request (should exceed the limit)
+    let req3 = test::TestRequest::get()
+      .uri("/test")
+      .insert_header(("Origin", "http://allowed-origin.com"))
+      .to_request();
+    let resp = test::call_service(&app, req3).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::TOO_MANY_REQUESTS);
   }
 }
