@@ -1,13 +1,10 @@
 use actix_service::{Service, Transform};
-use actix_web::{
-  dev::{ServiceRequest, ServiceResponse},
-  http::header::{HeaderName, HeaderValue},
-  Error,
-};
+use actix_web::dev::{ServiceRequest, ServiceResponse};
+use actix_web::http::header::{HeaderName, HeaderValue};
+use actix_web::Error;
 use futures_util::future::{ok, LocalBoxFuture, Ready};
+use std::rc::Rc;
 use std::task::{Context, Poll};
-use std::time::Instant;
-use uuid::Uuid;
 
 pub struct HttpInterceptor;
 
@@ -18,22 +15,22 @@ where
 {
   type Response = ServiceResponse<B>;
   type Error = Error;
-  type Transform = HttpInterceptorService<S>;
+  type Transform = HttpInterceptorMiddleware<S>;
   type InitError = ();
   type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
   fn new_transform(&self, service: S) -> Self::Future {
-    ok(HttpInterceptorService {
-      service,
+    ok(HttpInterceptorMiddleware {
+      service: Rc::new(service),
     })
   }
 }
 
-pub struct HttpInterceptorService<S> {
-  service: S,
+pub struct HttpInterceptorMiddleware<S> {
+  service: Rc<S>,
 }
 
-impl<S, B> Service<ServiceRequest> for HttpInterceptorService<S>
+impl<S, B> Service<ServiceRequest> for HttpInterceptorMiddleware<S>
 where
   S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
   B: 'static,
@@ -42,14 +39,15 @@ where
   type Error = Error;
   type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-  fn poll_ready(&self, ctx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-    self.service.poll_ready(ctx)
+  fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    self.service.poll_ready(cx)
   }
 
   fn call(&self, req: ServiceRequest) -> Self::Future {
-    let fut = self.service.call(req);
-    let start_time = Instant::now();
-    let request_id = Uuid::new_v4().to_string();
+    let service = Rc::clone(&self.service);
+    let fut = service.call(req);
+    let start_time = std::time::Instant::now();
+    let request_id = uuid::Uuid::new_v4().to_string();
 
     Box::pin(async move {
       let mut res = fut.await?;
@@ -77,5 +75,53 @@ where
 
       Ok(res)
     })
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use actix_web::{test, web, App, HttpResponse};
+
+  #[actix_web::test]
+  async fn test_http_interceptor() {
+    let app = test::init_service(
+      App::new()
+        .wrap(HttpInterceptor)
+        .route("/", web::get().to(|| async { HttpResponse::Ok().body("Hello World") })),
+    )
+    .await;
+
+    let req = test::TestRequest::with_uri("/").to_request();
+    let resp = test::call_service(&app, req).await;
+
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body = test::read_body(resp).await;
+    assert_eq!(body, "Hello World");
+  }
+
+  #[actix_web::test]
+  async fn test_http_interceptor_adds_header() {
+    let app = test::init_service(
+      App::new()
+        .wrap(HttpInterceptor)
+        .route("/", web::get().to(|| async { HttpResponse::Ok().finish() })),
+    )
+    .await;
+
+    let req = test::TestRequest::with_uri("/").to_request();
+    let resp = test::call_service(&app, req).await;
+
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let header_value = resp
+      .headers()
+      .get("x-status-description")
+      .expect("Header 'x-status-description' is missing")
+      .to_str()
+      .unwrap();
+    assert_eq!(
+        header_value,
+        "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
+    );
   }
 }

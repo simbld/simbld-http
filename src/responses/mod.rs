@@ -1,3 +1,15 @@
+pub mod actix_responder;
+pub mod client;
+pub mod crawler;
+pub mod informational;
+pub mod local;
+pub mod redirection;
+pub mod server;
+pub mod service;
+pub mod success;
+pub mod wrapper;
+
+pub use actix_responder::CustomResponse;
 pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
 pub use informational::ResponsesInformationalCodes;
@@ -6,29 +18,11 @@ pub use redirection::ResponsesRedirectionCodes;
 pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
 pub use success::ResponsesSuccessCodes;
+pub use wrapper::ResponseWrapper;
 
-mod client;
-mod crawler;
-mod informational;
-mod local;
-mod redirection;
-mod server;
-mod service;
-mod success;
-
-generate_response_functions!(ResponsesInformationalCodes, informational);
-generate_response_functions!(ResponsesSuccessCodes, success);
-generate_response_functions!(ResponsesRedirectionCodes, redirection);
-generate_response_functions!(ResponsesClientCodes, client);
-generate_response_functions!(ResponsesServerCodes, server);
-generate_response_functions!(ResponsesServiceCodes, service);
-generate_response_functions!(ResponsesCrawlerCodes, crawler);
-generate_response_functions!(ResponsesLocalApiCodes, local);
-
-use crate::helpers::from_u16_helper::FromU16;
-use crate::helpers::to_u16_helper::ToU16;
-
+use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use strum::EnumProperty;
+use strum::IntoEnumIterator;
 use strum_macros::EnumProperty;
 
 /// Enum representing all HTTP response families.
@@ -43,6 +37,17 @@ pub enum ResponsesTypes {
   CrawlerError(ResponsesCrawlerCodes),
   LocalApiError(ResponsesLocalApiCodes),
 }
+
+generate_http_response_functions!(
+  ResponsesClientCodes,
+  ResponsesCrawlerCodes,
+  ResponsesInformationalCodes,
+  ResponsesLocalApiCodes,
+  ResponsesRedirectionCodes,
+  ResponsesServerCodes,
+  ResponsesServiceCodes,
+  ResponsesSuccessCodes
+);
 
 impl ResponsesTypes {
   /// Converts a `u16` to a `ResponsesTypes` corresponding to one of the families.
@@ -100,6 +105,33 @@ impl ResponsesTypes {
       },
       ResponsesTypes::LocalApiError(code_enum) => {
         code_enum.get_str("Description").unwrap_or("No description")
+      },
+    }
+  }
+
+  pub fn get_response_description(&self) -> (u16, &'static str) {
+    match self {
+      ResponsesTypes::Informational(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::Success(code) => (code.to_u16(), code.get_str("Description").unwrap_or("")),
+      ResponsesTypes::Redirection(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::ClientError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::ServerError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::ServiceError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::CrawlerError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
+      },
+      ResponsesTypes::LocalApiError(code) => {
+        (code.to_u16(), code.get_str("Description").unwrap_or(""))
       },
     }
   }

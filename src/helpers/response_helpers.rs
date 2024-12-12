@@ -82,15 +82,14 @@ pub fn transform_to_json_short(response: ResponsesTypes) -> String {
 
 /// Converts a `ResponsesTypes` into a detailed JSON string with fallback for missing descriptions.
 pub fn transform_to_json(response: ResponsesTypes) -> String {
-  let (code, description) = get_response_description(response);
-  let json_response = json!({
+  let code = response.to_u16();
+  let description = response.description();
+  serde_json::json!({
       "code": code,
       "description": description
-  });
-
-  json_response.to_string()
+  })
+  .to_string()
 }
-
 /// Converts a `ResponsesTypes` into JSON only for standard HTTP codes (100–599). Returns `None` for invalid codes.
 pub fn transform_to_json_filtered(response: ResponsesTypes) -> Option<String> {
   let (code, description) = get_response_description(response);
@@ -144,13 +143,9 @@ pub fn transform_to_xml_short(response: ResponsesTypes) -> String {
 
 /// Converts a `ResponsesTypes` into a detailed XML string. Handles missing descriptions gracefully.
 pub fn transform_to_xml(response: ResponsesTypes) -> String {
-  let (code, description) = get_response_description(response);
-  let xml_response = format!(
-    r#"<response><code>{}</code><description>{}</description></response>"#,
-    code, description
-  );
-
-  xml_response
+  let code = response.to_u16();
+  let description = response.description();
+  format!("<response><code>{}</code><description>{}</description></response>", code, description)
 }
 
 /// Converts a `ResponsesTypes` into an XML string for valid HTTP codes (100–599). Returns `None` for invalid codes.
@@ -458,17 +453,17 @@ pub fn create_response_with_types(
   response_type: Option<ResponsesTypes>,
   data: Option<&str>,
 ) -> String {
-  let (code, description) =
-    response_type.map(get_response_description).unwrap_or((0, "Unknown Response"));
-
-  json!({
-      "code": code,
-      "description": description,
-      "data": data
-          .map(|d| serde_json::from_str::<Value>(d).unwrap_or(Value::Null))
-          .unwrap_or(Value::Null)
-  })
-  .to_string()
+  let mut map = serde_json::Map::new();
+  if let Some(rt) = response_type {
+    map.insert("code".to_string(), json!(rt.to_u16()));
+    let description = rt.description();
+    map.insert("description".to_string(), json!(description));
+  }
+  if let Some(d) = data {
+    let data_value: serde_json::Value = serde_json::from_str(d).unwrap();
+    map.extend(data_value.as_object().unwrap().clone());
+  }
+  serde_json::Value::Object(map).to_string()
 }
 
 /// Fetches a full response with CORS headers and metadata.
@@ -515,6 +510,38 @@ pub fn is_origin_allowed(origin: &str, allowed_origins: &[&str]) -> bool {
   allowed_origins.contains(&origin)
 }
 
+pub fn ok() -> (u16, &'static str) {
+  (200, "Ok")
+}
+
+pub fn bad_request() -> (u16, &'static str) {
+  (400, "Bad Request")
+}
+
+pub fn unauthorized() -> (u16, &'static str) {
+  (401, "Unauthorized")
+}
+
+pub fn created() -> (u16, &'static str) {
+  (201, "Created")
+}
+
+pub fn authentication_successful() -> (u16, &'static str) {
+  (222, "Authentication Successful")
+}
+
+pub fn invalid_token() -> (u16, &'static str) {
+  (498, "Invalid Token")
+}
+
+pub fn page_expired() -> (u16, &'static str) {
+  (419, "Page Expired")
+}
+
+pub fn missing_token() -> (u16, &'static str) {
+  (983, "Missing Token")
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -533,9 +560,9 @@ mod tests {
     let description = get_description_by_code(200);
     assert!(description.is_some());
     assert_eq!(
-            description.unwrap(),
-            "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
-        );
+        description.unwrap(),
+        "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
+    );
   }
 
   #[test]
@@ -543,10 +570,10 @@ mod tests {
     let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
     let json_str = transform_to_json(response);
     let expected_json = json!({
-            "code": 200,
-            "description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
-        })
-        .to_string();
+        "code": 200,
+        "description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
+    })
+    .to_string();
     assert_eq!(json_str, expected_json);
   }
 
@@ -569,11 +596,7 @@ mod tests {
   fn test_transform_to_xml() {
     let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
     let xml_str = transform_to_xml(response);
-    let expected_description = "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response";
-    let expected_xml = format!(
-      r#"<response><code>200</code><description>{}</description></response>"#,
-      expected_description
-    );
+    let expected_xml = r#"<response><code>200</code><description>Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response</description></response>"#;
     assert_eq!(xml_str, expected_xml);
   }
 
@@ -662,7 +685,8 @@ mod tests {
   fn test_create_response_with_types() {
     let response = Some(ResponsesTypes::Success(ResponsesSuccessCodes::Ok));
     let json_response = create_response_with_types(response, Some(r#"{"key": "value"}"#));
-    assert!(json_response.contains("\"description\":\"OK\""));
+    println!("JSON Response: {}", json_response);
+    assert!(json_response.contains("\"description\":\"Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response\""));
     assert!(json_response.contains("\"key\":\"value\""));
   }
 

@@ -1,6 +1,7 @@
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-use strum_macros::{EnumIter, EnumProperty, Display};
+use strum::EnumProperty;
+use strum_macros::{Display, EnumIter, EnumProperty};
 
 #[derive(Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
 #[repr(u16)]
@@ -186,6 +187,8 @@ pub enum ResponsesLocalApiCodes {
   InvalidCard = 981,
   #[strum(props(Description = "The operation to disable a physical card is not allowed"))]
   CannotDisablePhysicalCard = 982,
+  #[strum(props(Description = "The token is missing from the request"))]
+  MissingToken = 983,
   #[strum(props(
     Description = "Unofficial HTTP status code LinkedIn that is returned by the server as a generic, or catch-all error code. The reason for the HTTP response varies based on the service or host"
   ))]
@@ -201,5 +204,13 @@ impl ToU16 for ResponsesLocalApiCodes {
 impl FromU16 for ResponsesLocalApiCodes {
   fn from_u16(code: u16) -> Option<Self> {
     Self::try_from(code).ok() // Conversion`TryFrom<u16>`
+  }
+}
+
+impl Into<(u16, &'static str)> for ResponsesLocalApiCodes {
+  fn into(self) -> (u16, &'static str) {
+    let code: u16 = self.to_u16();
+    let description = self.get_str("Description").unwrap_or("No description");
+    (code, description) // Tuple
   }
 }

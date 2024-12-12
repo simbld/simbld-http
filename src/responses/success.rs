@@ -1,5 +1,6 @@
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use strum::EnumProperty;
 use strum_macros::{Display, EnumIter, EnumProperty};
 
 #[derive(Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
@@ -133,5 +134,13 @@ impl ToU16 for ResponsesSuccessCodes {
 impl FromU16 for ResponsesSuccessCodes {
   fn from_u16(code: u16) -> Option<Self> {
     Self::try_from(code).ok() // Conversion`TryFrom<u16>`
+  }
+}
+
+impl Into<(u16, &'static str)> for ResponsesSuccessCodes {
+  fn into(self) -> (u16, &'static str) {
+    let code: u16 = self.to_u16();
+    let description = self.get_str("Description").unwrap_or("No description");
+    (code, description) // Tuple
   }
 }

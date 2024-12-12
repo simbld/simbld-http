@@ -1,10 +1,18 @@
 use simbld_http::helpers::to_u16_helper::ToU16;
 use simbld_http::responses::{
-  ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesInformationalCodes, ResponsesLocalApiCodes,
-  ResponsesRedirectionCodes, ResponsesServerCodes, ResponsesServiceCodes, ResponsesSuccessCodes,
-  ResponsesTypes,
+  wrapper::ResponseWrapper, ResponsesClientCodes, ResponsesCrawlerCodes,
+  ResponsesInformationalCodes, ResponsesLocalApiCodes, ResponsesRedirectionCodes,
+  ResponsesServerCodes, ResponsesServiceCodes, ResponsesSuccessCodes, ResponsesTypes,
 };
 use strum::EnumProperty;
+
+#[test]
+fn test_snake_case_function_generation() {
+  ResponseWrapper::<ResponsesSuccessCodes>::generate_responses();
+  let response = ResponsesSuccessCodes::Ok;
+  assert_eq!(response.to_u16(), 200);
+  assert_eq!(response.get_str("Description").unwrap_or("No description"), "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response");
+}
 
 #[test]
 fn test_informational_codes() {

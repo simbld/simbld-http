@@ -28,3 +28,24 @@ pub fn bad_request_with_cookie(cookie: (&str, &str)) -> String {
   })
   .to_string()
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_ok_with_cookie() {
+    let response = ok_with_cookie(("session_id", "abc123"));
+    assert!(response.contains("\"status\":\"OK\""));
+    assert!(response.contains("\"code\":200"));
+    assert!(response.contains("\"cookie\":{\"key\":\"session_id\",\"value\":\"abc123\"}"));
+  }
+
+  #[test]
+  fn test_bad_request_with_cookie() {
+    let response = bad_request_with_cookie(("error_id", "xyz789"));
+    assert!(response.contains("\"status\":\"Bad Request\""));
+    assert!(response.contains("\"code\":400"));
+    assert!(response.contains("\"cookie\":{\"key\":\"error_id\",\"value\":\"xyz789\"}"));
+  }
+}

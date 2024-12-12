@@ -1,26 +1,44 @@
 // Importing modules and helpers from simbld-http
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use simbld_http::helpers::response_with_cookie_helper::bad_request_with_cookie;
-use simbld_http::helpers::response_with_cookie_helper::ok_with_cookie;
-use simbld_http::helpers::response_with_headers_helper::bad_request_with_headers;
-use simbld_http::helpers::response_with_headers_helper::ok_with_headers;
+use actix_web::{web, App, HttpServer, Responder};
+use simbld_http::helpers::response_helpers;
+use simbld_http::helpers::response_with_cookie_helper::{bad_request_with_cookie, ok_with_cookie};
+use simbld_http::helpers::response_with_headers_helper::{
+  bad_request_with_headers, ok_with_headers,
+};
+use simbld_http::helpers::to_u16_helper::ToU16;
+use simbld_http::helpers::{
+  http_interceptor_helper::HttpInterceptor, unified_middleware_helper::UnifiedMiddleware,
+};
 use simbld_http::responses::*;
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use strum::EnumProperty;
 
-/// Example of success
-pub fn ok() -> actix_web::HttpResponse {
-  HttpResponse::Ok().finish()
+/// Example route for success
+async fn example_success() -> impl Responder {
+  response_helpers::create_response(
+    ResponsesSuccessCodes::Ok.to_u16(),
+    ResponsesSuccessCodes::Ok.get_str("Description").unwrap_or("No description"),
+    "",
+  )
 }
 
-/// Example of client error
-pub fn bad_request() -> actix_web::HttpResponse {
-  HttpResponse::BadRequest().finish()
+/// Example route for client error
+async fn example_client_error() -> impl Responder {
+  response_helpers::create_response(
+    ResponsesClientCodes::BadRequest.to_u16(),
+    ResponsesClientCodes::BadRequest.get_str("Description").unwrap_or("No description"),
+    "",
+  )
 }
 
-/// Example of server error
-pub fn internal_server_error() -> actix_web::HttpResponse {
-  HttpResponse::InternalServerError().finish()
+/// Example route for server error
+async fn example_server_error() -> impl Responder {
+  response_helpers::create_response(
+    ResponsesServerCodes::InternalServerError.to_u16(),
+    ResponsesServerCodes::InternalServerError.get_str("Description").unwrap_or("No description"),
+    "",
+  )
 }
 
 /// Example of using helpers
@@ -33,7 +51,11 @@ fn examples_with_helpers() {
 
   // Example 2: Using ResponsesTypes for success codes
   let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
-  println!("Code: {}, Description: {}", response.to_u16(), response.get_str("Description"));
+  println!(
+    "Code: {}, Description: {}",
+    response.to_u16(),
+    response.get_str("Description").unwrap_or("No description")
+  );
 
   // Example 3: Transforming a response to JSON
   let response = ResponsesInformationalCodes::EarlyHints;
@@ -81,21 +103,21 @@ fn examples_with_helpers() {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-  // Launch an Actix-Web server with middlewares and routes
+  examples_with_helpers();
   HttpServer::new(|| {
     App::new()
-      .wrap(UnifiedMiddleware) // General middleware
-      .wrap(UnifiedInterceptor) // Specific interceptor
+      .wrap(UnifiedMiddleware {
+        allowed_origins: vec!["*".to_string()],
+        rate_limiters: Arc::new(Mutex::new(HashMap::new())),
+        max_requests: 100,
+        window_duration: std::time::Duration::from_secs(60),
+      })
+      .wrap(HttpInterceptor) // Specific interceptor
       .route("/success", web::get().to(example_success))
       .route("/client_error", web::get().to(example_client_error))
       .route("/server_error", web::get().to(example_server_error))
-  })
-  .bind("127.0.0.1:8088")?
+  }) // General middleware
+  .bind("127.0.0.1:8083")?
   .run()
-  .await?;
-
-  // Call static examples
-  examples_with_helpers();
-
-  Ok(())
+  .await
 }
