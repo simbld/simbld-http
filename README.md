@@ -1,3 +1,49 @@
+### 🆕 Changelog (Version 0.3.1)
+
+- **New Feature: Actix-Web Integration**
+
+###### Added a `CustomResponse` compatible with Actix-Web and an authentication middleware
+
+`custom_response_handler`: _Generates custom HTTP responses in an Actix-Web application._
+
+`auth_middleware`: _Manages token validation via query parameters to secure routes._
+
+- **Improved Testing Capabilities**
+
+###### Added test files to enhance code coverage and reliability
+
+`status_codes_test.rs`: _Contains tests to verify the generation of HTTP status codes._
+
+`test_helpers.rs`: _Provides utility functions to capture test outputs._
+
+- **New Helpers Features**
+
+###### Added helpers to create responses with mock data
+
+`mock_responses`: _Defines test responses to facilitate unit testing._
+
+`response_functions`: _Introduces the `ResponseFunctions` trait with methods to generate response functions._
+
+- **Miscellaneous Improvements**
+
+###### Code optimizations and minor bug fixes
+
+- **Updated Documentation**
+
+###### Examples and documentation have been updated to reflect the new features
+
+### 📚 Full Documentation and Examples
+
+_Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub repository_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
+
+##### Examples Overview
+
+- **Actix-Web Usage**: _How to integrate simbld-http with Actix-Web for handling responses and authentication._
+
+- **Unit Testing**: _Demonstrates how to write unit tests using the new helpers._
+
+---
+
 ### 🆕 Changelog (Version 0.2.1)
 
 - **New Feature: Cookie Management**
@@ -42,7 +88,7 @@ _Complete examples, including detailed use cases and advanced integrations, are 
 
 ---
 
-### **✨ Key Features**
+### ✨ Key Features
 
 **Support for Standard and Custom HTTP Codes:**
 
@@ -112,7 +158,7 @@ The full documentation will be available on **docs.rs** after publishing. Stay t
 use simbld_http::responses::ResponsesTypes;
 
 let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
-println!("Code: {}, Description: {}", response.to_u16(), response.description());
+println!("Code: {}, Description: {}", response.to_u16(), response.get_str("Description"));
 ```
 
 ##### Retrieve a Crawler Code
@@ -152,7 +198,7 @@ curl -i http://127.0.0.1:8080/
 
 ---
 
-### **⚙️ Structure of Families**
+### ⚙️ Structure of Families
 
 | Family  | Description                                                             |
 | ------- | ----------------------------------------------------------------------- |
@@ -167,7 +213,7 @@ curl -i http://127.0.0.1:8080/
 
 ---
 
-### **🤝 Contributing to Simbld-HTTP**
+### 🤝 Contributing to Simbld-HTTP
 
 We welcome contributions to Simbld-HTTP! Help us make this library the go-to solution for HTTP response code management in Rust.
 
@@ -206,7 +252,7 @@ This project is licensed under the **MIT** License. See the **LICENSE** file for
 ---
 
 <p align="center">
-  🛠️  
+  🛠️
   <a href="https://crates.io/crates/simbld-http">
     <img src="https://img.shields.io/crates/v/simbld-http.svg" alt="Crates.io">
   </a>
