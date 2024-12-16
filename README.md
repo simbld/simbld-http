@@ -1,3 +1,37 @@
+### 🆕 Changelog (Version 0.4.1)
+
+- **New Feature: Unified Response Functions**
+
+###### Added functions returning `(u16, &'static str)` for all response families
+
+`invalid_date_of_birth`, `invalid_majority`, `invalid_marital_status`, etc.:
+
+_Each function returns a tuple containing a status code and a description._
+_The complete list of http codes (official and unofficial) is available in the file:_
+(<https://github.com/simbld/simbld-http/blob/main/THE_COMPLETE_LIST_OF_OFFICIAL_AND_UNOFFICIAL_HTTP_CODES.md>)
+
+- **Improved Code Consistency**
+
+###### Standardized response functions across all families
+
+_All response families now include functions that return a tuple `(u16, &'static str)` for better consistency and ease of use._
+
+### 📚 Complete Documentation and Examples
+
+#### Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub repository
+
+<https://github.com/simbld/simbld-http/tree/main/examples>
+<https://github.com/simbld/simbld-http/blob/main/src/responses>
+<https://github.com/simbld/simbld-http/tree/main/src/helpers>
+
+##### Included Examples And Tests
+
+- **Http Interceptor**: _An_.
+- **Middleware Integration**: _Demonstration of integration into an Actix Web server with custom middleware._
+- **Response Helpers**: _Using helpers to create responses with status codes and descriptions._
+
+---
+
 ### 🆕 Changelog (Version 0.3.1)
 
 - **New Feature: Actix-Web Integration**
@@ -202,7 +236,7 @@ curl -i http://127.0.0.1:8080/
 
 | Family  | Description                                                             |
 | ------- | ----------------------------------------------------------------------- |
-| **1xx** | Informational responses (e.g., `Continue`, `Processing`)                |
+| **1xx** | Informational responses (e.g., `ContinueRequest`, `Processing`)         |
 | **2xx** | Successful responses (e.g., `OK`, `Created`)                            |
 | **3xx** | Redirection responses (e.g., `Moved Permanently`, `Temporary Redirect`) |
 | **4xx** | Client errors (e.g., `Bad Request`, `Unauthorized`)                     |
