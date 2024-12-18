@@ -1,3 +1,8 @@
+/// The code provides functions for handling HTTP response codes, including retrieving descriptions, converting to JSON/XML, filtering by range, and adding metadata.
+///
+/// Arguments:
+///
+/// * `response`: The `response` parameter in the provided code snippets refers to an enumeration type `ResponsesTypes` that represents various HTTP response code families and their descriptions. Snippet functions use this enumeration to extract information such as response codes, descriptions, and metadata related to HTTP responses.
 use crate::helpers::to_u16_helper::ToU16;
 use crate::responses::ResponsesTypes;
 use crate::responses::{
@@ -510,38 +515,6 @@ pub fn is_origin_allowed(origin: &str, allowed_origins: &[&str]) -> bool {
   allowed_origins.contains(&origin)
 }
 
-pub fn ok() -> (u16, &'static str) {
-  (200, "Ok")
-}
-
-pub fn bad_request() -> (u16, &'static str) {
-  (400, "Bad Request")
-}
-
-pub fn unauthorized() -> (u16, &'static str) {
-  (401, "Unauthorized")
-}
-
-pub fn created() -> (u16, &'static str) {
-  (201, "Created")
-}
-
-pub fn authentication_successful() -> (u16, &'static str) {
-  (222, "Authentication Successful")
-}
-
-pub fn invalid_token() -> (u16, &'static str) {
-  (498, "Invalid Token")
-}
-
-pub fn page_expired() -> (u16, &'static str) {
-  (419, "Page Expired")
-}
-
-pub fn missing_token() -> (u16, &'static str) {
-  (983, "Missing Token")
-}
-
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -627,7 +600,7 @@ mod tests {
     let expected_codes = vec![
             (
                 100,
-                "The server has received the initial part of the request, the headers, and asks the client to continue, proceed to send the body of the request, a POST request",
+                "The server has received the initial part of the request, the headers, and asks the client to continue request, proceed to send the body of the request, a POST request",
             ),
             (
                 101,
