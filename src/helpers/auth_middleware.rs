@@ -1,3 +1,8 @@
+/// The code defines an Actix Web middleware for authentication based on token parameters in URL requests.
+///
+/// Properties:
+///
+/// * `key`: The code you provided is an implementation of an Actix Web middleware for authentication. It checks the token parameter in the URL query string and based on its value, it generates different HTTP responses for authentication success, expired token, invalid token, or missing token.
 use actix_web::{
   body::{BoxBody, EitherBody, MessageBody},
   dev::{Service, ServiceRequest, ServiceResponse, Transform},
@@ -8,7 +13,7 @@ use futures_util::future::{ok, LocalBoxFuture, Ready};
 use serde::Deserialize;
 use std::task::{Context, Poll};
 
-/// Parameters for URL requests
+// Parameters for URL requests
 #[derive(Deserialize)]
 pub struct TokenParams {
   pub key: Option<String>,
