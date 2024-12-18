@@ -25,17 +25,12 @@ pub use crate::responses::ResponsesSuccessCodes;
 
 #[cfg(test)]
 mod tests {
-  use crate::helpers::response_functions::ResponseFunctions;
-  use crate::helpers::response_helpers::ok;
-  use crate::responses::ResponsesSuccessCodes;
+  use super::responses::success::ok;
   use crate::MockResponses;
   use crate::ResponseWrapper;
 
   #[test]
-  fn test_snake_case_function_generation() {
-    ResponsesSuccessCodes::generate_responses();
-    ResponsesSuccessCodes::generate_responses_with_metadata();
-
+  fn test_ok_function() {
     let response = ok();
     assert_eq!(response, (200, "Ok"));
   }
