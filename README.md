@@ -16,7 +16,7 @@ _The complete list of http codes (official and unofficial) is available in the f
 
 _All response families now include functions that return a tuple `(u16, &'static str)` for better consistency and ease of use._
 
-### 📚 Complete Documentation and Examples
+### 📚 Full Documentation and Examples
 
 #### Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub repository
 
@@ -29,6 +29,10 @@ _All response families now include functions that return a tuple `(u16, &'static
 - **Http Interceptor**: _An_.
 - **Middleware Integration**: _Demonstration of integration into an Actix Web server with custom middleware._
 - **Response Helpers**: _Using helpers to create responses with status codes and descriptions._
+
+- **Actix-Web Usage**: _How to integrate simbld-http with Actix-Web for handling responses and authentication._
+
+- **Unit Testing**: _Demonstrates how to write unit tests using the new helpers._
 
 ---
 
@@ -65,16 +69,6 @@ _All response families now include functions that return a tuple `(u16, &'static
 - **Updated Documentation**
 
 ###### Examples and documentation have been updated to reflect the new features
-
-### 📚 Full Documentation and Examples
-
-_Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub repository_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
-
-##### Examples Overview
-
-- **Actix-Web Usage**: _How to integrate simbld-http with Actix-Web for handling responses and authentication._
-
-- **Unit Testing**: _Demonstrates how to write unit tests using the new helpers._
 
 ---
 
