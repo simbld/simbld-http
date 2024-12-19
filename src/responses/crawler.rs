@@ -1,9 +1,12 @@
+/// The code defines an enum `ResponsesCrawlerCodes` with associated descriptions and conversion methods in Rust.
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-use strum_macros::{Display, EnumIter, EnumProperty};
 use strum::EnumProperty;
+use strum_macros::{Display, EnumIter, EnumProperty};
 
-#[derive(Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
+#[derive(
+  Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone, PartialEq,
+)]
 #[repr(u16)]
 
 pub enum ResponsesCrawlerCodes {
@@ -60,5 +63,100 @@ impl Into<(u16, &'static str)> for ResponsesCrawlerCodes {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
     (code, description) // Tuple
+  }
+}
+
+pub fn parsing_error_unfinished_header() -> (u16, &'static str) {
+  (700, "Parsing error: unfinished header")
+}
+
+pub fn parsing_error_header() -> (u16, &'static str) {
+  (710, "Parsing error: header")
+}
+
+pub fn parsing_error_missing_http_code() -> (u16, &'static str) {
+  (720, "Parsing error: missing HTTP code")
+}
+
+pub fn parsing_error_body() -> (u16, &'static str) {
+  (730, "Parsing error: body")
+}
+
+pub fn excluded_by_robots_txt_file() -> (u16, &'static str) {
+  (740, "Excluded by robots.txt file")
+}
+
+pub fn robots_temporarily_unavailable() -> (u16, &'static str) {
+  (741, "Robots temporarily unavailable")
+}
+
+pub fn excluded_by_definition_of_exploration_space() -> (u16, &'static str) {
+  (760, "Excluded by definition of exploration space")
+}
+
+pub fn not_allowed_by_local_exploration_space() -> (u16, &'static str) {
+  (761, "Not allowed by local exploration space")
+}
+
+pub fn incorrect_protocol_or_non_standard_system_port() -> (u16, &'static str) {
+  (770, "Incorrect protocol or non-standard system port")
+}
+
+pub fn excluded_by_file_type_exclusions() -> (u16, &'static str) {
+  (780, "Excluded by file type exclusions")
+}
+
+pub fn invalid_card() -> (u16, &'static str) {
+  (781, "Invalid card - Not a physical card")
+}
+
+pub fn cannot_disable_physical_card() -> (u16, &'static str) {
+  (782, "Cannot disable physical card OR Print card request already requested")
+}
+
+pub fn invalid_url() -> (u16, &'static str) {
+  (786, "Invalid URL")
+}
+
+pub fn no_index_meta_tag() -> (u16, &'static str) {
+  (2004, "No index meta tag")
+}
+
+pub fn programmable_redirection() -> (u16, &'static str) {
+  (3020, "Programmable redirection")
+}
+
+pub fn redirected_to_another_url() -> (u16, &'static str) {
+  (3021, "Redirected to another URL")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_generated_function_parsing_error_unfinished_header() {
+    let response = ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader;
+    let (code, description) = response.into();
+    assert_eq!(code, 700);
+    assert_eq!(description, "Parsing error: unfinished header");
+  }
+
+  #[test]
+  fn test_to_u16_parsing_error_header() {
+    let response = ResponsesCrawlerCodes::ParsingErrorHeader;
+    let code = response.to_u16();
+    assert_eq!(code, 710);
+  }
+
+  #[test]
+  fn test_parsing_error_missing_http_code() {
+    assert_eq!(parsing_error_missing_http_code(), (720, "Parsing error: missing HTTP code"));
+  }
+
+  #[test]
+  fn test_from_u16_invalid_url() {
+    let response = ResponsesCrawlerCodes::from_u16(786);
+    assert_eq!(response, Some(ResponsesCrawlerCodes::InvalidURL));
   }
 }

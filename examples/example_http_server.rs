@@ -1,5 +1,6 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use simbld_http::helpers::response_helpers::{bad_request, created, ok, unauthorized};
+use simbld_http::responses::client::{bad_request, unauthorized};
+use simbld_http::responses::success::{created, ok};
 
 /// Route for the 200 OK response.
 async fn ok_route() -> impl Responder {

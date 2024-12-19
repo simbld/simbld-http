@@ -1,9 +1,12 @@
+/// The above Rust code defines an enum representing HTTP response success codes with associated descriptions and provides helper functions to retrieve code-description pairs.
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum::EnumProperty;
 use strum_macros::{Display, EnumIter, EnumProperty};
 
-#[derive(Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone)]
+#[derive(
+  Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone, PartialEq,
+)]
 #[repr(u16)]
 
 pub enum ResponsesSuccessCodes {
@@ -142,5 +145,156 @@ impl Into<(u16, &'static str)> for ResponsesSuccessCodes {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
     (code, description) // Tuple
+  }
+}
+
+pub fn ok() -> (u16, &'static str) {
+  (200, "Ok")
+}
+
+pub fn created() -> (u16, &'static str) {
+  (201, "Created")
+}
+
+pub fn accepted() -> (u16, &'static str) {
+  (202, "Accepted")
+}
+
+pub fn non_authoritative_information() -> (u16, &'static str) {
+  (203, "Non-authoritative information")
+}
+
+pub fn no_content() -> (u16, &'static str) {
+  (204, "No content")
+}
+
+pub fn reset_content() -> (u16, &'static str) {
+  (205, "Reset content")
+}
+
+pub fn partial_content() -> (u16, &'static str) {
+  (206, "Partial content")
+}
+
+pub fn multi_status() -> (u16, &'static str) {
+  (207, "Multi-status")
+}
+
+pub fn already_reported() -> (u16, &'static str) {
+  (208, "Already reported")
+}
+
+pub fn content_different() -> (u16, &'static str) {
+  (210, "Content different")
+}
+
+pub fn content_location() -> (u16, &'static str) {
+  (211, "Content location")
+}
+
+pub fn object_data() -> (u16, &'static str) {
+  (212, "Object data")
+}
+
+pub fn multiple_resource_instances() -> (u16, &'static str) {
+  (213, "Multiple resource instances")
+}
+
+pub fn transform_applied() -> (u16, &'static str) {
+  (214, "Transform applied")
+}
+
+pub fn content_deleted() -> (u16, &'static str) {
+  (215, "Content deleted")
+}
+
+pub fn im_used_post_request() -> (u16, &'static str) {
+  (216, "IM used post request")
+}
+
+pub fn delta_encoding_applied() -> (u16, &'static str) {
+  (217, "Delta encoding applied")
+}
+
+pub fn this_is_fine() -> (u16, &'static str) {
+  (218, "This is fine")
+}
+
+pub fn content_transferred() -> (u16, &'static str) {
+  (219, "Content transferred")
+}
+
+pub fn load_balancer_started() -> (u16, &'static str) {
+  (220, "Load balancer started")
+}
+
+pub fn load_balancer_ended() -> (u16, &'static str) {
+  (221, "Load balancer ended")
+}
+
+pub fn authentication_successful() -> (u16, &'static str) {
+  (222, "Authentication successful")
+}
+
+pub fn im_used_get_request() -> (u16, &'static str) {
+  (226, "IM used get request")
+}
+
+pub fn low_on_storage_space() -> (u16, &'static str) {
+  (250, "Low on storage space")
+}
+
+pub fn entity_recognized_not_processable() -> (u16, &'static str) {
+  (252, "Entity recognized not processable")
+}
+
+pub fn resource_accessed_locked() -> (u16, &'static str) {
+  (253, "Resource accessed locked")
+}
+
+pub fn method_not_found() -> (u16, &'static str) {
+  (254, "Method not found")
+}
+
+pub fn extended_code() -> (u16, &'static str) {
+  (255, "Extended code")
+}
+
+pub fn miscellaneous_persistent_warning_start() -> (u16, &'static str) {
+  (299, "Miscellaneous persistent warning start")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_generated_functions_success() {
+    let response = ResponsesSuccessCodes::Ok;
+    let (code, description): (u16, &str) = response.into();
+    assert_eq!(code, 200);
+    assert_eq!(
+      description,
+      "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
+    );
+  }
+
+  #[test]
+  fn test_to_u16_success() {
+    let response = ResponsesSuccessCodes::Created;
+    let code = response.to_u16();
+    assert_eq!(code, 201);
+  }
+
+  #[test]
+  fn test_ok() {
+    let response = accepted();
+    assert_eq!(response, (202, "Accepted"));
+  }
+
+  #[test]
+  fn test_from_u16_no_content() {
+    let response = ResponsesSuccessCodes::from_u16(204);
+    assert_eq!(response, Some(ResponsesSuccessCodes::NoContent));
   }
 }

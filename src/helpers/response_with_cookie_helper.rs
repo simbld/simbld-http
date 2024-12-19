@@ -1,3 +1,12 @@
+/// The functions return JSON responses with status codes and descriptions, including a cookie.
+///
+/// Arguments:
+///
+/// * `cookie`: The `cookie` parameter is a tuple containing two string references - the key and value of the cookie that will be included in the JSON response.
+///
+/// Returns:
+///
+/// A JSON response with a status of "OK" or "Bad Request", along with a description and a cookie containing the provided key and value.
 use serde_json::json;
 
 /// This function is used to return a JSON response with a status of 200 and a description of "OK" along with a cookie.

@@ -1,3 +1,27 @@
+/// Intercepts HTTP requests and responses to add custom headers.
+///
+/// This struct implements the `Service` trait, allowing it to intercept
+/// HTTP requests and responses. It adds the following headers to the response:
+/// - `x-request-id`: A unique identifier for the request.
+/// - `x-response-time-ms`: The time taken to process the request in milliseconds.
+/// - `x-status-description`: A description of the status code, if available.
+///
+/// # Types
+/// - `Response`: The type of the response, which is `ServiceResponse<B>`.
+/// - `Error`: The type of the error, which is `Error`.
+/// - `Future`: The type of the future, which is `LocalBoxFuture<'static, Result<Self::Response, Self::Error>>`.
+///
+/// # Methods
+/// - `poll_ready`: Checks if the service is ready to accept a request.
+/// - `call`: Intercepts the request, processes it, and adds custom headers to the response.
+///
+/// # Arguments
+/// - `cx`: The context for the poll_ready method.
+/// - `req`: The service request to be intercepted.
+///
+/// # Returns
+/// - `poll_ready`: A `Poll` indicating if the service is ready.
+/// - `call`: A future that resolves to the intercepted response with custom headers.
 use actix_service::{Service, Transform};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::http::header::{HeaderName, HeaderValue};

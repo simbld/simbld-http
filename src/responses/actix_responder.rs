@@ -1,3 +1,13 @@
+/// The code defines a custom response struct and a handler function for Actix-Web that generates an HTTP response based on the custom response.
+///
+/// Arguments:
+///
+/// * `custom_response`: The `custom_response` parameter in the `custom_response_handler` function is of type `web::Data<CustomResponse>`. It represents a shared state containing an instance of the `CustomResponse` struct, which holds a response code of type `ResponsesTypes`. This parameter allows access to the `
+/// * `req`: The `req` parameter in the `custom_response_handler` function is of type `HttpRequest`. It represents the incoming HTTP request that the handler function is processing. The `HttpRequest` type provides access to various details of the incoming request such as headers, method, URI, and other request-related information.
+///
+/// Returns:
+///
+/// The `custom_response_handler` function returns an `actix_web::HttpResponse`. This function takes a `web::Data<CustomResponse>` and an `HttpRequest` as input parameters, retrieves the `CustomResponse` from the `web::Data`, clones it, and then calls the `respond_to` method on the cloned `CustomResponse` to generate an `HttpResponse` based on the response code
 use crate::responses::ResponsesTypes;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 

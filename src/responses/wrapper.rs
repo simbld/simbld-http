@@ -1,3 +1,27 @@
+/// This module provides functions to generate HTTP response functions based on enum variants.
+///
+/// # Functions
+///
+/// - `generate_responses`: Generates functions that return a tuple containing the HTTP status code and a static string representation of the variant.
+/// - `generate_responses_with_metadata`: Generates functions that return a string response enriched with metadata.
+///
+/// # Example
+///
+/// ```rust
+///
+/// let responses = generate_responses();
+/// println!("{}", responses);
+///
+/// let responses_with_metadata = generate_responses_with_metadata();
+/// println!("{}", responses_with_metadata);
+/// ```
+///
+/// # Details
+///
+/// Both functions iterate over all variants of an enum `T` and generate two functions for each variant:
+/// one with a snake_case name and one with a CamelCase name. The `generate_responses` function creates
+/// functions that return a tuple `(u16, &'static str)`, while the `generate_responses_with_metadata` function
+/// creates functions that return a string enriched with metadata.
 use inflector::Inflector;
 use strum::IntoEnumIterator;
 

@@ -46,7 +46,7 @@ fn examples_with_helpers() {
   println!("=== Examples with Helpers ===");
 
   // Example 1: Using standard HTTP codes
-  let response = ResponsesInformationalCodes::Continue;
+  let response = ResponsesInformationalCodes::ContinueRequest;
   println!("{} - {}", response as u16, response.get_str("Description").unwrap_or("No description"));
 
   // Example 2: Using ResponsesTypes for success codes

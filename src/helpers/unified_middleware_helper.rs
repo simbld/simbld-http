@@ -1,3 +1,11 @@
+/// The code defines a unified middleware in Rust for managing CORS, advanced logs, and rate limiting in Actix Web.
+///
+/// Properties:
+///
+/// * `allowed_origins`: The `allowed_origins` property is a list of strings representing the origins that are allowed to make requests to the server. This is used for Cross-Origin Resource Sharing (CORS) checks to ensure that requests are only accepted from specified origins.
+/// * `rate_limiters`: The `rate_limiters` property in the `UnifiedMiddleware` struct is a shared state that stores information about the rate limiting for different clients based on their IP addresses. It is a `HashMap` that maps client IP addresses to a tuple containing the number of requests made by the client and the start
+/// * `max_requests`: The `max_requests` property in the `UnifiedMiddleware` struct represents the maximum number of requests allowed within a specified time window for rate limiting purposes. It is used to limit the number of requests a client can make within a certain duration.
+/// * `window_duration`: The `window_duration` property in the `UnifiedMiddleware` struct represents the duration of the time window for rate limiting. Requests from a client IP address are counted within this time window to enforce rate limits. It is used to determine the period over which the maximum number of requests allowed (`max_requests`)
 use actix_service::{Service, Transform};
 use actix_web::body::{BoxBody, EitherBody, MessageBody};
 use actix_web::{
@@ -142,13 +150,13 @@ where
 }
 
 #[cfg(test)]
-/// Ce module contient des tests pour le middleware unifié.
+/// This module contains tests for unified middleware.
 ///
 /// # Tests
 ///
-/// * `test_rate_limiting` - Vérifie que la limitation de débit fonctionne correctement.
-///   - Initialise le middleware avec une limite de 2 requêtes par fenêtre de 60 secondes.
-///   - Envoie trois requêtes et vérifie que les deux premières réussissent et que la troisième échoue avec un statut `TOO_MANY_REQUESTS`.
+/// * `test_rate_limiting` - Checks that rate limiting is working correctly.
+/// - Initializes the middleware with a limit of 2 requests per 60 second window.
+/// - Sends three requests and checks that the first two succeed and the third fails with a status `TOO_MANY_REQUESTS`.
 mod tests {
   use super::*;
   use actix_web::{test, web, App, HttpResponse};
