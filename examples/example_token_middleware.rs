@@ -1,8 +1,8 @@
 use actix_web::http::StatusCode; // Import for StatusCode
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use simbld_http::helpers::response_helpers::{
-  authentication_successful, invalid_token, missing_token, page_expired,
-};
+use simbld_http::responses::client::{invalid_token, page_expired};
+use simbld_http::responses::local::missing_token;
+use simbld_http::responses::success::authentication_successful;
 use simbld_http::AuthMiddleware;
 
 /// Checks if a token is valid or not.
