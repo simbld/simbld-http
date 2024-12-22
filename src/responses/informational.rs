@@ -1,6 +1,7 @@
 /// The above Rust code defines an enum representing informational HTTP response codes with associated descriptions and provides functions to retrieve code-description pairs.
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use serde_json::json;
 use strum::EnumProperty;
 use strum_macros::{Display, EnumIter, EnumProperty};
 
@@ -71,44 +72,95 @@ impl Into<(u16, &'static str)> for ResponsesInformationalCodes {
   }
 }
 
-pub fn continue_request() -> (u16, &'static str) {
+pub fn continue_request_tuple() -> (u16, &'static str) {
   (100, "The server has received the initial part of the request, the headers, and asks the client to continue request, proceed to send the body of the request, a POST request")
 }
 
-pub fn switching_protocols() -> (u16, &'static str) {
+pub fn switching_protocols_tuple() -> (u16, &'static str) {
   (101, "The server is complying with a request to switch protocols, used in WebSocket connections")
 }
 
-pub fn processing() -> (u16, &'static str) {
+pub fn processing_tuple() -> (u16, &'static str) {
   (102, "Indicates the server is processing the request but has not yet finished, used to prevent timeout errors in asynchronous operations, webdav RFC 2518")
 }
 
-pub fn early_hints() -> (u16, &'static str) {
+pub fn early_hints_tuple() -> (u16, &'static str) {
   (103, "Experimental: The server provides preliminary hints to the client, such as preloading resources while the final response is being prepared")
 }
 
-pub fn connection_reset_by_peer() -> (u16, &'static str) {
+pub fn connection_reset_by_peer_tuple() -> (u16, &'static str) {
   (104, "The connection was forcibly closed by a peer, possibly due to a protocol error, a timeout, or a network issue")
 }
 
-pub fn name_not_resolved() -> (u16, &'static str) {
+pub fn name_not_resolved_tuple() -> (u16, &'static str) {
   (105, "The server could not resolve the domain name provided in the request, indicating a DNS lookup failure, The requested hostname cannot be resolved to an IP address")
 }
 
-pub fn no_response() -> (u16, &'static str) {
+pub fn no_response_tuple() -> (u16, &'static str) {
   (106, "The server did not provide a response, possibly due to a timeout or a connection issue, The server didn’t send any response within the timeout period. This status code is not specified in any RFCs, but it is used in some scenarios to indicate that the server closed the connection without sending any response")
 }
 
-pub fn retry_with() -> (u16, &'static str) {
+pub fn retry_with_tuple() -> (u16, &'static str) {
   (107, "The server indicates that the client should retry the request with appropriate changes or additional information, new or different credentials, use a different protocol or in a different location")
 }
 
-pub fn response_is_stale() -> (u16, &'static str) {
+pub fn response_is_stale_tuple() -> (u16, &'static str) {
   (108, "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired")
 }
 
-pub fn revalidation_failed() -> (u16, &'static str) {
+pub fn revalidation_failed_tuple() -> (u16, &'static str) {
   (109, "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired")
+}
+
+// Full response with status code and description encapsulated in a JSON response
+pub fn continue_request() -> (u16, serde_json::Value) {
+  let (code, description) = continue_request_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn switching_protocols() -> (u16, serde_json::Value) {
+  let (code, description) = switching_protocols_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn processing() -> (u16, serde_json::Value) {
+  let (code, description) = processing_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn early_hints() -> (u16, serde_json::Value) {
+  let (code, description) = early_hints_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn connection_reset_by_peer() -> (u16, serde_json::Value) {
+  let (code, description) = connection_reset_by_peer_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn name_not_resolved() -> (u16, serde_json::Value) {
+  let (code, description) = name_not_resolved_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn no_response() -> (u16, serde_json::Value) {
+  let (code, description) = no_response_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn retry_with() -> (u16, serde_json::Value) {
+  let (code, description) = retry_with_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn response_is_stale() -> (u16, serde_json::Value) {
+  let (code, description) = response_is_stale_tuple();
+  (code, json!({ "code": code, "description": description }))
+}
+
+pub fn revalidation_failed() -> (u16, serde_json::Value) {
+  let (code, description) = revalidation_failed_tuple();
+  (code, json!({ "code": code, "description": description }))
 }
 
 #[cfg(test)]
@@ -132,12 +184,29 @@ mod tests {
 
   #[test]
   fn test_early_hints() {
-    assert_eq!(early_hints(), (103, "Experimental: The server provides preliminary hints to the client, such as preloading resources while the final response is being prepared"))
+    assert_eq!(early_hints_tuple(), (103, "Experimental: The server provides preliminary hints to the client, such as preloading resources while the final response is being prepared"))
   }
 
   #[test]
   fn test_from_u16_processing() {
     let response = ResponsesInformationalCodes::from_u16(102);
     assert_eq!(response, Some(ResponsesInformationalCodes::Processing));
+  }
+
+  #[test]
+  fn test_retry_with() {
+    let (code, response) = retry_with();
+    assert_eq!(code, 107);
+    assert_eq!(
+      response,
+      json!({ "code": 107, "description": "The server indicates that the client should retry the request with appropriate changes or additional information, new or different credentials, use a different protocol or in a different location" })
+    );
+  }
+
+  #[test]
+  fn test_response_is_stale() {
+    let (code, response) = response_is_stale_tuple();
+    assert_eq!(code, 108);
+    assert_eq!(response, "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired");
   }
 }
