@@ -47,18 +47,21 @@ pub enum ResponsesCrawlerCodes {
   RedirectedToAnotherURL = 3021,
 }
 
+/// implementation of a custom trait `ToU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “to_u16” method which converts a value from the enumeration into a “u16” type. Self accesses the value of the enum In the implementation, it calls the `into()` method to perform the conversion, which relies on the `Into<u16>` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
 impl ToU16 for ResponsesCrawlerCodes {
   fn to_u16(self) -> u16 {
     self.into() // Conversion`Into<u16>`
   }
 }
 
+/// implementation of a custom trait `FromU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “from_u16” method which converts a value from the enumeration into an `Option<Self>` type. The method uses the `try_from` method to perform the conversion, which relies on the `TryFromPrimitive` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
 impl FromU16 for ResponsesCrawlerCodes {
   fn from_u16(code: u16) -> Option<Self> {
     Self::try_from(code).ok() // Conversion`TryFrom<u16>`
   }
 }
 
+/// implementation of a custom trait `Into` for the `ResponsesLocalApiCodes` enumeration. We provide an “into” method which converts a value from the enumeration into a tuple containing a `u16` and a `&'static str`. The method calls the `to_u16` method to get the status code and the `get_str` method to get the description. The `unwrap_or` method is used to provide a default value in case the description is not found. The method returns the tuple containing the status code and the description
 impl Into<(u16, &'static str)> for ResponsesCrawlerCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
@@ -67,6 +70,7 @@ impl Into<(u16, &'static str)> for ResponsesCrawlerCodes {
   }
 }
 
+/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
 pub fn parsing_error_unfinished_header_tuple() -> (u16, &'static str) {
   (700, "Parsing error: unfinished header")
 }
@@ -131,7 +135,7 @@ pub fn redirected_to_another_url_tuple() -> (u16, &'static str) {
   (3021, "Redirected to another URL")
 }
 
-// Full response with status code and description encapsulated in a JSON response
+/// The functions returns a tuple containing a status code and a JSON value with status and description fields.
 pub fn parsing_error_unfinished_header() -> (u16, serde_json::Value) {
   let (code, desc) = parsing_error_unfinished_header_tuple();
   (code, json!({ "status": code, "description": desc }))
@@ -212,6 +216,7 @@ pub fn redirected_to_another_url() -> (u16, serde_json::Value) {
   (code, json!({ "status": code, "description": desc }))
 }
 
+// Unit tests
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -243,16 +248,16 @@ mod tests {
   }
 
   #[test]
-  fn test_no_index_meta_tag() {
-    let (code, response) = no_index_meta_tag();
-    assert_eq!(code, 2004);
-    assert_eq!(response, json!({ "status": 2004, "description": "No index meta tag" }));
-  }
-
-  #[test]
   fn test_programmable_redirection() {
     let (code, response) = programmable_redirection_tuple();
     assert_eq!(code, 3020);
     assert_eq!(response, "Programmable redirection");
+  }
+
+  #[test]
+  fn test_no_index_meta_tag() {
+    let (code, response) = no_index_meta_tag();
+    assert_eq!(code, 2004);
+    assert_eq!(response, json!({ "status": 2004, "description": "No index meta tag" }));
   }
 }
