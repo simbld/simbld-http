@@ -52,18 +52,21 @@ pub enum ResponsesInformationalCodes {
   RevalidationFailed = 109,
 }
 
+/// implementation of a custom trait `ToU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “to_u16” method which converts a value from the enumeration into a “u16” type. Self accesses the value of the enum In the implementation, it calls the `into()` method to perform the conversion, which relies on the `Into<u16>` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
 impl ToU16 for ResponsesInformationalCodes {
   fn to_u16(self) -> u16 {
     self.into() // Conversion`Into<u16>`
   }
 }
 
+/// implementation of a custom trait `FromU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “from_u16” method which converts a value from the enumeration into an `Option<Self>` type. The method uses the `try_from` method to perform the conversion, which relies on the `TryFromPrimitive` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
 impl FromU16 for ResponsesInformationalCodes {
   fn from_u16(code: u16) -> Option<Self> {
     Self::try_from(code).ok() // Conversion`TryFrom<u16>`
   }
 }
 
+/// implementation of a custom trait `Into` for the `ResponsesLocalApiCodes` enumeration. We provide an “into” method which converts a value from the enumeration into a tuple containing a `u16` and a `&'static str`. The method calls the `to_u16` method to get the status code and the `get_str` method to get the description. The `unwrap_or` method is used to provide a default value in case the description is not found. The method returns the tuple containing the status code and the description
 impl Into<(u16, &'static str)> for ResponsesInformationalCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
@@ -72,6 +75,7 @@ impl Into<(u16, &'static str)> for ResponsesInformationalCodes {
   }
 }
 
+/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
 pub fn continue_request_tuple() -> (u16, &'static str) {
   (100, "The server has received the initial part of the request, the headers, and asks the client to continue request, proceed to send the body of the request, a POST request")
 }
@@ -114,55 +118,56 @@ pub fn revalidation_failed_tuple() -> (u16, &'static str) {
 
 // Full response with status code and description encapsulated in a JSON response
 pub fn continue_request() -> (u16, serde_json::Value) {
-  let (code, description) = continue_request_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = continue_request_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn switching_protocols() -> (u16, serde_json::Value) {
-  let (code, description) = switching_protocols_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = switching_protocols_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn processing() -> (u16, serde_json::Value) {
-  let (code, description) = processing_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = processing_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn early_hints() -> (u16, serde_json::Value) {
-  let (code, description) = early_hints_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = early_hints_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn connection_reset_by_peer() -> (u16, serde_json::Value) {
-  let (code, description) = connection_reset_by_peer_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = connection_reset_by_peer_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn name_not_resolved() -> (u16, serde_json::Value) {
-  let (code, description) = name_not_resolved_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = name_not_resolved_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn no_response() -> (u16, serde_json::Value) {
-  let (code, description) = no_response_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = no_response_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn retry_with() -> (u16, serde_json::Value) {
-  let (code, description) = retry_with_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = retry_with_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn response_is_stale() -> (u16, serde_json::Value) {
-  let (code, description) = response_is_stale_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = response_is_stale_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
 pub fn revalidation_failed() -> (u16, serde_json::Value) {
-  let (code, description) = revalidation_failed_tuple();
-  (code, json!({ "code": code, "description": description }))
+  let (code, desc) = revalidation_failed_tuple();
+  (code, json!({ "status": code, "description": desc }))
 }
 
+// Unit tests
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -194,19 +199,19 @@ mod tests {
   }
 
   #[test]
+  fn test_response_is_stale() {
+    let (code, response) = response_is_stale_tuple();
+    assert_eq!(code, 108);
+    assert_eq!(response, "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired");
+  }
+
+  #[test]
   fn test_retry_with() {
     let (code, response) = retry_with();
     assert_eq!(code, 107);
     assert_eq!(
       response,
-      json!({ "code": 107, "description": "The server indicates that the client should retry the request with appropriate changes or additional information, new or different credentials, use a different protocol or in a different location" })
+      json!({ "status": 107, "description": "The server indicates that the client should retry the request with appropriate changes or additional information, new or different credentials, use a different protocol or in a different location" })
     );
-  }
-
-  #[test]
-  fn test_response_is_stale() {
-    let (code, response) = response_is_stale_tuple();
-    assert_eq!(code, 108);
-    assert_eq!(response, "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired");
   }
 }
