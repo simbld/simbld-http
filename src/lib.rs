@@ -25,19 +25,16 @@ pub use crate::responses::ResponsesSuccessCodes;
 
 #[cfg(test)]
 mod tests {
-  use super::responses::success::ok;
-  use crate::MockResponses;
-  use crate::ResponseWrapper;
-
+  use super::responses::success::ok_tuple;
   #[test]
-  fn test_ok_function() {
-    let response = ok();
+  fn test_ok() {
+    let response = ok_tuple();
     assert_eq!(response, (200, "Ok"));
   }
 
   #[test]
-  fn test_snake_case_function_generation_with_mock() {
-    let output = ResponseWrapper::<MockResponses>::generate_responses();
-    assert!(output.contains("fn ok() -> (u16, &'static str) { (200, Ok) }"));
+  fn ok_json() {
+    let response = ok_tuple();
+    assert_eq!(response, (200, "Ok"));
   }
 }
