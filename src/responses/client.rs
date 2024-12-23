@@ -235,18 +235,21 @@ pub enum ResponsesClientCodes {
   ClientClosedRequest = 499,
 }
 
+/// implementation of a custom trait `ToU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “to_u16” method which converts a value from the enumeration into a “u16” type. Self accesses the value of the enum In the implementation, it calls the `into()` method to perform the conversion, which relies on the `Into<u16>` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
 impl ToU16 for ResponsesClientCodes {
   fn to_u16(self) -> u16 {
     self.into() // Conversion`Into<u16>`
   }
 }
 
+/// implementation of a custom trait `FromU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “from_u16” method which converts a value from the enumeration into an `Option<Self>` type. The method uses the `try_from` method to perform the conversion, which relies on the `TryFromPrimitive` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
 impl FromU16 for ResponsesClientCodes {
   fn from_u16(code: u16) -> Option<Self> {
     Self::try_from(code).ok() // Conversion`TryFrom<u16>`
   }
 }
 
+/// implementation of a custom trait `Into` for the `ResponsesLocalApiCodes` enumeration. We provide an “into” method which converts a value from the enumeration into a tuple containing a `u16` and a `&'static str`. The method calls the `to_u16` method to get the status code and the `get_str` method to get the description. The `unwrap_or` method is used to provide a default value in case the description is not found. The method returns the tuple containing the status code and the description
 impl Into<(u16, &'static str)> for ResponsesClientCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
@@ -255,7 +258,7 @@ impl Into<(u16, &'static str)> for ResponsesClientCodes {
   }
 }
 
-// Tuple http status code and description
+/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
 pub fn bad_request_tuple() -> (u16, &'static str) {
   (400, "The server cannot process the request due to malformed syntax or invalid parameters in the client request")
 }
@@ -501,7 +504,7 @@ pub fn client_closed_request_tuple() -> (u16, &'static str) {
   (499, "The client closed the connection before the server could provide a response, often due to client timeout or network interruption, nginx, unofficial")
 }
 
-// Full response with status code and description encapsulated in a JSON response
+/// The functions returns a tuple containing a status code and a JSON value with status and description fields.
 pub fn bad_request() -> (u16, serde_json::Value) {
   let (code, desc) = bad_request_tuple();
   (code, json!({ "status": code, "description": desc }))
@@ -782,6 +785,7 @@ pub fn client_closed_request() -> (u16, serde_json::Value) {
   (code, json!({ "status": code, "description": desc }))
 }
 
+// Unit tests
 #[cfg(test)]
 mod tests {
   use super::*;
