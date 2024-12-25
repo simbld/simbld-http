@@ -71,149 +71,165 @@ impl Into<(u16, &'static str)> for ResponsesCrawlerCodes {
 }
 
 /// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
-pub fn parsing_error_unfinished_header_tuple() -> (u16, &'static str) {
-  (700, "Parsing error: unfinished header")
+pub fn parsing_error_unfinished_header_tuple() -> (u16, &'static str, &'static str) {
+  (700, "Parsing error: unfinished header", "The header is incomplete and cannot be parsed")
 }
 
-pub fn parsing_error_header_tuple() -> (u16, &'static str) {
-  (710, "Parsing error: header")
+pub fn parsing_error_header_tuple() -> (u16, &'static str, &'static str) {
+  (710, "Parsing error: header", "The header is invalid and cannot be parsed")
 }
 
-pub fn parsing_error_missing_http_code_tuple() -> (u16, &'static str) {
-  (720, "Parsing error: missing HTTP code")
+pub fn parsing_error_missing_http_code_tuple() -> (u16, &'static str, &'static str) {
+  (720, "Parsing error: missing HTTP code", "The HTTP code is missing and cannot be parsed")
 }
 
-pub fn parsing_error_body_tuple() -> (u16, &'static str) {
-  (730, "Parsing error: body")
+pub fn parsing_error_body_tuple() -> (u16, &'static str, &'static str) {
+  (730, "Parsing error: body", "The body is invalid and cannot be parsed")
 }
 
-pub fn excluded_by_robots_txt_file_tuple() -> (u16, &'static str) {
-  (740, "Excluded by robots.txt file")
+pub fn excluded_by_robots_txt_file_tuple() -> (u16, &'static str, &'static str) {
+  (740, "Excluded by robots.txt file", "The URL is excluded by the robots.txt file")
 }
 
-pub fn robots_temporarily_unavailable_tuple() -> (u16, &'static str) {
-  (741, "Robots temporarily unavailable")
+pub fn robots_temporarily_unavailable_tuple() -> (u16, &'static str, &'static str) {
+  (741, "Robots temporarily unavailable", "The robots are temporarily unavailable")
 }
 
-pub fn excluded_by_definition_of_exploration_space_tuple() -> (u16, &'static str) {
-  (760, "Excluded by definition of exploration space")
+pub fn excluded_by_definition_of_exploration_space_tuple() -> (u16, &'static str, &'static str) {
+  (
+    760,
+    "Excluded by definition of exploration space",
+    "The URL is excluded by the definition of the exploration space",
+  )
 }
 
-pub fn not_allowed_by_local_exploration_space_tuple() -> (u16, &'static str) {
-  (761, "Not allowed by local exploration space")
+pub fn not_allowed_by_local_exploration_space_tuple() -> (u16, &'static str, &'static str) {
+  (
+    761,
+    "Not allowed by local exploration space",
+    "The URL is not allowed by the local exploration space",
+  )
 }
 
-pub fn incorrect_protocol_or_non_standard_system_port_tuple() -> (u16, &'static str) {
-  (770, "Incorrect protocol or non-standard system port")
+pub fn incorrect_protocol_or_non_standard_system_port_tuple() -> (u16, &'static str, &'static str) {
+  (
+    770,
+    "Incorrect protocol or non-standard system port",
+    "The protocol is incorrect or the system port is non-standard",
+  )
 }
 
-pub fn excluded_by_file_type_exclusions_tuple() -> (u16, &'static str) {
-  (780, "Excluded by file type exclusions")
+pub fn excluded_by_file_type_exclusions_tuple() -> (u16, &'static str, &'static str) {
+  (780, "Excluded by file type exclusions", "The URL is excluded by the file type exclusions")
 }
 
-pub fn invalid_card_tuple() -> (u16, &'static str) {
-  (781, "Invalid card - Not a physical card")
+pub fn invalid_card_tuple() -> (u16, &'static str, &'static str) {
+  (781, "Invalid card - Not a physical card", "The card is invalid and not a physical card")
 }
 
-pub fn cannot_disable_physical_card_tuple() -> (u16, &'static str) {
-  (782, "Cannot disable physical card OR Print card request already requested")
+pub fn cannot_disable_physical_card_tuple() -> (u16, &'static str, &'static str) {
+  (
+    782,
+    "Cannot disable physical card OR Print card request already requested",
+    "The physical card cannot be disabled or the print card request has already been requested",
+  )
 }
 
-pub fn invalid_url_tuple() -> (u16, &'static str) {
-  (786, "Invalid URL")
+pub fn invalid_url_tuple() -> (u16, &'static str, &'static str) {
+  (786, "Invalid URL", "The URL is invalid")
 }
 
-pub fn no_index_meta_tag_tuple() -> (u16, &'static str) {
-  (2004, "No index meta tag")
+pub fn no_index_meta_tag_tuple() -> (u16, &'static str, &'static str) {
+  (2004, "No index meta tag", "The URL has no index meta tag")
 }
 
-pub fn programmable_redirection_tuple() -> (u16, &'static str) {
-  (3020, "Programmable redirection")
+pub fn programmable_redirection_tuple() -> (u16, &'static str, &'static str) {
+  (3020, "Programmable redirection", "The URL is programmably redirected")
 }
 
-pub fn redirected_to_another_url_tuple() -> (u16, &'static str) {
-  (3021, "Redirected to another URL")
+pub fn redirected_to_another_url_tuple() -> (u16, &'static str, &'static str) {
+  (3021, "Redirected to another URL", "The URL is redirected to another URL")
 }
 
 /// The functions returns a tuple containing a status code and a JSON value with status and description fields.
-pub fn parsing_error_unfinished_header() -> (u16, serde_json::Value) {
-  let (code, desc) = parsing_error_unfinished_header_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn parsing_error_unfinished_header() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = parsing_error_unfinished_header_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn parsing_error_header() -> (u16, serde_json::Value) {
-  let (code, desc) = parsing_error_header_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn parsing_error_header() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = parsing_error_header_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn parsing_error_missing_http_code() -> (u16, serde_json::Value) {
-  let (code, desc) = parsing_error_missing_http_code_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn parsing_error_missing_http_code() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = parsing_error_missing_http_code_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn parsing_error_body() -> (u16, serde_json::Value) {
-  let (code, desc) = parsing_error_body_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn parsing_error_body() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = parsing_error_body_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn excluded_by_robots_txt_file() -> (u16, serde_json::Value) {
-  let (code, desc) = excluded_by_robots_txt_file_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn excluded_by_robots_txt_file() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = excluded_by_robots_txt_file_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn robots_temporarily_unavailable() -> (u16, serde_json::Value) {
-  let (code, desc) = robots_temporarily_unavailable_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn robots_temporarily_unavailable() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = robots_temporarily_unavailable_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn excluded_by_definition_of_exploration_space() -> (u16, serde_json::Value) {
-  let (code, desc) = excluded_by_definition_of_exploration_space_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn excluded_by_definition_of_exploration_space() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = excluded_by_definition_of_exploration_space_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn not_allowed_by_local_exploration_space() -> (u16, serde_json::Value) {
-  let (code, desc) = not_allowed_by_local_exploration_space_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn not_allowed_by_local_exploration_space() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = not_allowed_by_local_exploration_space_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn incorrect_protocol_or_non_standard_system_port() -> (u16, serde_json::Value) {
-  let (code, desc) = incorrect_protocol_or_non_standard_system_port_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn incorrect_protocol_or_non_standard_system_port() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = incorrect_protocol_or_non_standard_system_port_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn excluded_by_file_type_exclusions() -> (u16, serde_json::Value) {
-  let (code, desc) = excluded_by_file_type_exclusions_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn excluded_by_file_type_exclusions() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = excluded_by_file_type_exclusions_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn invalid_card() -> (u16, serde_json::Value) {
-  let (code, desc) = invalid_card_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn invalid_card() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = invalid_card_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn cannot_disable_physical_card() -> (u16, serde_json::Value) {
-  let (code, desc) = cannot_disable_physical_card_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn cannot_disable_physical_card() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = cannot_disable_physical_card_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn invalid_url() -> (u16, serde_json::Value) {
-  let (code, desc) = invalid_url_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn invalid_url() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = invalid_url_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn no_index_meta_tag() -> (u16, serde_json::Value) {
-  let (code, desc) = no_index_meta_tag_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn no_index_meta_tag() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = no_index_meta_tag_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn programmable_redirection() -> (u16, serde_json::Value) {
-  let (code, desc) = programmable_redirection_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn programmable_redirection() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = programmable_redirection_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn redirected_to_another_url() -> (u16, serde_json::Value) {
-  let (code, desc) = redirected_to_another_url_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn redirected_to_another_url() -> (u16, &'static str, serde_json::Value) {
+  let (code, name, desc) = redirected_to_another_url_tuple();
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
 // Unit tests
@@ -238,7 +254,10 @@ mod tests {
 
   #[test]
   fn test_parsing_error_missing_http_code() {
-    assert_eq!(parsing_error_missing_http_code_tuple(), (720, "Parsing error: missing HTTP code"));
+    assert_eq!(
+      parsing_error_missing_http_code_tuple(),
+      (720, "Parsing error: missing HTTP code", "The HTTP code is missing and cannot be parsed")
+    );
   }
 
   #[test]
@@ -249,15 +268,19 @@ mod tests {
 
   #[test]
   fn test_programmable_redirection() {
-    let (code, response) = programmable_redirection_tuple();
-    assert_eq!(code, 3020);
-    assert_eq!(response, "Programmable redirection");
+    assert_eq!(
+      programmable_redirection_tuple(),
+      (3020, "Programmable redirection", "The URL is programmably redirected")
+    );
   }
 
   #[test]
   fn test_no_index_meta_tag() {
-    let (code, response) = no_index_meta_tag();
+    let (code, name, response) = no_index_meta_tag();
     assert_eq!(code, 2004);
-    assert_eq!(response, json!({ "status": 2004, "description": "No index meta tag" }));
+    assert_eq!(name, "No index meta tag");
+    assert_eq!(response["status"], 2004);
+    assert_eq!(response["name"], "No index meta tag");
+    assert_eq!(response["description"], "The URL has no index meta tag");
   }
 }
