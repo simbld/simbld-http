@@ -816,9 +816,9 @@ pub fn too_many_forwarded_ip_addresses() -> (u16, &'static str, serde_json::Valu
   (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
-pub fn internet_security_error() -> (u16, serde_json::Value) {
+pub fn internet_security_error() -> (u16, &'static str, serde_json::Value) {
   let (code, name, desc) = internet_security_error_tuple();
-  (code, json!({ "status": code, "name": name, "description": desc }))
+  (code, name, json!({ "status": code, "name": name, "description": desc }))
 }
 
 pub fn temporary_unavailable() -> (u16, &'static str, serde_json::Value) {
