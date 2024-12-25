@@ -246,6 +246,11 @@ pub fn network_connect_timeout_error_tuple() -> (u16, &'static str) {
 }
 
 /// The functions returns a tuple containing a status code and a JSON value with status and description fields.
+pub fn internal_server_error() -> (u16, serde_json::Value) {
+  let (code, desc) = internal_server_error_tuple();
+  (code, json!({ "status": code, "description": desc }))
+}
+
 pub fn gateway_timeout() -> (u16, serde_json::Value) {
   let (code, desc) = gateway_timeout_tuple();
   (code, json!({ "status": code, "description": desc }))
