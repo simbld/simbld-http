@@ -1,13 +1,17 @@
 use actix_web::{web, App, HttpServer};
+use simbld_http::helpers::to_u16_helper::ToU16;
 use simbld_http::responses::actix_responder::custom_response_handler;
-use simbld_http::responses::{CustomResponse, ResponsesTypes};
+use simbld_http::responses::CustomResponse;
 use simbld_http::ResponsesSuccessCodes;
+use strum::EnumProperty;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-  let custom_response = CustomResponse {
-    code: ResponsesTypes::Success(ResponsesSuccessCodes::Ok),
-  };
+  let custom_response = CustomResponse::new(
+    ResponsesSuccessCodes::Ok.to_u16(),
+    "OK",
+    ResponsesSuccessCodes::Ok.get_str("Description").unwrap_or("No description"),
+  );
 
   HttpServer::new(move || {
     App::new()
