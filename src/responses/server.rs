@@ -136,229 +136,296 @@ impl Into<(u16, &'static str)> for ResponsesServerCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
+    (code, description)
   }
 }
 
-/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
-pub fn internal_server_error_tuple() -> (u16, &'static str) {
-  (500, "The server encountered an unexpected condition that prevented it from fulfilling the request. This could be due to a misconfiguration, an unhandled exception, or resource exhaustion")
+/// Functions return raw data as a tuple for further processing or formats containing HTTP status code, status message and description of various client error responses.
+pub fn internal_server_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::InternalServerError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Internal Server Error", description)
 }
 
-pub fn not_implemented_tuple() -> (u16, &'static str) {
-  (501, "The server does not support the functionality required to fulfill the request. This might be because the server does not recognize the request method or lacks the capability to process it")
+pub fn not_implemented_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::NotImplemented;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Not Implemented", description)
 }
 
-pub fn bad_gateway_tuple() -> (u16, &'static str) {
-  (502, "The server, while acting as a gateway or proxy, received an invalid response from an upstream server. This could be due to the upstream server being down or misconfigured")
+pub fn bad_gateway_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::BadGateway;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Bad Gateway", description)
 }
 
-pub fn service_unavailable_tuple() -> (u16, &'static str) {
-  (503, "The server is currently unable to handle the request due to temporary overloading or maintenance. This is usually a temporary state")
+pub fn service_unavailable_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::ServiceUnavailable;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Service Unavailable", description)
 }
 
-pub fn gateway_timeout_tuple() -> (u16, &'static str) {
-  (504, "The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server. This could be due to network congestion or the upstream server being overloaded")
+pub fn gateway_timeout_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::GatewayTimeout;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Gateway Timeout", description)
 }
 
-pub fn http_version_not_supported_tuple() -> (u16, &'static str) {
-  (505, "The server does not support the HTTP protocol version used in the request. This prevents the server from processing the request")
+pub fn http_version_not_supported_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::HTTPVersionNotSupported;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "HTTP Version Not Supported", description)
 }
 
-pub fn variant_also_negotiates_tuple() -> (u16, &'static str) {
-  (506, "The server encountered a configuration error in transparent content negotiation. This resulted in a circular reference that prevents the server from serving the requested content")
+pub fn variant_also_negotiates_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::VariantAlsoNegotiates;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Variant Also Negotiates", description)
 }
 
-pub fn insufficient_storage_tuple() -> (u16, &'static str) {
-  (507, "The server is unable to store the representation needed to complete the request. This could be due to storage limits being reached or allocation constraints")
+pub fn insufficient_storage_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::InsufficientStorage;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Insufficient Storage", description)
 }
 
-pub fn loop_detected_tuple() -> (u16, &'static str) {
-  (508, "The server detected an infinite loop while processing a request. This is often due to circular references or recursive function calls in WebDAV configurations, RFC 5842")
+pub fn loop_detected_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::LoopDetected;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Loop Detected", description)
 }
 
-pub fn bandwidth_limit_exceeded_tuple() -> (u16, &'static str) {
-  (509, "The server's bandwidth limit has been exceeded. This limit is typically set by the administrator and prevents further data transfer until the limit resets, often used by hosting providers to prevent abuse, apache, unofficial, Cpanel")
+pub fn bandwidth_limit_exceeded_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::BandwidthLimitExceeded;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Bandwidth Limit Exceeded", description)
 }
 
-pub fn not_extended_tuple() -> (u16, &'static str) {
-  (510, "The server requires further extensions to fulfill the request. This could mean additional client conditions or protocol extensions are necessary before the server can process the request")
+pub fn not_extended_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::NotExtended;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Not Extended", description)
 }
 
-pub fn network_authentication_required_tuple() -> (u16, &'static str) {
-  (511, "The network connection requires authentication before accessing the requested resources. This is often used by captive portals to redirect users to a login page")
+pub fn network_authentication_required_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::NetworkAuthenticationRequired;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Network Authentication Required", description)
 }
 
-pub fn unknown_error_tuple() -> (u16, &'static str) {
-  (520, "An unspecified error occurred, and the server was unable to provide more details. This is a catch-all for unexpected conditions")
+pub fn unknown_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::UnknownError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Unknown Error", description)
 }
 
-pub fn web_server_is_down_tuple() -> (u16, &'static str) {
-  (521, "Cloudflare, unofficial is currently unreachable, likely due to downtime or maintenance. This prevents the server from processing the request, and the client should try again later")
+pub fn web_server_is_down_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::WebServerIsDown;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Web Server Is Down", description)
 }
 
-pub fn connection_timed_out_tuple() -> (u16, &'static str) {
-  (522, "The connection to the server timed out before a response could be received. This could be due to network issues or server overload")
+pub fn connection_timed_out_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::ConnectionTimedOut;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Connection Timed Out", description)
 }
 
-pub fn origin_is_unreachable_tuple() -> (u16, &'static str) {
-  (523, "The origin server could not be contacted. This might be due to network issues or misconfiguration")
+pub fn origin_is_unreachable_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::OriginIsUnreachable;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Origin Is Unreachable", description)
 }
 
-pub fn timeout_occurred_tuple() -> (u16, &'static str) {
-  (524, "The operation timed out while waiting for a response from the server. This could be due to network congestion or server overload")
+pub fn timeout_occurred_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::TimeoutOccurred;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Timeout Occurred", description)
 }
 
-pub fn ssl_handshake_failed_tuple() -> (u16, &'static str) {
-  (525, "The SSL/TLS handshake failed, preventing a secure connection from being established. This could be due to certificate issues or network problems")
+pub fn ssl_handshake_failed_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::SSLHandshakeFailed;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "SSL Handshake Failed", description)
 }
 
-pub fn invalid_ssl_certificate_tuple() -> (u16, &'static str) {
-  (526, "The SSL/TLS certificate provided by the server is invalid, expired, or does not match the requested domain. This prevents the secure connection from being established")
+pub fn invalid_ssl_certificate_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::InvalidSSLCertificate;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid SSL Certificate", description)
 }
 
-pub fn railgun_error_tuple() -> (u16, &'static str) {
-  (527, "An error occurred in the Railgun service, which accelerates connections between Cloudflare and the origin server. This may indicate a misconfiguration or temporary service unavailability")
+pub fn railgun_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::RailgunError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Railgun Error", description)
 }
 
-pub fn site_is_overloaded_tuple() -> (u16, &'static str) {
-  (529, "Indicates the Qualys server cannot process the request, likely due to high traffic or resource constraints. This is a Qualys-specific status code, unofficial")
+pub fn site_is_overloaded_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::SiteIsOverloaded;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Site Is Overloaded", description)
 }
 
-pub fn site_is_frozen_tuple() -> (u16, &'static str) {
-  (530, "Indicates the Pantheon server has been frozen due to inactivity, preventing further requests from being processed. This is a Pantheon-specific status code, unofficial")
+pub fn site_is_frozen_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::SiteIsFrozen;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Site Is Frozen", description)
 }
 
-pub fn origin_dns_error_tuple() -> (u16, &'static str) {
-  (531, "The origin server encountered a DNS resolution error while attempting to process the request. This typically occurs when the domain name cannot be resolved to an IP address, possibly due to a misconfiguration or network issue")
+pub fn origin_dns_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::OriginDNSError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Origin DNS Error", description)
 }
 
-pub fn no_site_detected_tuple() -> (u16, &'static str) {
-  (561, "This error is specific to certain hosting environments. For AWS, it indicates an HTTP Authentication failure, whereas for Pantheon, it means there is a problem with the site configuration")
+pub fn no_site_detected_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::NoSiteDetected;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "No Site Detected", description)
 }
 
-pub fn network_read_timeout_error_tuple() -> (u16, &'static str) {
-  (598, "This unofficial status code indicates that the HTTP requests executed by the code failed because no local network was found or the HTTP connections to the local network returned read timeouts")
+pub fn network_read_timeout_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::NetworkReadTimeoutError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Network Read Timeout Error", description)
 }
 
-pub fn network_connect_timeout_error_tuple() -> (u16, &'static str) {
-  (599, "This unofficial status code indicates that the HTTP requests executed by the code failed because no local network was found or the HTTP connections to the local network timed out")
+pub fn network_connect_timeout_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServerCodes::NetworkConnectTimeoutError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Network Connect Timeout Error", description)
 }
 
-/// The functions returns a tuple containing a status code and a JSON value with status and description fields.
-pub fn internal_server_error() -> (u16, serde_json::Value) {
-  let (code, desc) = internal_server_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+/// Functions return formatted data as JSON containing HTTP status code, status message and description of various informational responses.
+pub fn internal_server_error() -> serde_json::Value {
+  let (code, name, desc) = internal_server_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn gateway_timeout() -> (u16, serde_json::Value) {
-  let (code, desc) = gateway_timeout_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn not_implemented() -> serde_json::Value {
+  let (code, name, desc) = not_implemented_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn http_version_not_supported() -> (u16, serde_json::Value) {
-  let (code, desc) = http_version_not_supported_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn bad_gateway() -> serde_json::Value {
+  let (code, name, desc) = bad_gateway_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn variant_also_negotiates() -> (u16, serde_json::Value) {
-  let (code, desc) = variant_also_negotiates_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn service_unavailable() -> serde_json::Value {
+  let (code, name, desc) = service_unavailable_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn insufficient_storage() -> (u16, serde_json::Value) {
-  let (code, desc) = insufficient_storage_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn gateway_timeout() -> serde_json::Value {
+  let (code, name, desc) = gateway_timeout_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn loop_detected() -> (u16, serde_json::Value) {
-  let (code, desc) = loop_detected_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn http_version_not_supported() -> serde_json::Value {
+  let (code, name, desc) = http_version_not_supported_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn bandwidth_limit_exceeded() -> (u16, serde_json::Value) {
-  let (code, desc) = bandwidth_limit_exceeded_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn variant_also_negotiates() -> serde_json::Value {
+  let (code, name, desc) = variant_also_negotiates_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn not_extended() -> (u16, serde_json::Value) {
-  let (code, desc) = not_extended_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn insufficient_storage() -> serde_json::Value {
+  let (code, name, desc) = insufficient_storage_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn network_authentication_required() -> (u16, serde_json::Value) {
-  let (code, desc) = network_authentication_required_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn loop_detected() -> serde_json::Value {
+  let (code, name, desc) = loop_detected_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn unknown_error() -> (u16, serde_json::Value) {
-  let (code, desc) = unknown_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn bandwidth_limit_exceeded() -> serde_json::Value {
+  let (code, name, desc) = bandwidth_limit_exceeded_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn web_server_is_down() -> (u16, serde_json::Value) {
-  let (code, desc) = web_server_is_down_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn not_extended() -> serde_json::Value {
+  let (code, name, desc) = not_extended_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn connection_timed_out() -> (u16, serde_json::Value) {
-  let (code, desc) = connection_timed_out_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn network_authentication_required() -> serde_json::Value {
+  let (code, name, desc) = network_authentication_required_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn origin_is_unreachable() -> (u16, serde_json::Value) {
-  let (code, desc) = origin_is_unreachable_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn unknown_error() -> serde_json::Value {
+  let (code, name, desc) = unknown_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn timeout_occurred() -> (u16, serde_json::Value) {
-  let (code, desc) = timeout_occurred_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn web_server_is_down() -> serde_json::Value {
+  let (code, name, desc) = web_server_is_down_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn ssl_handshake_failed() -> (u16, serde_json::Value) {
-  let (code, desc) = ssl_handshake_failed_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn connection_timed_out() -> serde_json::Value {
+  let (code, name, desc) = connection_timed_out_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_ssl_certificate() -> (u16, serde_json::Value) {
-  let (code, desc) = invalid_ssl_certificate_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn origin_is_unreachable() -> serde_json::Value {
+  let (code, name, desc) = origin_is_unreachable_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn railgun_error() -> (u16, serde_json::Value) {
-  let (code, desc) = railgun_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn timeout_occurred() -> serde_json::Value {
+  let (code, name, desc) = timeout_occurred_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn site_is_overloaded() -> (u16, serde_json::Value) {
-  let (code, desc) = site_is_overloaded_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn ssl_handshake_failed() -> serde_json::Value {
+  let (code, name, desc) = ssl_handshake_failed_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn site_is_frozen() -> (u16, serde_json::Value) {
-  let (code, desc) = site_is_frozen_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn invalid_ssl_certificate() -> serde_json::Value {
+  let (code, name, desc) = invalid_ssl_certificate_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn origin_dns_error() -> (u16, serde_json::Value) {
-  let (code, desc) = origin_dns_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn railgun_error() -> serde_json::Value {
+  let (code, name, desc) = railgun_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn no_site_detected() -> (u16, serde_json::Value) {
-  let (code, desc) = no_site_detected_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn site_is_overloaded() -> serde_json::Value {
+  let (code, name, desc) = site_is_overloaded_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn network_read_timeout_error() -> (u16, serde_json::Value) {
-  let (code, desc) = network_read_timeout_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn site_is_frozen() -> serde_json::Value {
+  let (code, name, desc) = site_is_frozen_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn network_connect_timeout_error() -> (u16, serde_json::Value) {
-  let (code, desc) = network_connect_timeout_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn origin_dns_error() -> serde_json::Value {
+  let (code, name, desc) = origin_dns_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
+}
+
+pub fn no_site_detected() -> serde_json::Value {
+  let (code, name, desc) = no_site_detected_tuple();
+  json!({ "status": code, "name": name, "description": desc })
+}
+
+pub fn network_read_timeout_error() -> serde_json::Value {
+  let (code, name, desc) = network_read_timeout_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
+}
+
+pub fn network_connect_timeout_error() -> serde_json::Value {
+  let (code, name, desc) = network_connect_timeout_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
 // Unit tests
@@ -369,7 +436,7 @@ mod tests {
   #[test]
   fn test_generated_function_internal_server_error() {
     let response = ResponsesServerCodes::InternalServerError;
-    let (code, description) = response.into();
+    let (code, description): (u16, &str) = response.into();
     assert_eq!(code, 500);
     assert_eq!(description, "The server encountered an unexpected condition that prevented it from fulfilling the request. This could be due to a misconfiguration, an unhandled exception, or resource exhaustion");
   }
@@ -383,7 +450,7 @@ mod tests {
 
   #[test]
   fn test_bad_gateway() {
-    assert_eq!(bad_gateway_tuple(), (502, "The server, while acting as a gateway or proxy, received an invalid response from an upstream server. This could be due to the upstream server being down or misconfigured"));
+    assert_eq!(bad_gateway_tuple(), (502, "Bad Gateway", "The server, while acting as a gateway or proxy, received an invalid response from an upstream server. This could be due to the upstream server being down or misconfigured"));
   }
 
   #[test]
@@ -394,18 +461,18 @@ mod tests {
 
   #[test]
   fn test_gateway_timeout() {
-    let (code, response) = gateway_timeout_tuple();
+    let (code, name, response) = gateway_timeout_tuple();
     assert_eq!(code, 504);
+    assert_eq!(name, "Gateway Timeout");
     assert_eq!(response, "The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server. This could be due to network congestion or the upstream server being overloaded");
   }
 
   #[test]
   fn test_http_version_not_supported() {
-    let (code, response) = http_version_not_supported();
-    assert_eq!(code, 505);
+    let response = http_version_not_supported();
     assert_eq!(
       response,
-      json!({ "status": 505, "description": "The server does not support the HTTP protocol version used in the request. This prevents the server from processing the request" })
+      json!({ "status": 505, "name": "Http Version Not Supported", "description": "The server does not support the HTTP protocol version used in the request. This prevents the server from processing the request" })
     );
   }
 }

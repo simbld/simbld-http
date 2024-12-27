@@ -248,914 +248,1088 @@ impl Into<(u16, &'static str)> for ResponsesLocalApiCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
+    (code, description)
   }
 }
 
-/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
+/// Functions return raw data as a tuple for further processing or formats containing HTTP status code, status message and description of various client error responses.
 pub fn approved_no_action_required_tuple() -> (u16, &'static str, &'static str) {
-  (900, "Approved No Action Required", "The operation was approved and no further action is needed")
+  let code = ResponsesLocalApiCodes::ApprovedNoActionRequired;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Approved No Action Required", description)
 }
 
 pub fn approved_tuple() -> (u16, &'static str, &'static str) {
-  (901, "Approved", "The operation was successfully approved")
+  let code = ResponsesLocalApiCodes::Approved;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Approved", description)
 }
 
 pub fn duplicated_transaction_id_tuple() -> (u16, &'static str, &'static str) {
-  (
-    902,
-    "Duplicated Transaction ID",
-    "The transaction ID is a duplicate; the transaction has already been processed",
-  )
+  let code = ResponsesLocalApiCodes::DuplicatedTransactionId;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Duplicated Transaction ID", description)
 }
 
 pub fn validation_errors_provided_tuple() -> (u16, &'static str, &'static str) {
-  (
-    903,
-    "Validation Errors Provided",
-    "Validation errors occurred. Please verify the provided values and try again",
-  )
+  let code = ResponsesLocalApiCodes::ValidationErrorsProvided;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Validation Errors Provided", description)
 }
 
 pub fn operation_not_allowed_tuple() -> (u16, &'static str, &'static str) {
-  (904, "Operation Not Allowed", "The requested operation is not permitted")
+  let code = ResponsesLocalApiCodes::OperationNotAllowed;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Operation Not Allowed", description)
 }
 
 pub fn operation_not_supported_tuple() -> (u16, &'static str, &'static str) {
-  (905, "Operation Not Supported", "The requested operation is not supported by the system")
+  let code = ResponsesLocalApiCodes::OperationNotSupported;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Operation Not Supported", description)
 }
 
 pub fn transaction_timeout_tuple() -> (u16, &'static str, &'static str) {
-  (906, "Transaction Timeout", "The transaction could not be completed due to a timeout (e.g., an authorization expired before capture)")
+  let code = ResponsesLocalApiCodes::TransactionTimeout;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Transaction Timeout", description)
 }
 
 pub fn authentification_failed_tuple() -> (u16, &'static str, &'static str) {
-  (907, "Authentification Failed", "Authentication failed due to incorrect or missing credentials")
+  let code = ResponsesLocalApiCodes::AuthentificationFailed;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Authentification Failed", description)
 }
 
 pub fn do_not_honor_tuple() -> (u16, &'static str, &'static str) {
-  (908, "Do Not Honor", "General decline with no specific reason provided, or insufficient funds")
+  let code = ResponsesLocalApiCodes::DoNotHonor;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Do Not Honor", description)
 }
 
 pub fn insufficient_funds_tuple() -> (u16, &'static str, &'static str) {
-  (909, "Insufficient Funds", "The account does not have enough funds to complete the transaction")
+  let code = ResponsesLocalApiCodes::InsufficientFunds;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Insufficient Funds", description)
 }
 
 pub fn incorrect_pin_tuple() -> (u16, &'static str, &'static str) {
-  (910, "Incorrect PIN", "The provided PIN is incorrect")
+  let code = ResponsesLocalApiCodes::IncorrectPIN;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Incorrect PIN", description)
 }
 
 pub fn invalid_transaction_tuple() -> (u16, &'static str, &'static str) {
-  (911, "Invalid Transaction", "The transaction request is invalid or unsupported")
+  let code = ResponsesLocalApiCodes::InvalidTransaction;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Transaction", description)
 }
 
 pub fn invalid_amount_tuple() -> (u16, &'static str, &'static str) {
-  (912, "Invalid Amount", "The specified amount is invalid")
+  let code = ResponsesLocalApiCodes::InvalidAmount;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Amount", description)
 }
 
 pub fn invalid_card_number_tuple() -> (u16, &'static str, &'static str) {
-  (913, "Invalid Card Number", "The card number (PAN) is invalid or the card type is not accepted")
+  let code = ResponsesLocalApiCodes::InvalidCardNumber;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card Number", description)
 }
 
 pub fn invalid_cvv_tuple() -> (u16, &'static str, &'static str) {
-  (914, "Invalid CVV", "The provided CVV code is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCVV;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid CVV", description)
 }
 
 pub fn invalid_card_holder_name_tuple() -> (u16, &'static str, &'static str) {
-  (915, "Invalid Card Holder Name", "The cardholder's name is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCardHolderName;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card Holder Name", description)
 }
 
 pub fn invalid_card_holder_last_name_tuple() -> (u16, &'static str, &'static str) {
-  (916, "Invalid Card Holder Last Name", "The cardholder's last name is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCardHolderLastName;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card Holder Last Name", description)
 }
 
 pub fn invalid_card_holder_first_name_tuple() -> (u16, &'static str, &'static str) {
-  (917, "Invalid Card Holder First Name", "The cardholder's first name is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCardHolderFirstName;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card Holder First Name", description)
 }
 
 pub fn invalid_card_holder_id_number_tuple() -> (u16, &'static str, &'static str) {
-  (918, "Invalid Card Holder ID Number", "The cardholder's ID number is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCardHolderIdNumber;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card Holder ID Number", description)
 }
 
 pub fn invalid_card_holder_phone_number_tuple() -> (u16, &'static str, &'static str) {
-  (919, "Invalid Card Holder Phone Number", "The cardholder's phone number is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCardHolderPhoneNumber;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card Holder Phone Number", description)
 }
 
 pub fn card_already_active_tuple() -> (u16, &'static str, &'static str) {
-  (920, "Card Already Active", "The card is already active and cannot be reactivated")
+  let code = ResponsesLocalApiCodes::CardAlreadyActive;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Card Already Active", description)
 }
 
 pub fn card_not_active_tuple() -> (u16, &'static str, &'static str) {
-  (921, "Card Not Active", "The card is not active or cannot be found")
+  let code = ResponsesLocalApiCodes::CardNotActive;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Card Not Active", description)
 }
 
 pub fn expired_card_tuple() -> (u16, &'static str, &'static str) {
-  (922, "Expired Card", "The card has expired and cannot be used")
+  let code = ResponsesLocalApiCodes::ExpiredCard;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Expired Card", description)
 }
 
 pub fn lost_card_tuple() -> (u16, &'static str, &'static str) {
-  (923, "Lost Card", "The card has been reported lost and cannot be used")
+  let code = ResponsesLocalApiCodes::LostCard;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Lost Card", description)
 }
 
 pub fn stolen_card_tuple() -> (u16, &'static str, &'static str) {
-  (924, "Stolen Card", "The card has been reported stolen and cannot be used")
+  let code = ResponsesLocalApiCodes::StolenCard;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Stolen Card", description)
 }
 
 pub fn invalid_last_name_tuple() -> (u16, &'static str, &'static str) {
-  (925, "Invalid Last Name", "The last name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidLastName;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Last Name", description)
 }
 
 pub fn invalid_first_name_tuple() -> (u16, &'static str, &'static str) {
-  (926, "Invalid First Name", "The first name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidFirstName;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid First Name", description)
 }
 
 pub fn invalid_id_number_tuple() -> (u16, &'static str, &'static str) {
-  (927, "Invalid ID Number", "The ID number has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidIdNumber;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid ID Number", description)
 }
 
 pub fn invalid_phone_number_tuple() -> (u16, &'static str, &'static str) {
-  (928, "Invalid Phone Number", "The phone number has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidPhoneNumber;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Phone Number", description)
 }
 
 pub fn invalid_email_tuple() -> (u16, &'static str, &'static str) {
-  (929, "Invalid Email", "The email address has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidEmail;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Email", description)
 }
 
 pub fn invalid_initials_tuple() -> (u16, &'static str, &'static str) {
-  (930, "Invalid Initials", "The initials phas an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidInitials;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Initials", description)
 }
 
 pub fn invalid_address_tuple() -> (u16, &'static str, &'static str) {
-  (931, "Invalid Address", "The address has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidAddress;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Address", description)
 }
 
 pub fn invalid_city_tuple() -> (u16, &'static str, &'static str) {
-  (932, "Invalid City", "The city has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidCity;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid City", description)
 }
 
 pub fn invalid_postal_code_tuple() -> (u16, &'static str, &'static str) {
-  (933, "Invalid Postal Code", "The postal code has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidPostalCode;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Postal Code", description)
 }
 
 pub fn invalid_country_tuple() -> (u16, &'static str, &'static str) {
-  (934, "Invalid Country", "The country has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidCountry;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Country", description)
 }
 
 pub fn invalid_password_tuple() -> (u16, &'static str, &'static str) {
-  (935, "Invalid Password", "The password has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidPassword;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Password", description)
 }
 
 pub fn invalid_username_tuple() -> (u16, &'static str, &'static str) {
-  (936, "Invalid Username", "The username has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidUsername;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Username", description)
 }
 
 pub fn invalid_role_tuple() -> (u16, &'static str, &'static str) {
-  (937, "Invalid Role", "The role shas an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidRole;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Role", description)
 }
 
 pub fn invalid_status_tuple() -> (u16, &'static str, &'static str) {
-  (938, "Invalid Status", "The status shas an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidStatus;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Status", description)
 }
 
 pub fn invalid_date_of_birth_tuple() -> (u16, &'static str, &'static str) {
-  (939, "Invalid Date of Birth", "The date of birth provided is invalid")
+  let code = ResponsesLocalApiCodes::InvalidDateOfBirth;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Date of Birth", description)
 }
 
 pub fn invalid_majority_tuple() -> (u16, &'static str, &'static str) {
-  (940, "Invalid Majority", "The majority information provided is invalid")
+  let code = ResponsesLocalApiCodes::InvalidMajority;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Majority", description)
 }
 
 pub fn invalid_marital_status_tuple() -> (u16, &'static str, &'static str) {
-  (941, "Invalid Marital Status", "The marital status provided is invalid")
+  let code = ResponsesLocalApiCodes::InvalidMaritalStatus;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Marital Status", description)
 }
 
 pub fn invalid_nationality_tuple() -> (u16, &'static str, &'static str) {
-  (942, "Invalid Nationality", "The nationality has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidNationality;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Nationality", description)
 }
 
 pub fn invalid_language_tuple() -> (u16, &'static str, &'static str) {
-  (943, "Invalid Language", "The language has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidLanguage;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Language", description)
 }
 
 pub fn invalid_currency_tuple() -> (u16, &'static str, &'static str) {
-  (944, "Invalid Currency", "The currency provided is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCurrency;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Currency", description)
 }
 
 pub fn invalid_time_zone_tuple() -> (u16, &'static str, &'static str) {
-  (945, "Invalid Time Zone", "The time zone shas an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidTimeZone;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Time Zone", description)
 }
 
 pub fn invalid_profile_picture_tuple() -> (u16, &'static str, &'static str) {
-  (946, "Invalid Profile Picture", "The profile picture is invalid or unsupported")
+  let code = ResponsesLocalApiCodes::InvalidProfilePicture;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Profile Picture", description)
 }
 
 pub fn invalid_cover_picture_tuple() -> (u16, &'static str, &'static str) {
-  (947, "Invalid Cover Picture", "The cover picture is invalid or unsupported")
+  let code = ResponsesLocalApiCodes::InvalidCoverPicture;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Cover Picture", description)
 }
 
 pub fn invalid_bio_tuple() -> (u16, &'static str, &'static str) {
-  (948, "Invalid Bio", "The bio has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidBio;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Bio", description)
 }
 
 pub fn invalid_website_tuple() -> (u16, &'static str, &'static str) {
-  (949, "Invalid Website", "The website URL has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidWebsite;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Website", description)
 }
 
 pub fn invalid_facebook_tuple() -> (u16, &'static str, &'static str) {
-  (950, "Invalid Facebook", "The Facebook profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidFacebook;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Facebook", description)
 }
 
 pub fn invalid_twitter_tuple() -> (u16, &'static str, &'static str) {
-  (951, "Invalid Twitter", "The Twitter profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidTwitter;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Twitter", description)
 }
 
 pub fn invalid_instagram_tuple() -> (u16, &'static str, &'static str) {
-  (952, "Invalid Instagram", "The Instagram profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidInstagram;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Instagram", description)
 }
 
 pub fn invalid_linkedin_tuple() -> (u16, &'static str, &'static str) {
-  (953, "Invalid LinkedIn", "The LinkedIn profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidLinkedin;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid LinkedIn", description)
 }
 
 pub fn invalid_github_tuple() -> (u16, &'static str, &'static str) {
-  (954, "Invalid GitHub", "The GitHub profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidGithub;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid GitHub", description)
 }
 
 pub fn invalid_gitlab_tuple() -> (u16, &'static str, &'static str) {
-  (955, "Invalid GitLab", "The GitLab profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidGitlab;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid GitLab", description)
 }
 
 pub fn invalid_bitbucket_tuple() -> (u16, &'static str, &'static str) {
-  (956, "Invalid Bitbucket", "The Bitbucket profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidBitbucket;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Bitbucket", description)
 }
 
 pub fn invalid_google_tuple() -> (u16, &'static str, &'static str) {
-  (957, "Invalid Google", "The Google profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidGoogle;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Google", description)
 }
 
 pub fn invalid_youtube_tuple() -> (u16, &'static str, &'static str) {
-  (958, "Invalid YouTube", "The YouTube profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidYoutube;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid YouTube", description)
 }
 
 pub fn invalid_twitch_tuple() -> (u16, &'static str, &'static str) {
-  (959, "Invalid Twitch", "The Twitch profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidTwitch;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Twitch", description)
 }
 
 pub fn invalid_discord_tuple() -> (u16, &'static str, &'static str) {
-  (960, "Invalid Discord", "The Discord profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidDiscord;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Discord", description)
 }
 
 pub fn invalid_slack_tuple() -> (u16, &'static str, &'static str) {
-  (961, "Invalid Slack", "The Slack profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidSlack;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Slack", description)
 }
 
 pub fn invalid_telegram_tuple() -> (u16, &'static str, &'static str) {
-  (962, "Invalid Telegram", "The Telegram profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidTelegram;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Telegram", description)
 }
 
 pub fn invalid_whatsapp_tuple() -> (u16, &'static str, &'static str) {
-  (963, "Invalid WhatsApp", "The WhatsApp profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidWhatsapp;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid WhatsApp", description)
 }
 
 pub fn invalid_skype_tuple() -> (u16, &'static str, &'static str) {
-  (964, "Invalid Skype", "The Skype profile name or ID has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidSkype;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Skype", description)
 }
 
 pub fn invalid_snapchat_tuple() -> (u16, &'static str, &'static str) {
-  (965, "Invalid Snapchat", "The Snapchat profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidSnapchat;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Snapchat", description)
 }
 
 pub fn invalid_pinterest_tuple() -> (u16, &'static str, &'static str) {
-  (966, "Invalid Pinterest", "The Pinterest profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidPinterest;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Pinterest", description)
 }
 
 pub fn invalid_tumblr_tuple() -> (u16, &'static str, &'static str) {
-  (967, "Invalid Tumblr", "The Tumblr profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidTumblr;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Tumblr", description)
 }
 
 pub fn invalid_flickr_tuple() -> (u16, &'static str, &'static str) {
-  (968, "Invalid Flickr", "The Flickr profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidFlickr;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Flickr", description)
 }
 
 pub fn invalid_vimeo_tuple() -> (u16, &'static str, &'static str) {
-  (969, "Invalid Vimeo", "The Vimeo profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidVimeo;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Vimeo", description)
 }
 
 pub fn invalid_soundcloud_tuple() -> (u16, &'static str, &'static str) {
-  (970, "Invalid SoundCloud", "The SoundCloud profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidSoundcloud;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid SoundCloud", description)
 }
 
 pub fn invalid_spotify_tuple() -> (u16, &'static str, &'static str) {
-  (971, "Invalid Spotify", "The Spotify profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidSpotify;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Spotify", description)
 }
 
 pub fn invalid_tiktok_tuple() -> (u16, &'static str, &'static str) {
-  (972, "Invalid TikTok", "The TikTok profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidTiktok;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid TikTok", description)
 }
 
 pub fn invalid_vine_tuple() -> (u16, &'static str, &'static str) {
-  (973, "Invalid Vine", "The Vine profile name has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidVine;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Vine", description)
 }
 
 pub fn invalid_reddit_tuple() -> (u16, &'static str, &'static str) {
-  (974, "Invalid Reddit", "The Reddit profile has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidReddit;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Reddit", description)
 }
 
 pub fn invalid_expiration_date_tuple() -> (u16, &'static str, &'static str) {
-  (975, "Invalid Expiration Date", "The expiration date (MMYY) is invalid or in the past")
+  let code = ResponsesLocalApiCodes::InvalidExpirationDate;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Expiration Date", description)
 }
 
 pub fn session_key_not_present_in_header_tuple() -> (u16, &'static str, &'static str) {
-  (976, "Session Key Not Present In Header", "The session key is missing from the request header")
+  let code = ResponsesLocalApiCodes::SessionKeyNotPresentInHeader;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Session Key Not Present In Header", description)
 }
 
 pub fn session_key_present_and_not_decryptable_parsable_tuple() -> (u16, &'static str, &'static str)
 {
-  (
-    977,
-    "Session Key Present And Not Decryptable Parsable",
-    "The session key provided is invalid, corrupted, or unparsable",
-  )
+  let code = ResponsesLocalApiCodes::SessionKeyPresentAndNotDecryptableParsable;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Session Key Present And Not Decryptable Parsable", description)
 }
 
 pub fn reference_has_no_linked_cards_tuple() -> (u16, &'static str, &'static str) {
-  (978, "Reference Has No Linked Cards", "The reference provided does not have any linked cards")
+  let code = ResponsesLocalApiCodes::ReferenceHasNoLinkedCards;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Reference Has No Linked Cards", description)
 }
 
 pub fn card_already_linked_to_a_different_reference_tuple() -> (u16, &'static str, &'static str) {
-  (
-    979,
-    "Card Already Linked To A Different Reference",
-    "The card is already linked to a different reference and cannot be re-linked",
-  )
+  let code = ResponsesLocalApiCodes::CardAlreadyLinkedToADifferentReference;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Card Already Linked To A Different Reference", description)
 }
 
 pub fn excluded_by_file_type_exclusions_tuple() -> (u16, &'static str, &'static str) {
-  (980, "Excluded By File Type Exclusions", "The uploaded file type is not allowed")
+  let code = ResponsesLocalApiCodes::ExcludedByFileTypeExclusions;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Excluded By File Type Exclusions", description)
 }
 
 pub fn invalid_card_information_tuple() -> (u16, &'static str, &'static str) {
-  (981, "Invalid Card Information", "The card information provided is invalid")
+  let code = ResponsesLocalApiCodes::InvalidCardInformation;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card Information", description)
 }
 
 pub fn cannot_disable_physical_card_tuple() -> (u16, &'static str, &'static str) {
-  (982, "Cannot Disable Physical Card", "The operation to disable a physical card is not allowed")
+  let code = ResponsesLocalApiCodes::CannotDisablePhysicalCard;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Cannot Disable Physical Card", description)
 }
 
 pub fn missing_token_tuple() -> (u16, &'static str, &'static str) {
-  (983, "Missing Token", "The token is missing from the request")
+  let code = ResponsesLocalApiCodes::MissingToken;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Missing Token", description)
 }
 
 pub fn user_not_found_tuple() -> (u16, &'static str, &'static str) {
-  (984, "User Not Found", "User not found or does not exist in the system")
+  let code = ResponsesLocalApiCodes::UserNotFound;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "User Not Found", description)
 }
 
 pub fn already_exists_tuple() -> (u16, &'static str, &'static str) {
-  (985, "Already Exists", "User already exists in the system")
+  let code = ResponsesLocalApiCodes::AlreadyExists;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Already Exists", description)
 }
 
 pub fn database_error_tuple() -> (u16, &'static str, &'static str) {
-  (986, "Database Error", "Database error occurred, please try again later or contact support")
+  let code = ResponsesLocalApiCodes::DatabaseError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Database Error", description)
 }
 
 pub fn hashing_error_tuple() -> (u16, &'static str, &'static str) {
-  (
-    987,
-    "Hashing Error",
-    "Password hashing error occurred, please try again later or contact support",
-  )
+  let code = ResponsesLocalApiCodes::HashingError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Hashing Error", description)
 }
 
 pub fn invalid_login_tuple() -> (u16, &'static str, &'static str) {
-  (988, "Invalid Login", "The login has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidLogin;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Login", description)
 }
 
 pub fn invalid_user_tuple() -> (u16, &'static str, &'static str) {
-  (989, "Invalid User", "The user has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidUser;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid User", description)
 }
 
 pub fn invalid_user_id_tuple() -> (u16, &'static str, &'static str) {
-  (990, "Invalid User ID", "The user ID has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidUserId;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid User ID", description)
 }
 
 pub fn invalid_user_role_tuple() -> (u16, &'static str, &'static str) {
-  (991, "Invalid User Role", "The user role has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidUserRole;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid User Role", description)
 }
 
 pub fn invalid_credentials_tuple() -> (u16, &'static str, &'static str) {
-  (992, "Invalid Credentials", "The credentials has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidCredentials;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Credentials", description)
 }
 
 pub fn invalid_google_meet_tuple() -> (u16, &'static str, &'static str) {
-  (993, "Invalid Google Meet", "The google meet has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidGoogleMeet;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Google Meet", description)
 }
 
 pub fn invalid_pseudonym_tuple() -> (u16, &'static str, &'static str) {
-  (994, "Invalid Pseudonym", "The pseudonym has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidPseudonym;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Pseudonym", description)
 }
 
 pub fn invalid_tag_tuple() -> (u16, &'static str, &'static str) {
-  (995, "Invalid Tag", "The tag has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidTag;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Tag", description)
 }
 
 pub fn invalid_authorization_code_tuple() -> (u16, &'static str, &'static str) {
-  (996, "Invalid Authorization Code", "The authorization code has an error or does not exist")
+  let code = ResponsesLocalApiCodes::InvalidAuthorizationCode;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Authorization Code", description)
 }
 
 pub fn request_denied_tuple() -> (u16, &'static str, &'static str) {
-  (999, "Request Denied", "Unofficial HTTP  catch-all error code. The reason for the HTTP response varies based on the service or host")
+  let code = ResponsesLocalApiCodes::RequestDenied;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Request Denied", description)
 }
 
-/// The functions returns a tuple containing a status code and a JSON value with status and description fields.
-pub fn approved_no_action_required() -> (u16, &'static str, serde_json::Value) {
+/// Functions return formatted data as JSON containing HTTP status code, status message and description of various informational responses.
+pub fn approved_no_action_required() -> serde_json::Value {
   let (code, name, desc) = approved_no_action_required_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn approved() -> (u16, &'static str, serde_json::Value) {
+pub fn approved() -> serde_json::Value {
   let (code, name, desc) = approved_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn duplicated_transaction_id() -> (u16, &'static str, serde_json::Value) {
+pub fn duplicated_transaction_id() -> serde_json::Value {
   let (code, name, desc) = duplicated_transaction_id_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn validation_errors_provided() -> (u16, &'static str, serde_json::Value) {
+pub fn validation_errors_provided() -> serde_json::Value {
   let (code, name, desc) = validation_errors_provided_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn operation_not_allowed() -> (u16, &'static str, serde_json::Value) {
+pub fn operation_not_allowed() -> serde_json::Value {
   let (code, name, desc) = operation_not_allowed_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn operation_not_supported() -> (u16, &'static str, serde_json::Value) {
+pub fn operation_not_supported() -> serde_json::Value {
   let (code, name, desc) = operation_not_supported_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn transaction_timeout() -> (u16, &'static str, serde_json::Value) {
+pub fn transaction_timeout() -> serde_json::Value {
   let (code, name, desc) = transaction_timeout_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn authentification_failed() -> (u16, &'static str, serde_json::Value) {
+pub fn authentification_failed() -> serde_json::Value {
   let (code, name, desc) = authentification_failed_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn do_not_honor() -> (u16, &'static str, serde_json::Value) {
+pub fn do_not_honor() -> serde_json::Value {
   let (code, name, desc) = do_not_honor_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn insufficient_funds() -> (u16, &'static str, serde_json::Value) {
+pub fn insufficient_funds() -> serde_json::Value {
   let (code, name, desc) = insufficient_funds_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn incorrect_pin() -> (u16, &'static str, serde_json::Value) {
+pub fn incorrect_pin() -> serde_json::Value {
   let (code, name, desc) = incorrect_pin_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_transaction() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_transaction() -> serde_json::Value {
   let (code, name, desc) = invalid_transaction_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_amount() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_amount() -> serde_json::Value {
   let (code, name, desc) = invalid_amount_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_card_number() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card_number() -> serde_json::Value {
   let (code, name, desc) = invalid_card_number_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_cvv() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_cvv() -> serde_json::Value {
   let (code, name, desc) = invalid_cvv_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_card_holder_name() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card_holder_name() -> serde_json::Value {
   let (code, name, desc) = invalid_card_holder_name_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_card_holder_last_name() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card_holder_last_name() -> serde_json::Value {
   let (code, name, desc) = invalid_card_holder_last_name_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
-
-pub fn invalid_card_holder_first_name() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card_holder_first_name() -> serde_json::Value {
   let (code, name, desc) = invalid_card_holder_first_name_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_card_holder_id_number() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card_holder_id_number() -> serde_json::Value {
   let (code, name, desc) = invalid_card_holder_id_number_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_card_holder_phone_number() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card_holder_phone_number() -> serde_json::Value {
   let (code, name, desc) = invalid_card_holder_phone_number_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn card_already_active() -> (u16, &'static str, serde_json::Value) {
+pub fn card_already_active() -> serde_json::Value {
   let (code, name, desc) = card_already_active_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn card_not_active() -> (u16, &'static str, serde_json::Value) {
+pub fn card_not_active() -> serde_json::Value {
   let (code, name, desc) = card_not_active_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn expired_card() -> (u16, &'static str, serde_json::Value) {
+pub fn expired_card() -> serde_json::Value {
   let (code, name, desc) = expired_card_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn lost_card() -> (u16, &'static str, serde_json::Value) {
+pub fn lost_card() -> serde_json::Value {
   let (code, name, desc) = lost_card_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn stolen_card() -> (u16, &'static str, serde_json::Value) {
+pub fn stolen_card() -> serde_json::Value {
   let (code, name, desc) = stolen_card_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_last_name() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_last_name() -> serde_json::Value {
   let (code, name, desc) = invalid_last_name_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_first_name() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_first_name() -> serde_json::Value {
   let (code, name, desc) = invalid_first_name_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_id_number() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_id_number() -> serde_json::Value {
   let (code, name, desc) = invalid_id_number_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_phone_number() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_phone_number() -> serde_json::Value {
   let (code, name, desc) = invalid_phone_number_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_email() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_email() -> serde_json::Value {
   let (code, name, desc) = invalid_email_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_initials() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_initials() -> serde_json::Value {
   let (code, name, desc) = invalid_initials_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_address() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_address() -> serde_json::Value {
   let (code, name, desc) = invalid_address_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_city() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_city() -> serde_json::Value {
   let (code, name, desc) = invalid_city_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_postal_code() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_postal_code() -> serde_json::Value {
   let (code, name, desc) = invalid_postal_code_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_country() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_country() -> serde_json::Value {
   let (code, name, desc) = invalid_country_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_password() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_password() -> serde_json::Value {
   let (code, name, desc) = invalid_password_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_username() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_username() -> serde_json::Value {
   let (code, name, desc) = invalid_username_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_role() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_role() -> serde_json::Value {
   let (code, name, desc) = invalid_role_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_status() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_status() -> serde_json::Value {
   let (code, name, desc) = invalid_status_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_date_of_birth() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_date_of_birth() -> serde_json::Value {
   let (code, name, desc) = invalid_date_of_birth_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_majority() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_majority() -> serde_json::Value {
   let (code, name, desc) = invalid_majority_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_marital_status() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_marital_status() -> serde_json::Value {
   let (code, name, desc) = invalid_marital_status_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_nationality() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_nationality() -> serde_json::Value {
   let (code, name, desc) = invalid_nationality_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_language() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_language() -> serde_json::Value {
   let (code, name, desc) = invalid_language_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_currency() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_currency() -> serde_json::Value {
   let (code, name, desc) = invalid_currency_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_time_zone() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_time_zone() -> serde_json::Value {
   let (code, name, desc) = invalid_time_zone_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_profile_picture() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_profile_picture() -> serde_json::Value {
   let (code, name, desc) = invalid_profile_picture_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_cover_picture() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_cover_picture() -> serde_json::Value {
   let (code, name, desc) = invalid_cover_picture_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_bio() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_bio() -> serde_json::Value {
   let (code, name, desc) = invalid_bio_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_website() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_website() -> serde_json::Value {
   let (code, name, desc) = invalid_website_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_facebook() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_facebook() -> serde_json::Value {
   let (code, name, desc) = invalid_facebook_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_twitter() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_twitter() -> serde_json::Value {
   let (code, name, desc) = invalid_twitter_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_instagram() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_instagram() -> serde_json::Value {
   let (code, name, desc) = invalid_instagram_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_linkedin() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_linkedin() -> serde_json::Value {
   let (code, name, desc) = invalid_linkedin_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_github() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_github() -> serde_json::Value {
   let (code, name, desc) = invalid_github_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_gitlab() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_gitlab() -> serde_json::Value {
   let (code, name, desc) = invalid_gitlab_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_bitbucket() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_bitbucket() -> serde_json::Value {
   let (code, name, desc) = invalid_bitbucket_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_google() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_google() -> serde_json::Value {
   let (code, name, desc) = invalid_google_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_youtube() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_youtube() -> serde_json::Value {
   let (code, name, desc) = invalid_youtube_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_twitch() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_twitch() -> serde_json::Value {
   let (code, name, desc) = invalid_twitch_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_discord() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_discord() -> serde_json::Value {
   let (code, name, desc) = invalid_discord_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_slack() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_slack() -> serde_json::Value {
   let (code, name, desc) = invalid_slack_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_telegram() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_telegram() -> serde_json::Value {
   let (code, name, desc) = invalid_telegram_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_whatsapp() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_whatsapp() -> serde_json::Value {
   let (code, name, desc) = invalid_whatsapp_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_skype() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_skype() -> serde_json::Value {
   let (code, name, desc) = invalid_skype_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_snapchat() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_snapchat() -> serde_json::Value {
   let (code, name, desc) = invalid_snapchat_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_pinterest() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_pinterest() -> serde_json::Value {
   let (code, name, desc) = invalid_pinterest_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_tumblr() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_tumblr() -> serde_json::Value {
   let (code, name, desc) = invalid_tumblr_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_flickr() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_flickr() -> serde_json::Value {
   let (code, name, desc) = invalid_flickr_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_vimeo() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_vimeo() -> serde_json::Value {
   let (code, name, desc) = invalid_vimeo_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_soundcloud() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_soundcloud() -> serde_json::Value {
   let (code, name, desc) = invalid_soundcloud_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_spotify() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_spotify() -> serde_json::Value {
   let (code, name, desc) = invalid_spotify_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_tiktok() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_tiktok() -> serde_json::Value {
   let (code, name, desc) = invalid_tiktok_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_vine() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_vine() -> serde_json::Value {
   let (code, name, desc) = invalid_vine_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_reddit() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_reddit() -> serde_json::Value {
   let (code, name, desc) = invalid_reddit_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_expiration_date() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_expiration_date() -> serde_json::Value {
   let (code, name, desc) = invalid_expiration_date_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn session_key_not_present_in_header() -> (u16, &'static str, serde_json::Value) {
+pub fn session_key_not_present_in_header() -> serde_json::Value {
   let (code, name, desc) = session_key_not_present_in_header_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn session_key_present_and_not_decryptable_parsable() -> (u16, &'static str, serde_json::Value)
-{
+pub fn session_key_present_and_not_decryptable_parsable() -> serde_json::Value {
   let (code, name, desc) = session_key_present_and_not_decryptable_parsable_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn reference_has_no_linked_cards() -> (u16, &'static str, serde_json::Value) {
+pub fn reference_has_no_linked_cards() -> serde_json::Value {
   let (code, name, desc) = reference_has_no_linked_cards_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn card_already_linked_to_a_different_reference() -> (u16, &'static str, serde_json::Value) {
+pub fn card_already_linked_to_a_different_reference() -> serde_json::Value {
   let (code, name, desc) = card_already_linked_to_a_different_reference_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn excluded_by_file_type_exclusions() -> (u16, &'static str, serde_json::Value) {
+pub fn excluded_by_file_type_exclusions() -> serde_json::Value {
   let (code, name, desc) = excluded_by_file_type_exclusions_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_card_information() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card_information() -> serde_json::Value {
   let (code, name, desc) = invalid_card_information_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn cannot_disable_physical_card() -> (u16, &'static str, serde_json::Value) {
+pub fn cannot_disable_physical_card() -> serde_json::Value {
   let (code, name, desc) = cannot_disable_physical_card_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn missing_token() -> (u16, &'static str, serde_json::Value) {
+pub fn missing_token() -> serde_json::Value {
   let (code, name, desc) = missing_token_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn user_not_found() -> (u16, &'static str, serde_json::Value) {
+pub fn user_not_found() -> serde_json::Value {
   let (code, name, desc) = user_not_found_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn already_exists() -> (u16, &'static str, serde_json::Value) {
+pub fn already_exists() -> serde_json::Value {
   let (code, name, desc) = already_exists_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn database_error() -> (u16, &'static str, serde_json::Value) {
+pub fn database_error() -> serde_json::Value {
   let (code, name, desc) = database_error_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn hashing_error() -> (u16, &'static str, serde_json::Value) {
+pub fn hashing_error() -> serde_json::Value {
   let (code, name, desc) = hashing_error_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_login() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_login() -> serde_json::Value {
   let (code, name, desc) = invalid_login_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_user() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_user() -> serde_json::Value {
   let (code, name, desc) = invalid_user_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_user_id() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_user_id() -> serde_json::Value {
   let (code, name, desc) = invalid_user_id_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_user_role() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_user_role() -> serde_json::Value {
   let (code, name, desc) = invalid_user_role_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_credentials() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_credentials() -> serde_json::Value {
   let (code, name, desc) = invalid_credentials_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_google_meet() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_google_meet() -> serde_json::Value {
   let (code, name, desc) = invalid_google_meet_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_pseudonym() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_pseudonym() -> serde_json::Value {
   let (code, name, desc) = invalid_pseudonym_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_tag() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_tag() -> serde_json::Value {
   let (code, name, desc) = invalid_tag_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_authorization_code() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_authorization_code() -> serde_json::Value {
   let (code, name, desc) = invalid_authorization_code_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn request_denied() -> (u16, &'static str, serde_json::Value) {
+pub fn request_denied() -> serde_json::Value {
   let (code, name, desc) = request_denied_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
 // Unit tests
@@ -1206,7 +1380,7 @@ mod tests {
 
   #[test]
   fn test_operation_not_supported() {
-    let (code, name, response) = operation_not_supported();
+    let (code, name, response) = operation_not_supported_tuple();
     assert_eq!(code, 905);
     assert_eq!(name, "Operation Not Supported");
     assert_eq!(

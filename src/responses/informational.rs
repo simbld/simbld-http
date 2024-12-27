@@ -71,104 +71,119 @@ impl Into<(u16, &'static str)> for ResponsesInformationalCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
+    (code, description)
   }
 }
 
-/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
+/// Functions return raw data as a tuple for further processing or formats containing HTTP status code, status message and description of various client error responses.
 pub fn continue_request_tuple() -> (u16, &'static str, &'static str) {
-  (100, "Continue Request", "The server has received the initial part of the request, the headers, and asks the client to continue request, proceed to send the body of the request, a POST request")
+  let code = ResponsesInformationalCodes::ContinueRequest;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Continue Request", description)
 }
 
 pub fn switching_protocols_tuple() -> (u16, &'static str, &'static str) {
-  (
-    101,
-    "Switching Protocols",
-    "The server is complying with a request to switch protocols, used in WebSocket connections",
-  )
+  let code = ResponsesInformationalCodes::SwitchingProtocols;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Switching Protocols", description)
 }
 
 pub fn processing_tuple() -> (u16, &'static str, &'static str) {
-  (102, "Processing", "Indicates the server is processing the request but has not yet finished, used to prevent timeout errors in asynchronous operations, webdav RFC 2518")
+  let code = ResponsesInformationalCodes::Processing;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Processing", description)
 }
 
 pub fn early_hints_tuple() -> (u16, &'static str, &'static str) {
-  (103, "Early Hints", "Experimental: The server provides preliminary hints to the client, such as preloading resources while the final response is being prepared")
+  let code = ResponsesInformationalCodes::EarlyHints;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Early Hints", description)
 }
 
 pub fn connection_reset_by_peer_tuple() -> (u16, &'static str, &'static str) {
-  (104, "Connection Reset By Peer", "The connection was forcibly closed by a peer, possibly due to a protocol error, a timeout, or a network issue")
+  let code = ResponsesInformationalCodes::ConnectionResetByPeer;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Connection Reset By Peer", description)
 }
 
 pub fn name_not_resolved_tuple() -> (u16, &'static str, &'static str) {
-  (105, "Name Not Resolved", "The server could not resolve the domain name provided in the request, indicating a DNS lookup failure, The requested hostname cannot be resolved to an IP address")
+  let code = ResponsesInformationalCodes::NameNotResolved;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Name Not Resolved", description)
 }
 
 pub fn no_response_tuple() -> (u16, &'static str, &'static str) {
-  (106, "No Response", "The server did not provide a response, possibly due to a timeout or a connection issue, The server didn’t send any response within the timeout period. This status code is not specified in any RFCs, but it is used in some scenarios to indicate that the server closed the connection without sending any response")
+  let code = ResponsesInformationalCodes::NoResponse;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "No Response", description)
 }
 
 pub fn retry_with_tuple() -> (u16, &'static str, &'static str) {
-  (107, "Retry With", "The server indicates that the client should retry the request with appropriate changes or additional information, new or different credentials, use a different protocol or in a different location")
+  let code = ResponsesInformationalCodes::RetryWith;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Retry With", description)
 }
 
 pub fn response_is_stale_tuple() -> (u16, &'static str, &'static str) {
-  (108, "Response Is Stale", "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired")
+  let code = ResponsesInformationalCodes::ResponseIsStale;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Response Is Stale", description)
 }
 
 pub fn revalidation_failed_tuple() -> (u16, &'static str, &'static str) {
-  (109, "Revalidation Failed", "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired")
+  let code = ResponsesInformationalCodes::RevalidationFailed;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Revalidation Failed", description)
 }
 
-// Full response with status code and description encapsulated in a JSON response
-pub fn continue_request() -> (u16, &'static str, serde_json::Value) {
+/// Functions return formatted data as JSON containing HTTP status code, status message and description of various informational responses.
+pub fn continue_request() -> serde_json::Value {
   let (code, name, desc) = continue_request_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
-
-pub fn switching_protocols() -> (u16, &'static str, serde_json::Value) {
+pub fn switching_protocols() -> serde_json::Value {
   let (code, name, desc) = switching_protocols_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn processing() -> (u16, &'static str, serde_json::Value) {
+pub fn processing() -> serde_json::Value {
   let (code, name, desc) = processing_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn early_hints() -> (u16, &'static str, serde_json::Value) {
+pub fn early_hints() -> serde_json::Value {
   let (code, name, desc) = early_hints_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn connection_reset_by_peer() -> (u16, &'static str, serde_json::Value) {
+pub fn connection_reset_by_peer() -> serde_json::Value {
   let (code, name, desc) = connection_reset_by_peer_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn name_not_resolved() -> (u16, &'static str, serde_json::Value) {
+pub fn name_not_resolved() -> serde_json::Value {
   let (code, name, desc) = name_not_resolved_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn no_response() -> (u16, &'static str, serde_json::Value) {
+pub fn no_response() -> serde_json::Value {
   let (code, name, desc) = no_response_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn retry_with() -> (u16, &'static str, serde_json::Value) {
+pub fn retry_with() -> serde_json::Value {
   let (code, name, desc) = retry_with_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn response_is_stale() -> (u16, &'static str, serde_json::Value) {
+pub fn response_is_stale() -> serde_json::Value {
   let (code, name, desc) = response_is_stale_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn revalidation_failed() -> (u16, &'static str, serde_json::Value) {
+pub fn revalidation_failed() -> serde_json::Value {
   let (code, name, desc) = revalidation_failed_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
 // Unit tests
@@ -211,11 +226,9 @@ mod tests {
 
   #[test]
   fn test_revalidation_failed() {
-    let (code, name, response) = revalidation_failed();
+    let (code, name, description) = revalidation_failed_tuple();
     assert_eq!(code, 109);
     assert_eq!(name, "Revalidation Failed");
-    assert_eq!(response["status"], 109);
-    assert_eq!(response["name"], "Revalidation Failed");
-    assert_eq!(response["description"], "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired");
+    assert_eq!(description, "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired");
   }
 }

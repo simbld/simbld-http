@@ -148,271 +148,329 @@ impl Into<(u16, &'static str)> for ResponsesSuccessCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
+    (code, description)
   }
 }
 
-/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
-pub fn ok_tuple() -> (u16, &'static str) {
-  (200, "Ok")
+/// Functions return raw data as a tuple for further processing or formats containing HTTP status code, status message and description of various client error responses.
+pub fn ok_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::Ok;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Ok", description)
 }
 
-pub fn created_tuple() -> (u16, &'static str) {
-  (201, "Created")
+pub fn created_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::Created;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Created", description)
 }
 
-pub fn accepted_tuple() -> (u16, &'static str) {
-  (202, "Accepted")
+pub fn accepted_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::Accepted;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Accepted", description)
 }
 
-pub fn non_authoritative_information_tuple() -> (u16, &'static str) {
-  (203, "Non-authoritative information")
+pub fn non_authoritative_information_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::NonAuthoritativeInformation;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Non-Authoritative Information", description)
 }
 
-pub fn no_content_tuple() -> (u16, &'static str) {
-  (204, "No content")
+pub fn no_content_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::NoContent;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "No Content", description)
 }
 
-pub fn reset_content_tuple() -> (u16, &'static str) {
-  (205, "Reset content")
+pub fn reset_content_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ResetContent;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Reset Content", description)
 }
 
-pub fn partial_content_tuple() -> (u16, &'static str) {
-  (206, "Partial content")
+pub fn partial_content_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::PartialContent;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Partial Content", description)
 }
 
-pub fn multi_status_tuple() -> (u16, &'static str) {
-  (207, "Multi-status")
+pub fn multi_status_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::MultiStatus;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Multi-Status", description)
 }
 
-pub fn already_reported_tuple() -> (u16, &'static str) {
-  (208, "Already reported")
+pub fn already_reported_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::AlreadyReported;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Already Reported", description)
 }
 
-pub fn content_different_tuple() -> (u16, &'static str) {
-  (210, "Content different")
+pub fn content_different_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ContentDifferent;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Content Different", description)
 }
 
-pub fn content_location_tuple() -> (u16, &'static str) {
-  (211, "Content location")
+pub fn content_location_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ContentLocation;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Content Location", description)
 }
 
-pub fn object_data_tuple() -> (u16, &'static str) {
-  (212, "Object data")
+pub fn object_data_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ObjectData;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Object Data", description)
 }
 
-pub fn multiple_resource_instances_tuple() -> (u16, &'static str) {
-  (213, "Multiple resource instances")
+pub fn multiple_resource_instances_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::MultipleResourceInstances;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Multiple Resource Instances", description)
 }
 
-pub fn transform_applied_tuple() -> (u16, &'static str) {
-  (214, "Transform applied")
+pub fn transform_applied_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::TransformApplied;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Transform Applied", description)
 }
 
-pub fn content_deleted_tuple() -> (u16, &'static str) {
-  (215, "Content deleted")
+pub fn content_deleted_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ContentDeleted;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Content Deleted", description)
 }
 
-pub fn im_used_post_request_tuple() -> (u16, &'static str) {
-  (216, "IM used post request")
+pub fn im_used_post_request_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::IMUsedPostRequest;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "IM Used Post Request", description)
 }
 
-pub fn delta_encoding_applied_tuple() -> (u16, &'static str) {
-  (217, "Delta encoding applied")
+pub fn delta_encoding_applied_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::DeltaEncodingApplied;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Delta Encoding Applied", description)
 }
 
-pub fn this_is_fine_tuple() -> (u16, &'static str) {
-  (218, "This is fine")
+pub fn this_is_fine_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ThisIsFine;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "This Is Fine", description)
 }
 
-pub fn content_transferred_tuple() -> (u16, &'static str) {
-  (219, "Content transferred")
+pub fn content_transferred_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ContentTransferred;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Content Transferred", description)
 }
 
-pub fn load_balancer_started_tuple() -> (u16, &'static str) {
-  (220, "Load balancer started")
+pub fn load_balancer_started_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::LoadBalancerStarted;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Load Balancer Started", description)
 }
 
-pub fn load_balancer_ended_tuple() -> (u16, &'static str) {
-  (221, "Load balancer ended")
+pub fn load_balancer_ended_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::LoadBalancerEnded;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Load Balancer Ended", description)
 }
 
-pub fn authentication_successful_tuple() -> (u16, &'static str) {
-  (222, "Authentication successful")
+pub fn authentication_successful_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::AuthenticationSuccessful;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Authentication Successful", description)
 }
 
-pub fn im_used_get_request_tuple() -> (u16, &'static str) {
-  (226, "IM used get request")
+pub fn im_used_get_request_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::IMUsedGetRequest;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "IM Used Get Request", description)
 }
 
-pub fn low_on_storage_space_tuple() -> (u16, &'static str) {
-  (250, "Low on storage space")
+pub fn low_on_storage_space_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::LowOnStorageSpace;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Low On Storage Space", description)
 }
 
-pub fn entity_recognized_not_processable_tuple() -> (u16, &'static str) {
-  (252, "Entity recognized not processable")
+pub fn entity_recognized_not_processable_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::EntityRecognizedNotProcessable;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Entity Recognized Not Processable", description)
 }
 
-pub fn resource_accessed_locked_tuple() -> (u16, &'static str) {
-  (253, "Resource accessed locked")
+pub fn resource_accessed_locked_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ResourceAccessedLocked;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Resource Accessed Locked", description)
 }
 
-pub fn method_not_found_tuple() -> (u16, &'static str) {
-  (254, "Method not found")
+pub fn method_not_found_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::MethodNotFound;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Method Not Found", description)
 }
 
-pub fn extended_code_tuple() -> (u16, &'static str) {
-  (255, "Extended code")
+pub fn extended_code_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::ExtendedCode;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Extended Code", description)
 }
 
-pub fn miscellaneous_persistent_warning_start_tuple() -> (u16, &'static str) {
-  (299, "Miscellaneous persistent warning start")
+pub fn miscellaneous_persistent_warning_start_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesSuccessCodes::MiscellaneousPersistentWarningStart;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Miscellaneous Persistent Warning Start", description)
 }
 
-/// The functions returns a tuple containing a status code and a JSON value with status and description fields.
-pub fn ok() -> (u16, serde_json::Value) {
-  let (code, desc) = ok_tuple();
-  (code, json!({ "status": code, "description": desc}))
+/// Functions return formatted data as JSON containing HTTP status code, status message and description of various informational responses.
+pub fn ok() -> serde_json::Value {
+  let (code, name, desc) = ok_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn created() -> (u16, serde_json::Value) {
-  let (code, desc) = created_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn created() -> serde_json::Value {
+  let (code, name, desc) = created_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn accepted() -> (u16, serde_json::Value) {
-  let (code, desc) = accepted_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn accepted() -> serde_json::Value {
+  let (code, name, desc) = accepted_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn non_authoritative_information() -> (u16, serde_json::Value) {
-  let (code, desc) = non_authoritative_information_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn non_authoritative_information() -> serde_json::Value {
+  let (code, name, desc) = non_authoritative_information_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn no_content() -> (u16, serde_json::Value) {
-  let (code, desc) = no_content_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn no_content() -> serde_json::Value {
+  let (code, name, desc) = no_content_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn reset_content() -> (u16, serde_json::Value) {
-  let (code, desc) = reset_content_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn reset_content() -> serde_json::Value {
+  let (code, name, desc) = reset_content_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn partial_content() -> (u16, serde_json::Value) {
-  let (code, desc) = partial_content_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn partial_content() -> serde_json::Value {
+  let (code, name, desc) = partial_content_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn multi_status() -> (u16, serde_json::Value) {
-  let (code, desc) = multi_status_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn multi_status() -> serde_json::Value {
+  let (code, name, desc) = multi_status_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn already_reported() -> (u16, serde_json::Value) {
-  let (code, desc) = already_reported_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn already_reported() -> serde_json::Value {
+  let (code, name, desc) = already_reported_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn content_different() -> (u16, serde_json::Value) {
-  let (code, desc) = content_different_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn content_different() -> serde_json::Value {
+  let (code, name, desc) = content_different_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn content_location() -> (u16, serde_json::Value) {
-  let (code, desc) = content_location_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn content_location() -> serde_json::Value {
+  let (code, name, desc) = content_location_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn object_data() -> (u16, serde_json::Value) {
-  let (code, desc) = object_data_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn object_data() -> serde_json::Value {
+  let (code, name, desc) = object_data_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn multiple_resource_instances() -> (u16, serde_json::Value) {
-  let (code, desc) = multiple_resource_instances_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn multiple_resource_instances() -> serde_json::Value {
+  let (code, name, desc) = multiple_resource_instances_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn transform_applied() -> (u16, serde_json::Value) {
-  let (code, desc) = transform_applied_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn transform_applied() -> serde_json::Value {
+  let (code, name, desc) = transform_applied_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn content_deleted() -> (u16, serde_json::Value) {
-  let (code, desc) = content_deleted_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn content_deleted() -> serde_json::Value {
+  let (code, name, desc) = content_deleted_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn im_used_post_request() -> (u16, serde_json::Value) {
-  let (code, desc) = im_used_post_request_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn im_used_post_request() -> serde_json::Value {
+  let (code, name, desc) = im_used_post_request_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn delta_encoding_applied() -> (u16, serde_json::Value) {
-  let (code, desc) = delta_encoding_applied_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn delta_encoding_applied() -> serde_json::Value {
+  let (code, name, desc) = delta_encoding_applied_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn this_is_fine() -> (u16, serde_json::Value) {
-  let (code, desc) = this_is_fine_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn this_is_fine() -> serde_json::Value {
+  let (code, name, desc) = this_is_fine_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn content_transferred() -> (u16, serde_json::Value) {
-  let (code, desc) = content_transferred_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn content_transferred() -> serde_json::Value {
+  let (code, name, desc) = content_transferred_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn load_balancer_started() -> (u16, serde_json::Value) {
-  let (code, desc) = load_balancer_started_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn load_balancer_started() -> serde_json::Value {
+  let (code, name, desc) = load_balancer_started_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn load_balancer_ended() -> (u16, serde_json::Value) {
-  let (code, desc) = load_balancer_ended_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn load_balancer_ended() -> serde_json::Value {
+  let (code, name, desc) = load_balancer_ended_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn authentication_successful() -> (u16, serde_json::Value) {
-  let (code, desc) = authentication_successful_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn authentication_successful() -> serde_json::Value {
+  let (code, name, desc) = authentication_successful_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn im_used_get_request() -> (u16, serde_json::Value) {
-  let (code, desc) = im_used_get_request_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn im_used_get_request() -> serde_json::Value {
+  let (code, name, desc) = im_used_get_request_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn low_on_storage_space() -> (u16, serde_json::Value) {
-  let (code, desc) = low_on_storage_space_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn low_on_storage_space() -> serde_json::Value {
+  let (code, name, desc) = low_on_storage_space_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn entity_recognized_not_processable() -> (u16, serde_json::Value) {
-  let (code, desc) = entity_recognized_not_processable_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn entity_recognized_not_processable() -> serde_json::Value {
+  let (code, name, desc) = entity_recognized_not_processable_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn resource_accessed_locked() -> (u16, serde_json::Value) {
-  let (code, desc) = resource_accessed_locked_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn resource_accessed_locked() -> serde_json::Value {
+  let (code, name, desc) = resource_accessed_locked_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn method_not_found() -> (u16, serde_json::Value) {
-  let (code, desc) = method_not_found_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn method_not_found() -> serde_json::Value {
+  let (code, name, desc) = method_not_found_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn extended_code() -> (u16, serde_json::Value) {
-  let (code, desc) = extended_code_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn extended_code() -> serde_json::Value {
+  let (code, name, desc) = extended_code_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
-pub fn miscellaneous_persistent_warning_start() -> (u16, serde_json::Value) {
-  let (code, desc) = miscellaneous_persistent_warning_start_tuple();
-  (code, json!({ "status": code, "description": desc}))
+pub fn miscellaneous_persistent_warning_start() -> serde_json::Value {
+  let (code, name, desc) = miscellaneous_persistent_warning_start_tuple();
+  json!({ "status": code, "name": name, "description": desc})
 }
 
 // Unit tests
@@ -441,7 +499,7 @@ mod tests {
   #[test]
   fn test_accepted() {
     let response = accepted_tuple();
-    assert_eq!(response, (202, "Accepted"));
+    assert_eq!(response, (202, "Accepted", "Request processed, but with no guarantee of results, and no indication of the final status of the request, which will be processed asynchronously, such as a request to create a new resource"));
   }
 
   #[test]
@@ -452,15 +510,18 @@ mod tests {
 
   #[test]
   fn test_reset_content() {
-    let (code, response) = reset_content_tuple();
+    let (code, name, response) = reset_content_tuple();
     assert_eq!(code, 205);
-    assert_eq!(response, "Reset content");
+    assert_eq!(name, "Reset Content");
+    assert_eq!(response, "Request processed successfully, current page can be deleted, and the client should reset the document view, useful as a header for a form submission, indicating that the form has been processed successfully");
   }
 
   #[test]
   fn test_partial_content() {
-    let (code, response) = partial_content();
-    assert_eq!(code, 206);
-    assert_eq!(response, json!({ "status": 206, "description": "Partial content" }));
+    let response = partial_content();
+    assert_eq!(
+      response,
+      json!({ "status": 206, "name": "Partial Content", "description": "Only part of the resource was transmitted, as the request used the Range header to retrieve a specific portion of the resource, and the response contains the requested range, or the server is unable to return the entire resource" })
+    );
   }
 }

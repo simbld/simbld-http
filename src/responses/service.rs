@@ -94,157 +94,186 @@ impl Into<(u16, &'static str)> for ResponsesServiceCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
+    (code, description)
   }
 }
 
-/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
-pub fn reading_error_tuple() -> (u16, &'static str) {
-  (611, "An error occurred while reading the response or data from the server")
+/// Functions return raw data as a tuple for further processing or formats containing HTTP status code, status message and description of various client error responses.
+pub fn reading_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::ReadingError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Reading Error", description)
 }
 
-pub fn connection_error_tuple() -> (u16, &'static str) {
-  (612, "A connection issue occurred, preventing successful communication with the server")
+pub fn connection_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::ConnectionError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Connection Error", description)
 }
 
-pub fn reading_time_expired_tuple() -> (u16, &'static str) {
-  (613, "The reading operation exceeded the allowed time limit, resulting in a timeout")
+pub fn reading_time_expired_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::ReadingTimeExpired;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Reading Time Expired", description)
 }
 
-pub fn ssl_handshake_failed_tuple() -> (u16, &'static str) {
-  (
-    614,
-    "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols",
-  )
+pub fn ssl_handshake_failed_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::SSLHandshakeFailed;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "SSL Handshake Failed", description)
 }
 
-pub fn another_reading_error_tuple() -> (u16, &'static str) {
-  (615, "A generic error occurred while reading the response or data")
+pub fn another_reading_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::AnotherReadingError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Another Reading Error", description)
 }
 
-pub fn fba_anomaly_tuple() -> (u16, &'static str) {
-  (616, "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input")
+pub fn fba_anomaly_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::FBAAnomaly;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "FBA Anomaly", description)
 }
 
-pub fn coding_error_tuple() -> (u16, &'static str) {
-  (617, "An error in the implementation or logic caused the request to fail")
+pub fn coding_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::CodingError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Coding Error", description)
 }
 
-pub fn redirect_without_redirect_url_tuple() -> (u16, &'static str) {
-  (618, "The server issued a redirect response but did not provide a valid redirect URL")
+pub fn redirect_without_redirect_url_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::RedirectWithoutRedirectURL;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Redirect Without Redirect URL", description)
 }
 
-pub fn dns_lookup_failed_tuple() -> (u16, &'static str) {
-  (680, "The DNS lookup for the specified domain failed, indicating a potential network or configuration issue")
+pub fn dns_lookup_failed_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::DNSLookupFailed;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "DNS Lookup Failed", description)
 }
 
-pub fn syntactically_incorrect_url_tuple() -> (u16, &'static str) {
-  (690, "The provided URL is syntactically incorrect and cannot be processed")
+pub fn syntactically_incorrect_url_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::SyntacticallyIncorrectURL;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Syntactically Incorrect URL", description)
 }
 
-pub fn lost_connection_tuple() -> (u16, &'static str) {
-  (691, "The connection to the server was lost unexpectedly during communication")
+pub fn lost_connection_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::LostConnection;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Lost Connection", description)
 }
 
-pub fn write_timeout_tuple() -> (u16, &'static str) {
-  (692, "The operation timed out while attempting to write data to the server")
+pub fn write_timeout_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::WriteTimeout;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Write Timeout", description)
 }
 
-pub fn selection_failed_tuple() -> (u16, &'static str) {
-  (693, "The requested operation failed during a selection or matching process")
+pub fn selection_failed_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::SelectionFailed;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Selection Failed", description)
 }
 
-pub fn write_error_tuple() -> (u16, &'static str) {
-  (694, "An error occurred while attempting to write data to the destination")
+pub fn write_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::WriteError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Write Error", description)
 }
 
-pub fn incomplete_block_header_tuple() -> (u16, &'static str) {
-  (695, "A block header was incomplete or malformed, preventing further processing")
+pub fn incomplete_block_header_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::IncompleteBlockHeader;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Incomplete Block Header", description)
 }
 
-pub fn unexpected_error_tuple() -> (u16, &'static str) {
-  (699, "An unexpected error occurred, often indicative of an unforeseen issue or bug")
+pub fn unexpected_error_tuple() -> (u16, &'static str, &'static str) {
+  let code = ResponsesServiceCodes::UnexpectedError;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Unexpected Error", description)
 }
 
-/// The functions returns a tuple containing a status code and a JSON value with status and description fields.
-pub fn reading_error() -> (u16, serde_json::Value) {
-  let (code, desc) = reading_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+/// Functions return formatted data as JSON containing HTTP status code, status message and description of various informational responses.
+pub fn reading_error() -> serde_json::Value {
+  let (code, name, desc) = reading_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn connection_error() -> (u16, serde_json::Value) {
-  let (code, desc) = connection_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn connection_error() -> serde_json::Value {
+  let (code, name, desc) = connection_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn reading_time_expired() -> (u16, serde_json::Value) {
-  let (code, desc) = reading_time_expired_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn reading_time_expired() -> serde_json::Value {
+  let (code, name, desc) = reading_time_expired_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn ssl_handshake_failed() -> (u16, serde_json::Value) {
-  let (code, desc) = ssl_handshake_failed_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn ssl_handshake_failed() -> serde_json::Value {
+  let (code, name, desc) = ssl_handshake_failed_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn another_reading_error() -> (u16, serde_json::Value) {
-  let (code, desc) = another_reading_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn another_reading_error() -> serde_json::Value {
+  let (code, name, desc) = another_reading_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn fba_anomaly() -> (u16, serde_json::Value) {
-  let (code, desc) = fba_anomaly_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn fba_anomaly() -> serde_json::Value {
+  let (code, name, desc) = fba_anomaly_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn coding_error() -> (u16, serde_json::Value) {
-  let (code, desc) = coding_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn coding_error() -> serde_json::Value {
+  let (code, name, desc) = coding_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn redirect_without_redirect_url() -> (u16, serde_json::Value) {
-  let (code, desc) = redirect_without_redirect_url_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn redirect_without_redirect_url() -> serde_json::Value {
+  let (code, name, desc) = redirect_without_redirect_url_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn dns_lookup_failed() -> (u16, serde_json::Value) {
-  let (code, desc) = dns_lookup_failed_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn dns_lookup_failed() -> serde_json::Value {
+  let (code, name, desc) = dns_lookup_failed_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn syntactically_incorrect_url() -> (u16, serde_json::Value) {
-  let (code, desc) = syntactically_incorrect_url_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn syntactically_incorrect_url() -> serde_json::Value {
+  let (code, name, desc) = syntactically_incorrect_url_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn lost_connection() -> (u16, serde_json::Value) {
-  let (code, desc) = lost_connection_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn lost_connection() -> serde_json::Value {
+  let (code, name, desc) = lost_connection_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn write_timeout() -> (u16, serde_json::Value) {
-  let (code, desc) = write_timeout_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn write_timeout() -> serde_json::Value {
+  let (code, name, desc) = write_timeout_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn selection_failed() -> (u16, serde_json::Value) {
-  let (code, desc) = selection_failed_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn selection_failed() -> serde_json::Value {
+  let (code, name, desc) = selection_failed_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn write_error() -> (u16, serde_json::Value) {
-  let (code, desc) = write_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn write_error() -> serde_json::Value {
+  let (code, name, desc) = write_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn incomplete_block_header() -> (u16, serde_json::Value) {
-  let (code, desc) = incomplete_block_header_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn incomplete_block_header() -> serde_json::Value {
+  let (code, name, desc) = incomplete_block_header_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn unexpected_error() -> (u16, serde_json::Value) {
-  let (code, desc) = unexpected_error_tuple();
-  (code, json!({ "status": code, "description": desc }))
+pub fn unexpected_error() -> serde_json::Value {
+  let (code, name, desc) = unexpected_error_tuple();
+  json!({ "status": code, "name": name, "description": desc })
 }
 
 // Unit tests
@@ -278,24 +307,26 @@ mod tests {
     assert_eq!
     (ssl_handshake_failed_tuple(), (
       614,
+      "SSL Handshake Failed",
       "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols",
     ));
   }
 
   #[test]
   fn test_another_reading_error() {
-    let (code, response) = another_reading_error_tuple();
+    let (code, name, response) = another_reading_error_tuple();
     assert_eq!(code, 615);
+    assert_eq!(name, "Another Reading Error");
     assert_eq!(response, "A generic error occurred while reading the response or data");
   }
 
   #[test]
   fn test_fba_anomaly() {
-    let (code, response) = fba_anomaly();
-    assert_eq!(code, 616);
+    let response = fba_anomaly();
+    assert_eq!(response["status"], 616);
     assert_eq!(
-      response,
-      json!({"status": 616, "description": "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input"}),
+      response["description"],
+      "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input"
     );
   }
 }

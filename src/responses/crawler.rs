@@ -66,170 +66,184 @@ impl Into<(u16, &'static str)> for ResponsesCrawlerCodes {
   fn into(self) -> (u16, &'static str) {
     let code: u16 = self.to_u16();
     let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
+    (code, description)
   }
 }
 
-/// The functions returns a tuple containing an unsigned 16-bit integer and a static string indicating that the operation was approved with no further action required.
+/// Functions return raw data as a tuple for further processing or formats containing HTTP status code, status message and description of various client error responses.
 pub fn parsing_error_unfinished_header_tuple() -> (u16, &'static str, &'static str) {
-  (700, "Parsing error: unfinished header", "The header is incomplete and cannot be parsed")
+  let code = ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Parsing Error: Unfinished Header", description)
 }
-
 pub fn parsing_error_header_tuple() -> (u16, &'static str, &'static str) {
-  (710, "Parsing error: header", "The header is invalid and cannot be parsed")
+  let code = ResponsesCrawlerCodes::ParsingErrorHeader;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Parsing Error: Header", description)
 }
 
 pub fn parsing_error_missing_http_code_tuple() -> (u16, &'static str, &'static str) {
-  (720, "Parsing error: missing HTTP code", "The HTTP code is missing and cannot be parsed")
+  let code = ResponsesCrawlerCodes::ParsingErrorMissingHTTPCode;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Parsing Error: Missing HTTP Code", description)
 }
 
 pub fn parsing_error_body_tuple() -> (u16, &'static str, &'static str) {
-  (730, "Parsing error: body", "The body is invalid and cannot be parsed")
+  let code = ResponsesCrawlerCodes::ParsingErrorBody;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Parsing Error: Body", description)
 }
 
 pub fn excluded_by_robots_txt_file_tuple() -> (u16, &'static str, &'static str) {
-  (740, "Excluded by robots.txt file", "The URL is excluded by the robots.txt file")
+  let code = ResponsesCrawlerCodes::ExcludedByRobotsTxtFile;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Excluded by Robots.txt file", description)
 }
 
 pub fn robots_temporarily_unavailable_tuple() -> (u16, &'static str, &'static str) {
-  (741, "Robots temporarily unavailable", "The robots are temporarily unavailable")
+  let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Robots Temporarily Unavailable", description)
 }
 
 pub fn excluded_by_definition_of_exploration_space_tuple() -> (u16, &'static str, &'static str) {
-  (
-    760,
-    "Excluded by definition of exploration space",
-    "The URL is excluded by the definition of the exploration space",
-  )
+  let code = ResponsesCrawlerCodes::ExcludedByDefinitionOfExplorationSpace;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Excluded by Definition of Exploration Space", description)
 }
 
 pub fn not_allowed_by_local_exploration_space_tuple() -> (u16, &'static str, &'static str) {
-  (
-    761,
-    "Not allowed by local exploration space",
-    "The URL is not allowed by the local exploration space",
-  )
+  let code = ResponsesCrawlerCodes::NotAllowedByLocalExplorationSpace;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Not Allowed by Local Exploration Space", description)
 }
 
 pub fn incorrect_protocol_or_non_standard_system_port_tuple() -> (u16, &'static str, &'static str) {
-  (
-    770,
-    "Incorrect protocol or non-standard system port",
-    "The protocol is incorrect or the system port is non-standard",
-  )
+  let code = ResponsesCrawlerCodes::IncorrectProtocolOrNonStandardSystemPort;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Incorrect Protocol or Non-Standard System Port", description)
 }
 
 pub fn excluded_by_file_type_exclusions_tuple() -> (u16, &'static str, &'static str) {
-  (780, "Excluded by file type exclusions", "The URL is excluded by the file type exclusions")
+  let code = ResponsesCrawlerCodes::ExcludedByFileTypeExclusions;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Excluded by File Type Exclusions", description)
 }
 
 pub fn invalid_card_tuple() -> (u16, &'static str, &'static str) {
-  (781, "Invalid card - Not a physical card", "The card is invalid and not a physical card")
+  let code = ResponsesCrawlerCodes::InvalidCard;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid Card", description)
 }
 
 pub fn cannot_disable_physical_card_tuple() -> (u16, &'static str, &'static str) {
-  (
-    782,
-    "Cannot disable physical card OR Print card request already requested",
-    "The physical card cannot be disabled or the print card request has already been requested",
-  )
+  let code = ResponsesCrawlerCodes::CannotDisablePhysicalCard;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Cannot Disable Physical Card", description)
 }
 
 pub fn invalid_url_tuple() -> (u16, &'static str, &'static str) {
-  (786, "Invalid URL", "The URL is invalid")
+  let code = ResponsesCrawlerCodes::InvalidURL;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Invalid URL", description)
 }
 
 pub fn no_index_meta_tag_tuple() -> (u16, &'static str, &'static str) {
-  (2004, "No index meta tag", "The URL has no index meta tag")
+  let code = ResponsesCrawlerCodes::NoIndexMetaTag;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "No Index Meta Tag", description)
 }
 
 pub fn programmable_redirection_tuple() -> (u16, &'static str, &'static str) {
-  (3020, "Programmable redirection", "The URL is programmably redirected")
+  let code = ResponsesCrawlerCodes::ProgrammableRedirection;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Programmable Redirection", description)
 }
 
 pub fn redirected_to_another_url_tuple() -> (u16, &'static str, &'static str) {
-  (3021, "Redirected to another URL", "The URL is redirected to another URL")
+  let code = ResponsesCrawlerCodes::RedirectedToAnotherURL;
+  let description = code.get_str("Description").unwrap_or("No description");
+  (code.to_u16(), "Redirected to Another URL", description)
 }
 
-/// The functions returns a tuple containing a status code and a JSON value with status and description fields.
-pub fn parsing_error_unfinished_header() -> (u16, &'static str, serde_json::Value) {
+/// Functions return formatted data as JSON containing HTTP status code, status message and description of various informational responses.
+pub fn parsing_error_unfinished_header() -> serde_json::Value {
   let (code, name, desc) = parsing_error_unfinished_header_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
-
-pub fn parsing_error_header() -> (u16, &'static str, serde_json::Value) {
+pub fn parsing_error_header() -> serde_json::Value {
   let (code, name, desc) = parsing_error_header_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn parsing_error_missing_http_code() -> (u16, &'static str, serde_json::Value) {
+pub fn parsing_error_missing_http_code() -> serde_json::Value {
   let (code, name, desc) = parsing_error_missing_http_code_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn parsing_error_body() -> (u16, &'static str, serde_json::Value) {
+pub fn parsing_error_body() -> serde_json::Value {
   let (code, name, desc) = parsing_error_body_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn excluded_by_robots_txt_file() -> (u16, &'static str, serde_json::Value) {
+pub fn excluded_by_robots_txt_file() -> serde_json::Value {
   let (code, name, desc) = excluded_by_robots_txt_file_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn robots_temporarily_unavailable() -> (u16, &'static str, serde_json::Value) {
+pub fn robots_temporarily_unavailable() -> serde_json::Value {
   let (code, name, desc) = robots_temporarily_unavailable_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn excluded_by_definition_of_exploration_space() -> (u16, &'static str, serde_json::Value) {
+pub fn excluded_by_definition_of_exploration_space() -> serde_json::Value {
   let (code, name, desc) = excluded_by_definition_of_exploration_space_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn not_allowed_by_local_exploration_space() -> (u16, &'static str, serde_json::Value) {
+pub fn not_allowed_by_local_exploration_space() -> serde_json::Value {
   let (code, name, desc) = not_allowed_by_local_exploration_space_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn incorrect_protocol_or_non_standard_system_port() -> (u16, &'static str, serde_json::Value) {
+pub fn incorrect_protocol_or_non_standard_system_port() -> serde_json::Value {
   let (code, name, desc) = incorrect_protocol_or_non_standard_system_port_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn excluded_by_file_type_exclusions() -> (u16, &'static str, serde_json::Value) {
+pub fn excluded_by_file_type_exclusions() -> serde_json::Value {
   let (code, name, desc) = excluded_by_file_type_exclusions_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_card() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_card() -> serde_json::Value {
   let (code, name, desc) = invalid_card_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn cannot_disable_physical_card() -> (u16, &'static str, serde_json::Value) {
+pub fn cannot_disable_physical_card() -> serde_json::Value {
   let (code, name, desc) = cannot_disable_physical_card_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn invalid_url() -> (u16, &'static str, serde_json::Value) {
+pub fn invalid_url() -> serde_json::Value {
   let (code, name, desc) = invalid_url_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn no_index_meta_tag() -> (u16, &'static str, serde_json::Value) {
+pub fn no_index_meta_tag() -> serde_json::Value {
   let (code, name, desc) = no_index_meta_tag_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn programmable_redirection() -> (u16, &'static str, serde_json::Value) {
+pub fn programmable_redirection() -> serde_json::Value {
   let (code, name, desc) = programmable_redirection_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
-pub fn redirected_to_another_url() -> (u16, &'static str, serde_json::Value) {
+pub fn redirected_to_another_url() -> serde_json::Value {
   let (code, name, desc) = redirected_to_another_url_tuple();
-  (code, name, json!({ "status": code, "name": name, "description": desc }))
+  json!({ "status": code, "name": name, "description": desc })
 }
 
 // Unit tests
@@ -242,7 +256,7 @@ mod tests {
     let response = ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader;
     let (code, description) = response.into();
     assert_eq!(code, 700);
-    assert_eq!(description, "Parsing error: unfinished header");
+    assert_eq!(description, "Parsing Error: Unfinished Header");
   }
 
   #[test]
@@ -256,7 +270,7 @@ mod tests {
   fn test_parsing_error_missing_http_code() {
     assert_eq!(
       parsing_error_missing_http_code_tuple(),
-      (720, "Parsing error: missing HTTP code", "The HTTP code is missing and cannot be parsed")
+      (720, "Parsing Error: Missing HTTP Code", "The HTTP code is missing and cannot be parsed")
     );
   }
 
@@ -270,17 +284,15 @@ mod tests {
   fn test_programmable_redirection() {
     assert_eq!(
       programmable_redirection_tuple(),
-      (3020, "Programmable redirection", "The URL is programmably redirected")
+      (3020, "Programmable Redirection", "The URL is programmably redirected")
     );
   }
 
   #[test]
   fn test_no_index_meta_tag() {
-    let (code, name, response) = no_index_meta_tag();
+    let (code, name, description) = no_index_meta_tag_tuple();
     assert_eq!(code, 2004);
-    assert_eq!(name, "No index meta tag");
-    assert_eq!(response["status"], 2004);
-    assert_eq!(response["name"], "No index meta tag");
-    assert_eq!(response["description"], "The URL has no index meta tag");
+    assert_eq!(name, "No Index Meta Tag");
+    assert_eq!(description, "No index meta tag");
   }
 }
