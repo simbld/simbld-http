@@ -25,16 +25,18 @@ pub use crate::responses::ResponsesSuccessCodes;
 
 #[cfg(test)]
 mod tests {
-  use super::responses::success::ok_tuple;
+  use super::responses::success::{ok, ok_tuple};
+  use serde_json::json;
+
   #[test]
-  fn test_ok() {
+  fn test_ok_tuple() {
     let response = ok_tuple();
-    assert_eq!(response, (200, "Ok"));
+    assert_eq!(response, (200, "Ok", "Ok"));
   }
 
   #[test]
-  fn ok_json() {
-    let response = ok_tuple();
-    assert_eq!(response, (200, "Ok"));
+  fn test_ok_json() {
+    let response = ok();
+    assert_eq!(response, json!({"status": 200, "name": "Ok", "description": "Ok"}));
   }
 }
