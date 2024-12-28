@@ -8,20 +8,32 @@
 /// Returns:
 ///
 /// The `custom_response_handler` function returns an `actix_web::HttpResponse`. This function takes a `web::Data<CustomResponse>` and an `HttpRequest` as input parameters, retrieves the `CustomResponse` from the `web::Data`, clones it, and then calls the `respond_to` method on the cloned `CustomResponse` to generate an `HttpResponse` based on the response code
-use crate::responses::ResponsesTypes;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use serde_json::json;
 
 #[derive(Clone)]
 pub struct CustomResponse {
-  pub code: ResponsesTypes,
+  pub code: u16,
+  pub name: &'static str,
+  pub description: &'static str,
+}
+
+impl CustomResponse {
+  pub fn new(code: u16, name: &'static str, description: &'static str) -> Self {
+    CustomResponse {
+      code,
+      name,
+      description,
+    }
+  }
 }
 
 impl Responder for CustomResponse {
   type Body = actix_web::body::BoxBody;
 
   fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
-    let (code, description) = self.code.get_response_description();
-    HttpResponse::build(actix_web::http::StatusCode::from_u16(code).unwrap()).body(description)
+    HttpResponse::build(actix_web::http::StatusCode::from_u16(self.code).unwrap())
+      .json(json!({ "status": self.code, "name": self.name, "description": self.description }))
   }
 }
 
@@ -37,14 +49,15 @@ pub async fn custom_response_handler(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::ResponsesSuccessCodes;
   use actix_web::{http::StatusCode, test, App};
 
   #[actix_web::test]
   async fn test_custom_response_responder() {
     // Step 1: Create a custom response
     let custom_response = CustomResponse {
-      code: ResponsesTypes::Success(ResponsesSuccessCodes::Ok),
+      code: 200,
+      name: "OK",
+      description: "Success",
     };
 
     // Step 2: Initialize an Actix-Web application with a handler
@@ -57,11 +70,9 @@ mod tests {
 
     // Step 3: Simulate an HTTP request
     let req = test::TestRequest::default().to_request();
-
-    // Step 4: Call the service with the request
     let resp = test::call_service(&app, req).await;
 
-    // Step 5: Check the response
+    // Step 4: Assert the response
     assert_eq!(resp.status(), StatusCode::OK);
   }
 }
