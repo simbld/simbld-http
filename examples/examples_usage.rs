@@ -196,17 +196,27 @@ async fn example_json() -> impl Responder {
   HttpResponse::Ok().json(response)
 }
 
+/// The above function sets up an Actix web server with various routes and middleware for handling different types of requests.
+///
+/// The `UnifiedMiddleware` struct is used to define a middleware that can be applied to all routes in the Actix web server.
+///
+///  let wildcard = self.allowed_origins.contains(&"*".to_string());
+///  if !(wildcard || self.allowed_origins.contains(&origin.to_string())) {
+///    warn!("Origin not allowed: {}", origin);
+///  }
+///
+/// The `main` function is returning a `std::io::Result<()>`, which indicates that it returns a result that may contain an `io::Error` if an I/O operation fails.
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   examples_with_helpers();
   HttpServer::new(|| {
     App::new()
-      // .wrap(UnifiedMiddleware {
-      //   allowed_origins: vec!["*".to_string()],
-      //   rate_limiters: Arc::new(Mutex::new(HashMap::new())),
-      //   max_requests: 100,
-      //   window_duration: std::time::Duration::from_secs(60),
-      // })
+      .wrap(UnifiedMiddleware {
+        allowed_origins: vec!["*".to_string()], // NOTE: ["*"] we authorize everything, otherwise we replace with our domain or localhost
+        rate_limiters: Arc::new(Mutex::new(HashMap::new())),
+        max_requests: 100,
+        window_duration: std::time::Duration::from_secs(60),
+      })
       .wrap(HttpInterceptor) // Specific interceptor
       .route("/transform_bad_request_to_json", web::get().to(transform_bad_request_to_json))
       .route("/example_success", web::get().to(example_success))
