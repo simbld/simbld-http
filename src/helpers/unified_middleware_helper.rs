@@ -22,6 +22,8 @@ use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
 /// Unified middleware managing CORS, advanced logs, and rate limiting.
+
+#[derive(Debug)]
 pub struct UnifiedMiddleware {
   pub allowed_origins: Vec<String>,
   pub rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
