@@ -1,48 +1,64 @@
-/// The code defines a custom response struct and a handler function for Actix-Web that generates an HTTP response based on the custom response.
-///
-/// Arguments:
-///
-/// * `custom_response`: The `custom_response` parameter in the `custom_response_handler` function is of type `web::Data<CustomResponse>`. It represents a shared state containing an instance of the `CustomResponse` struct, which holds a response code of type `ResponsesTypes`. This parameter allows access to the `
-/// * `req`: The `req` parameter in the `custom_response_handler` function is of type `HttpRequest`. It represents the incoming HTTP request that the handler function is processing. The `HttpRequest` type provides access to various details of the incoming request such as headers, method, URI, and other request-related information.
-///
-/// Returns:
-///
-/// The `custom_response_handler` function returns an `actix_web::HttpResponse`. This function takes a `web::Data<CustomResponse>` and an `HttpRequest` as input parameters, retrieves the `CustomResponse` from the `web::Data`, clones it, and then calls the `respond_to` method on the cloned `CustomResponse` to generate an `HttpResponse` based on the response code
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde_json::json;
 
-#[derive(Clone)]
+/// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
+///
+/// Properties (explanation in English for clarity):
+/// * `code`: The HTTP status code (u16).
+/// * `name`: The name associated with the response (String).
+/// * `data`: Extra data payload included in the response (String).
+/// * `description`: A string describing the response further (String).
+#[derive(Clone, Debug)]
 pub struct CustomResponse {
-  pub code: u16,
-  pub name: &'static str,
-  pub description: &'static str,
+  code: u16,
+  name: String,
+  data: String,
+  description: String,
 }
 
+/// Associated functions (constructor, etc.) for `CustomResponse`.
 impl CustomResponse {
-  pub fn new(code: u16, name: &'static str, description: &'static str) -> Self {
-    CustomResponse {
+  /// Creates a new `CustomResponse` with owned Strings (no lifetimes constraints).
+  pub fn new<S: Into<String>>(
+    code: u16,
+    name: impl Into<String>,
+    data: S,
+    description: impl Into<String>,
+  ) -> Self {
+    Self {
       code,
-      name,
-      description,
+      name: name.into(),
+      data: data.into(),
+      description: description.into(),
     }
   }
 }
 
+/// We implement the `Responder` trait for `CustomResponse`,
+/// so that we can return `CustomResponse` directly in Actix handlers.
 impl Responder for CustomResponse {
   type Body = actix_web::body::BoxBody;
 
   fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
-    HttpResponse::build(actix_web::http::StatusCode::from_u16(self.code).unwrap())
-      .json(json!({ "status": self.code, "name": self.name, "description": self.description }))
+    HttpResponse::build(actix_web::http::StatusCode::from_u16(self.code).unwrap()).json(json!({
+        "status": self.code,
+        "name": self.name,
+        "description": self.description,
+        "data": self.data
+    }))
   }
 }
 
-// Handler compatible with Actix-Web
+/// Handler compatible with Actix-Web.
+///
+/// * Takes a `web::Data<CustomResponse>` (shared state) and a `HttpRequest`
+/// * Clones the `CustomResponse`
+/// * Calls `.respond_to(&req)` to build the final `HttpResponse`.
 pub async fn custom_response_handler(
   custom_response: web::Data<CustomResponse>,
   req: HttpRequest,
 ) -> HttpResponse {
-  let response = custom_response.get_ref().clone(); // Clone CustomResponse
+  let response = custom_response.get_ref().clone(); // Clone the struct
   response.respond_to(&req)
 }
 
@@ -56,8 +72,9 @@ mod tests {
     // Step 1: Create a custom response
     let custom_response = CustomResponse {
       code: 200,
-      name: "OK",
-      description: "Success",
+      name: "OK".to_string(),
+      description: "Success".to_string(),
+      data: "Test data".to_string(),
     };
 
     // Step 2: Initialize an Actix-Web application with a handler
