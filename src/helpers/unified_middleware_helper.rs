@@ -21,8 +21,6 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
-/// Unified middleware managing CORS, advanced logs, and rate limiting.
-
 #[derive(Debug)]
 pub struct UnifiedMiddleware {
   pub allowed_origins: Vec<String>,
@@ -30,6 +28,7 @@ pub struct UnifiedMiddleware {
   pub max_requests: usize,
   pub window_duration: std::time::Duration,
 }
+
 impl UnifiedMiddleware {
   pub fn new(allowed_origins: Vec<String>, max_requests: u64, window_duration: Duration) -> Self {
     Self {
@@ -70,6 +69,7 @@ pub struct UnifiedMiddlewareService<S> {
   max_requests: u64,
   window_duration: Duration,
 }
+
 impl<S, B> Service<ServiceRequest> for UnifiedMiddlewareService<S>
 where
   S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
@@ -84,11 +84,17 @@ where
   }
 
   fn call(&self, req: ServiceRequest) -> Self::Future {
+    // Retrieve the Origin header (or empty string if absent)
     let origin = req.headers().get(ORIGIN).and_then(|h| h.to_str().ok()).unwrap_or("");
+
+    // Retrieve the client's IP address
     let client_ip = req.connection_info().realip_remote_addr().unwrap_or("unknown").to_string();
 
-    // CORS check
-    if !self.allowed_origins.contains(&origin.to_string()) {
+    // -- NEW: handle wildcard "*" --
+    let wildcard = self.allowed_origins.contains(&"*".to_string());
+
+    // CORS check: if we don't have "*" AND the list doesn't exactly contain `origin`, block the request
+    if !(wildcard || self.allowed_origins.contains(&origin.to_string())) {
       warn!("Origin not allowed: {}", origin);
       return Box::pin(async move {
         let response = HttpResponse::Forbidden()
@@ -100,7 +106,6 @@ where
 
     // Rate limiting
     let now = Instant::now();
-
     {
       let mut rate_limiters = self.rate_limiters.lock().unwrap();
       let entry = rate_limiters.entry(client_ip.clone()).or_insert((0, now));
@@ -138,13 +143,11 @@ where
       match res {
         Ok(response) => {
           debug!("Response sent to {}: {} ({} ms)", client_ip, response.status(), elapsed_time);
-          // Convert the response body into `EitherBody::Left`
           Ok(response.map_into_left_body())
         },
         Err(e) => {
           error!("Error handling request from {}: {}", client_ip, e);
-          // Pass the error upwards
-          Err(e) // Pas besoin d'utiliser `e.into()` ici, car `e` est déjà du bon type.
+          Err(e)
         },
       }
     })
