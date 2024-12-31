@@ -10,20 +10,15 @@ use actix_web::{
   web, Error, HttpResponse,
 };
 use futures_util::future::{ok, LocalBoxFuture, Ready};
-use serde::Deserialize;
 use std::task::{Context, Poll};
 
 // Parameters for URL requests
-#[derive(Deserialize)]
+#[derive(serde::Deserialize)]
 pub struct TokenParams {
   pub key: Option<String>,
 }
 
 pub struct AuthMiddleware;
-
-pub struct AuthMiddlewareService<S> {
-  service: S,
-}
 
 impl<S, B> Transform<S, ServiceRequest> for AuthMiddleware
 where
@@ -42,6 +37,9 @@ where
     })
   }
 }
+pub struct AuthMiddlewareService<S> {
+  service: S,
+}
 
 impl<S, B> Service<ServiceRequest> for AuthMiddlewareService<S>
 where
@@ -57,26 +55,35 @@ where
   }
 
   fn call(&self, req: ServiceRequest) -> Self::Future {
-    // Check the request parameters
+    // We check the request parameters, we parse the QueryString: ?key=...
     let query = web::Query::<TokenParams>::from_query(req.query_string()).ok();
     let token = query.and_then(|q| q.key.clone()); // Clone the token to avoid invalid references
 
     let response = match token.as_deref() {
-      Some("validated") => {
-        HttpResponse::build(StatusCode::from_u16(222).unwrap()).body("Authentication Successful")
-      },
-      Some("expired") => {
-        HttpResponse::build(StatusCode::from_u16(419).unwrap()).body("Page Expired")
-      },
-      Some(_) => HttpResponse::build(StatusCode::from_u16(498).unwrap()).body("Invalid Token"),
-      None => HttpResponse::build(StatusCode::from_u16(983).unwrap()).body("Missing Token"),
+      Some("validated") => HttpResponse::build(StatusCode::from_u16(200).unwrap())
+        .insert_header(("X-HTTP-Status-Code", "200"))
+        .body("Authentication Successful"),
+      Some("expired") => HttpResponse::build(StatusCode::from_u16(401).unwrap())
+        .insert_header(("X-HTTP-Status-Code", "401"))
+        .insert_header(("X-Auth-Error", "Token Expired"))
+        .body("Your authentication token has expired, please log in again"),
+      Some(_) => HttpResponse::build(StatusCode::from_u16(401).unwrap())
+        .insert_header(("X-HTTP-Status-Code", "401"))
+        .insert_header(("X-Auth-Error", "Invalid Token"))
+        .body("Invalid Token"),
+      None => HttpResponse::build(StatusCode::from_u16(400).unwrap())
+        .insert_header(("X-HTTP-Status-Code", "400"))
+        .insert_header(("X-Auth-Error", "Missing Token"))
+        .body("Missing auth token"),
     };
 
-    if response.status() == StatusCode::from_u16(222).unwrap() {
+    // Here, if it is 200 => we let the request pass through to the route handler
+    if response.status() == StatusCode::from_u16(200).unwrap() {
       let fut = self.service.call(req);
       return Box::pin(async move { fut.await.map(|res| res.map_into_left_body()) });
     }
 
+    // Otherwise, we return the response immediately, without reaching the route handler
     Box::pin(async move { Ok(req.into_response(response.map_into_right_body())) })
   }
 }
@@ -91,7 +98,7 @@ mod tests {
     let app = test::init_service(App::new().wrap(AuthMiddleware).route(
       "/protected",
       web::get().to(|| async {
-        HttpResponse::build(StatusCode::from_u16(222).unwrap()).body("Access Granted")
+        HttpResponse::build(StatusCode::from_u16(200).unwrap()).body("Access Granted")
       }),
     ))
     .await;
@@ -101,8 +108,8 @@ mod tests {
     let resp_valid = test::call_service(&app, req_valid).await;
     assert_eq!(
       resp_valid.status(),
-      StatusCode::from_u16(222).unwrap(),
-      "Expected status code 222 for a validated token."
+      StatusCode::from_u16(200).unwrap(),
+      "Expected status code 200 for a validated token."
     );
 
     // Test case 2: Expired token
@@ -110,26 +117,29 @@ mod tests {
     let resp_expired = test::call_service(&app, req_expired).await;
     assert_eq!(
       resp_expired.status(),
-      StatusCode::from_u16(419).unwrap(),
-      "Expected status code 419 for an expired token."
+      StatusCode::from_u16(401).unwrap(),
+      "Expected status code 401 for an expired token."
     );
+    assert_eq!(resp_expired.headers().get("X-Auth-Error").unwrap(), "Token Expired");
 
     // Test case 3: Invalid token
     let req_invalid = test::TestRequest::get().uri("/protected?key=invalid").to_request();
     let resp_invalid = test::call_service(&app, req_invalid).await;
     assert_eq!(
       resp_invalid.status(),
-      StatusCode::from_u16(498).unwrap(),
-      "Expected status code 498 for an invalid token."
+      StatusCode::from_u16(401).unwrap(),
+      "Expected status code 401 for an invalid token."
     );
+    assert_eq!(resp_invalid.headers().get("X-Auth-Error").unwrap(), "Invalid Token");
 
     // Test case 4: Missing token
     let req_missing = test::TestRequest::get().uri("/protected").to_request();
     let resp_missing = test::call_service(&app, req_missing).await;
     assert_eq!(
       resp_missing.status(),
-      StatusCode::from_u16(983).unwrap(),
-      "Expected status code 983 for a missing token."
+      StatusCode::from_u16(400).unwrap(),
+      "Expected status code 400 for a missing token."
     );
+    assert_eq!(resp_missing.headers().get("X-Auth-Error").unwrap(), "Missing Token");
   }
 }
