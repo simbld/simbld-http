@@ -95,6 +95,7 @@ pub fn transform_to_json(response: ResponsesTypes) -> String {
   })
   .to_string()
 }
+
 /// Converts a `ResponsesTypes` into JSON only for standard HTTP codes (100–599). Returns `None` for invalid codes.
 pub fn transform_to_json_filtered(response: ResponsesTypes) -> Option<String> {
   let (code, description) = get_response_description(response);
