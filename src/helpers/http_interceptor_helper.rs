@@ -1,5 +1,9 @@
 /// Intercepts HTTP requests and responses to add custom headers.
 ///
+/// Purpose: Intercept requests and responses to add cross-functional functionality such as logging.
+/// How it works: It intercepts every request and response, allowing headers to be added or information to be logged.
+/// Special feature: It uses Rc to share the service between the different middleware instances.
+///
 /// This struct implements the `Service` trait, allowing it to intercept
 /// HTTP requests and responses. It adds the following headers to the response:
 /// - `x-request-id`: A unique identifier for the request.
@@ -30,6 +34,7 @@ use futures_util::future::{ok, LocalBoxFuture, Ready};
 use std::rc::Rc;
 use std::task::{Context, Poll};
 
+#[derive(Debug)]
 pub struct HttpInterceptor;
 
 impl<S, B> Transform<S, ServiceRequest> for HttpInterceptor
