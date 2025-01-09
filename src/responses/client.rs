@@ -1,878 +1,509 @@
-/// The code defines an enum representing HTTP response status codes with corresponding descriptions and provides helper functions to retrieve code-description pairs.
 use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
+use crate::utils::json_formatter::JsonFormatter;
+use crate::utils::response_tuple::ResponseTuple;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-use serde_json::json;
-use strum::EnumProperty;
+use serde_json::Value;
 use strum_macros::{Display, EnumIter, EnumProperty};
+/// Enum representing HTTP response status codes and descriptions.
+/// Each variant corresponds to a specific HTTP status code.
+///
+/// Example usage:
+/// ```
+/// let response = ResponsesClientCodes::BadRequest;
+/// let json = response.to_detailed_json();
+/// println!("{:?}", json);
+/// ```
 
 #[derive(
   Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone, PartialEq,
 )]
 #[repr(u16)]
-
 pub enum ResponsesClientCodes {
-  #[strum(props(
-    Description = "The server cannot process the request due to malformed syntax or invalid parameters in the client request"
-  ))]
-  BadRequest = 400,
-  #[strum(props(
-    Description = "The client must authenticate itself to get the requested resource, typically a 401 Unauthorized response"
-  ))]
-  Unauthorized = 401,
-  #[strum(props(
-    Description = "Payment is required to access the requested resource, though this is not widely used in practice"
-  ))]
-  PaymentRequired = 402,
-  #[strum(props(
-    Description = "The server understands the request but refuses to authorize it, indicating insufficient permissions"
-  ))]
-  Forbidden = 403,
-  #[strum(props(
-    Description = "The server cannot find the requested resource, indicating a non-existent or inaccessible URI"
-  ))]
-  NotFound = 404,
-  #[strum(props(
-    Description = "The HTTP method used in the request is not supported for the target resource"
-  ))]
-  MethodNotAllowed = 405,
-  #[strum(props(
-    Description = "The requested resource cannot be provided in a format acceptable according to the request's Accept headers"
-  ))]
-  NotAcceptable = 406,
-  #[strum(props(
-    Description = "The client must authenticate with a proxy server before accessing the resource"
-  ))]
-  ProxyAuthenticationRequired = 407,
-  #[strum(props(
-    Description = "The server timed out while waiting for the request from the client. This status code is used to inform the client that the server timed out."
-  ))]
-  RequestTimeout = 408,
-  #[strum(props(
-    Description = "The request could not be completed due to a conflict with the current state of the target resource"
-  ))]
-  Conflict = 409,
-  #[strum(props(
-    Description = "The requested resource is no longer available and has been permanently removed from the server and will not be available again"
-  ))]
-  Gone = 410,
-  #[strum(props(Description = "The request does not include the required Content-Length header"))]
-  LengthRequired = 411,
-  #[strum(props(
-    Description = "One or more conditions in the request headers are not met by the server"
-  ))]
-  PreconditionFailed = 412,
-  #[strum(props(
-    Description = "The size of the request payload exceeds the server's capacity or configuration limits"
-  ))]
-  PayloadTooLarge = 413,
-  #[strum(props(
-    Description = "The URI of the request is too long for the server to process. This status code is used to inform the client that the request URI is too long"
-  ))]
-  RequestUriTooLong = 414,
-  #[strum(props(
-    Description = "The media type of the request payload is not supported by the server or target resource"
-  ))]
-  UnsupportedMediaType = 415,
-  #[strum(props(
-    Description = "The client requested a range that is not satisfiable for the target resource"
-  ))]
-  RequestedRangeUnsatisfiable = 416,
-  #[strum(props(
-    Description = "The server cannot meet the requirements specified in the Expect header field of the request"
-  ))]
-  ExpectationFailed = 417,
-  #[strum(props(
-    Description = "A playful response indicating the server is a teapot and cannot brew coffee (RFC 2324)"
-  ))]
-  ImATeapot = 418,
-  #[strum(props(
-    Description = "Issued by Laravel when a CSRF token is missing or expired, unofficial"
-  ))]
-  PageExpired = 419,
-  #[strum(props(
-    Description = "The method specified in the request is known by the server but cannot be processed due to a failure in the server's implementation, Issued by Spring when a method has failed. Now deprecated and reserved for backward compatibility, unofficial"
-  ))]
-  MethodFailure = 420,
-  #[strum(props(
-    Description = "Used by Twitter to indicate that the client has sent too many requests in a given amount of time, unofficial"
-  ))]
-  MisdirectedRequest = 421,
-  #[strum(props(
-    Description = "The request is well-formed but cannot be processed due to semantic errors, commonly used in APIs, use in WebDav RFC 4918"
-  ))]
-  UnprocessableEntity = 422,
-  #[strum(props(
-    Description = "The resource is locked and cannot be accessed or modified, typically used in WebDav RFC 4918"
-  ))]
-  LockedTemporarilyUnavailable = 423,
-  #[strum(props(
-    Description = "The request failed because it depended on another operation that failed, often used in WebDav RFC 4918"
-  ))]
-  FailedDependency = 424,
-  #[strum(props(
-    Description = "The server is unwilling to process the request because it might be replayed"
-  ))]
-  TooEarly = 425, // Only for Firefox
-  #[strum(props(
-    Description = "The client must upgrade to a different protocol to continue with the request"
-  ))]
-  UpgradeRequired = 426,
-  #[strum(props(
-    Description = "The server requires the request to include specific preconditions to proceed"
-  ))]
-  PreconditionRequired = 428,
-  #[strum(props(
-    Description = "The resource is rate-limited and the client has sent too many requests in the allotted time"
-  ))]
-  TooManyRequests = 429,
-  #[strum(props(
-    Description = "Issued by Shopify to indicate a rate-limit effect. This is used instead of 429, unofficial"
-  ))]
-  RequestHeaderFieldsTooLarge = 430,
-  #[strum(props(
-    Description = "Authentication is required to access the requested resource, typically in web applications"
-  ))]
-  LoginRequired = 432,
-  #[strum(props(
-    Description = "The request was rejected due to an issue with the origin server or client IP"
-  ))]
-  OriginError = 433,
-  #[strum(props(
-    Description = "The request was rejected due to an issue with the destination server or target configuration"
-  ))]
-  DestinationError = 434,
-  #[strum(props(
-    Description = "The size of the requested resource or payload exceeds the allowable limit for the server"
-  ))]
-  TooLarge = 435,
-  #[strum(props(
-    Description = "An error occurred due to an invalid or untrusted SSL certificate"
-  ))]
-  SSLCertificateError = 436,
-  #[strum(props(
-    Description = "The server requires a valid SSL certificate for the connection to proceed securely"
-  ))]
-  SSLCertificateRequired = 437,
-  #[strum(props(
-    Description = "The client did not provide an SSL certificate required for secure communication"
-  ))]
-  NoCertificate = 438,
-  #[strum(props(
-    Description = "The client session timed out and must log in again, iis, unofficial"
-  ))]
-  LoginTimeout = 440,
-  #[strum(props(
-    Description = "The client has exceeded the allocated data quota for the requested operation"
-  ))]
-  OverDataQuota = 441,
-  #[strum(props(
-    Description = "The server closed the connection without sending any response, often used in scenarios where the server chooses to silently drop the request, nginx, unofficial"
-  ))]
-  NoResponse = 444,
-  #[strum(props(
-    Description = "The user has not provided the required information, iis, unofficial"
-  ))]
-  RetryWith = 449,
-  #[strum(props(
-    Description = "Issued by Microsoft when Windows Parental Controls are turned on and a resource is blocked, unofficial"
-  ))]
-  BlockedByWindowsParentalControls = 450,
-  #[strum(props(
-    Description = "The server is denying access to the resource due to legal reasons, such as censorship or compliance with local laws"
-  ))]
-  UnavailableForLegalReasons = 451,
-  #[strum(props(
-    Description = "The server is unable to process the request because it contains too many recipients"
-  ))]
-  TooManyRecipients = 452,
-  #[strum(props(
-    Description = "The method specified in the request is not valid for the current state of the resource or server"
-  ))]
-  MethodNotValidInThisState = 455,
-  #[strum(props(
-    Description = "The server encountered a critical error that prevents it from continuing to process the request"
-  ))]
-  UnrecoverableError = 456,
-  #[strum(props(
-    Description = "The client closed the connection before the server was able to send a response, often due to a timeout or network interruption"
-  ))]
-  ClientClosedConnexionPrematurely = 460,
-  #[strum(props(
-    Description = "The server rejected the request due to an excessive number of forwarded IP addresses in the request headers, potentially indicating a misconfiguration or a security concern"
-  ))]
-  TooManyForwardedIPAddresses = 463,
-  #[strum(props(
-    Description = "An internet security policy violation or configuration issue occurred, often related to SSL/TLS settings, certificates, or protocol mismatches"
-  ))]
-  InternetSecurityError = 467,
-  #[strum(props(
-    Description = "The server is temporarily unavailable, usually due to maintenance or overload"
-  ))]
-  TemporaryUnavailable = 480,
-  #[strum(props(
-    Description = "The server is unable to process the request because the headers are too large, often due to a misconfiguration or an attack, nginx, unofficial"
-  ))]
-  RequestHeaderTooLarge = 494,
-  #[strum(props(
-    Description = "The SSL certificate presented by the client is invalid or cannot be verified by the server, preventing a secure connection from being established, nginx, unofficial"
-  ))]
-  CertError = 495,
-  #[strum(props(
-    Description = "A required client certificate wasn't provided, preventing the server from establishing a secure connection, nginx, unofficial"
-  ))]
-  NoCert = 496,
-  #[strum(props(
-    Description = "The client sent an unencrypted HTTP request to a server that requires HTTPS, and the server is redirecting the client to the HTTPS version of the resource, nginx, unofficial"
-  ))]
-  HTTPToHTTPS = 497,
-  #[strum(props(
-    Description = "The provided token is invalid, expired, or malformed, and cannot be used for authentication or authorization, Issued by ArcGIS for Server, unofficial"
-  ))]
-  InvalidToken = 498,
-  #[strum(props(
-    Description = "The client closed the connection before the server could provide a response, often due to client timeout or network interruption, nginx, unofficial"
-  ))]
-  ClientClosedRequest = 499,
+  BadRequest,
+  Unauthorized,
+  PaymentRequired,
+  Forbidden,
+  NotFound,
+  MethodNotAllowed,
+  NotAcceptable,
+  ProxyAuthenticationRequired,
+  RequestTimeout,
+  Conflict,
+  Gone,
+  LengthRequired,
+  PreconditionFailed,
+  ContentTooLarge,
+  URITooLong,
+  UnsupportedMediaType,
+  RangeNotSatisfiable,
+  ExpectationFailed,
+  ImATeapot,
+  PageExpired,
+  MethodFailure,
+  MisdirectedRequest,
+  UnprocessableEntity,
+  Locked,
+  FailedDependency,
+  TooEarly,
+  UpgradeRequired,
+  PreconditionRequired,
+  TooManyRequests,
+  RequestHeaderFieldsTooLarge,
+  LoginRequired,
+  OriginError,
+  DestinationError,
+  TooLarge,
+  SSLCertificateError,
+  SSLCertificateRequired,
+  NoCertificate,
+  LoginTimeout,
+  OverDataQuota,
+  NoResponse,
+  RetryWith,
+  BlockedByWindowsParentalControls,
+  UnavailableForLegalReasons,
+  TooManyRecipients,
+  MethodNotValidInThisState,
+  UnrecoverableError,
+  ClientClosedConnexionPrematurely,
+  TooManyForwardedIPAddresses,
+  InternetSecurityError,
+  RequestHeaderTooLarge,
+  CertError,
+  NoCert,
+  HTTPToHTTPS,
+  InvalidToken,
+  ClientClosedRequest,
 }
 
-/// implementation of a custom trait `ToU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “to_u16” method which converts a value from the enumeration into a “u16” type. Self accesses the value of the enum In the implementation, it calls the `into()` method to perform the conversion, which relies on the `Into<u16>` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
+/// The above Rust code is implementing a method `as_tuple` for a struct `ResponsesClientCodes`. This method returns a tuple containing information related to HTTP response codes. It extracts the standard code, standard name, internal code (if available), internal name (if available), and description from the struct instance. It then constructs a tuple with this information and returns it.
+impl ResponsesClientCodes {
+  pub fn as_tuple(&self) -> ResponseTuple {
+    match self {
+      ResponsesClientCodes::BadRequest => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(400),
+        int_name: Some("Bad Request"),
+        desc: "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).",
+      },
+      ResponsesClientCodes::Unauthorized => ResponseTuple {
+        std_code: 401,
+        std_name: "Unauthorized",
+        int_code: Some(401),
+        int_name: Some("Unauthorized"),
+        desc: "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.",
+      },
+      ResponsesClientCodes::PaymentRequired => ResponseTuple {
+        std_code: 402,
+        std_name: "Payment Required",
+        int_code: Some(402),
+        int_name: Some("Payment Required"),
+        desc: "The initial purpose of this code was for digital payment systems, however this status code is rarely used and no standard convention exists.",
+      },
+      ResponsesClientCodes::Forbidden => ResponseTuple {
+        std_code: 403,
+        std_name: "Forbidden",
+        int_code: Some(403),
+        int_name: Some("Forbidden"),
+        desc: "The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.",
+      },
+      ResponsesClientCodes::NotFound => ResponseTuple {
+        std_code: 404,
+        std_name: "Not Found",
+        int_code: Some(404),
+        int_name: Some("Not Found"),
+        desc: "The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client.",
+      },
+      ResponsesClientCodes::MethodNotAllowed => ResponseTuple {
+        std_code: 405,
+        std_name: "Method Not Allowed",
+        int_code: Some(405),
+        int_name: Some("Method Not Allowed"),
+        desc: "The HTTP method is not supported for the target resource",
+      },
+      ResponsesClientCodes::NotAcceptable => ResponseTuple {
+        std_code: 406,
+        std_name: "Not Acceptable",
+        int_code: Some(406),
+        int_name: Some("Not Acceptable"),
+        desc: "This response is sent when the web server, after performing server-driven content negotiation, doesn't find any content that conforms to the criteria given by the user agent.",
+      },
+      ResponsesClientCodes::ProxyAuthenticationRequired => ResponseTuple {
+        std_code: 407,
+        std_name: "Proxy Authentication Required",
+        int_code: Some(407),
+        int_name: Some("Proxy Authentication Required"),
+        desc: "The client must authenticate with a proxy first",
+      },
+      ResponsesClientCodes::RequestTimeout => ResponseTuple {
+        std_code: 408,
+        std_name: "Request Timeout",
+        int_code: Some(408),
+        int_name: Some("Request Timeout"),
+        desc: "This response is sent on an idle connection by some servers, even without any previous request by the client. It means that the server would like to shut down this unused connection. This response is used much more since some browsers use HTTP pre-connection mechanisms to speed up browsing. Some servers may shut down a connection without sending this message.",
+      },
+      ResponsesClientCodes::Conflict => ResponseTuple {
+        std_code: 409,
+        std_name: "Conflict",
+        int_code: Some(409),
+        int_name: Some("Conflict"),
+        desc: "This response is sent when a request conflicts with the current state of the server. In WebDAV remote web authoring, 409 responses are errors sent to the client so that a user might be able to resolve a conflict and resubmit the request.",
+      },
+      ResponsesClientCodes::Gone => ResponseTuple {
+        std_code: 410,
+        std_name: "Gone",
+        int_code: Some(410),
+        int_name: Some("Gone"),
+        desc: "This response is sent when the requested content has been permanently deleted from server, with no forwarding address. Clients are expected to remove their caches and links to the resource. The HTTP specification intends this status code to be used for 'limited-time, promotional services'. APIs should not feel compelled to indicate resources that have been deleted with this status code.",
+      },
+      ResponsesClientCodes::LengthRequired => ResponseTuple {
+        std_code: 411,
+        std_name: "Length Required",
+        int_code: Some(411),
+        int_name: Some("Length Required"),
+        desc: "Server rejected the request because the Content-Length header field is not defined and the server requires it.",
+      },
+      ResponsesClientCodes::PreconditionFailed => ResponseTuple {
+        std_code: 412,
+        std_name: "Precondition Failed",
+        int_code: Some(412),
+        int_name: Some("Precondition Failed"),
+        desc: "In conditional requests, the client has indicated preconditions in its headers which the server does not meet.",
+      },
+      ResponsesClientCodes::ContentTooLarge => ResponseTuple {
+        std_code: 413,
+        std_name: "Content Too Large",
+        int_code: Some(413),
+        int_name: Some("Content Too Large"),
+        desc: "The request body is larger than limits defined by server. The server might close the connection or return an Retry-After header field.",
+      },
+      ResponsesClientCodes::URITooLong => ResponseTuple {
+        std_code: 414,
+        std_name: "URI Too Long",
+        int_code: Some(414),
+        int_name: Some("URI Too Long"),
+        desc: "The URI requested by the client is longer than the server is willing to interpret.",
+      },
+      ResponsesClientCodes::UnsupportedMediaType => ResponseTuple {
+        std_code: 415,
+        std_name: "Unsupported Media Type",
+        int_code: Some(415),
+        int_name: Some("Unsupported Media Type"),
+        desc: "The media format of the requested data is not supported by the server, so the server is rejecting the request.",
+      },
+      ResponsesClientCodes::RangeNotSatisfiable => ResponseTuple {
+        std_code: 416,
+        std_name: "Range Not Satisfiable",
+        int_code: Some(416),
+        int_name: Some("Range Not Satisfiable"),
+        desc: "The range specified by the request's Range header field cannot be satisfied; the range may exceed the size of the data coming from the targeted URI.",
+      },
+      ResponsesClientCodes::ExpectationFailed => ResponseTuple {
+        std_code: 417,
+        std_name: "Expectation Failed",
+        int_code: Some(417),
+        int_name: Some("Expectation Failed"),
+        desc: "This response code means that the expectations indicated by the Expect request header field could not be met by the server.",
+      },
+      ResponsesClientCodes::ImATeapot => ResponseTuple {
+        std_code: 418,
+        std_name: "I'm a teapot",
+        int_code: Some(418),
+        int_name: Some("I'm a teapot"),
+        desc: "The waiter refuses to brew coffee with a teapot, RFC 2324.",
+      },
+      ResponsesClientCodes::PageExpired => ResponseTuple {
+        std_code: 401,
+        std_name: "Unauthorized",
+        int_code: Some(419),
+        int_name: Some("PageExpired"),
+        desc: "Used by Laravel for missing/expired CSRF token, unofficial",
+      },
+      ResponsesClientCodes::MethodFailure => ResponseTuple {
+        std_code: 405,
+        std_name: "Method Not Allowed",
+        int_code: Some(420),
+        int_name: Some("MethodFailure"),
+        desc: "Method known by server but cannot be processed, unofficial",
+      },
+      ResponsesClientCodes::MisdirectedRequest => ResponseTuple {
+        std_code: 421,
+        std_name: "Misdirected Request",
+        int_code: Some(421),
+        int_name: Some("Misdirected Request"),
+        desc: "The request was sent to a server unable to produce a response. This code may be sent by a server that has not been configured to produce responses subject to the combination of schemas and identities included in the request URI.",
+      },
+      ResponsesClientCodes::UnprocessableEntity => ResponseTuple {
+        std_code: 422,
+        std_name: "Unprocessable Entity",
+        int_code: Some(422),
+        int_name: Some("Unprocessable Entity"),
+        desc: "The request was successfully created but could not be processed due to semantic errors, WebDAV RFC 4918.",
+      },
+      ResponsesClientCodes::Locked => ResponseTuple {
+        std_code: 423,
+        std_name: "Locked",
+        int_code: Some(423),
+        int_name: Some("Locked"),
+        desc: "The resource that is currently being viewed is locked.",
+      },
+      ResponsesClientCodes::FailedDependency => ResponseTuple {
+        std_code: 424,
+        std_name: "Failed Dependency",
+        int_code: Some(424),
+        int_name: Some("Failed Dependency"),
+        desc: "The query failed because a previous query failed.",
+      },
+      ResponsesClientCodes::TooEarly => ResponseTuple {
+        std_code: 425,
+        std_name: "Too Early",
+        int_code: Some(425),
+        int_name: Some("Too Early"),
+        desc: "Indicate that the server does not want to process a request that could be replayed.",
+      },
+      ResponsesClientCodes::UpgradeRequired => ResponseTuple {
+        std_code: 426,
+        std_name: "Upgrade Required",
+        int_code: Some(426),
+        int_name: Some("Upgrade Required"),
+        desc: "The server refuses to process the request using the current protocol but may agree to do so if the client opts for another protocol. The server must send an Upgrade header in the 426 response to indicate the requested protocol(s) (Section 6.7 of [RFC7230]).",
+      },
+      ResponsesClientCodes::PreconditionRequired => ResponseTuple {
+        std_code: 428,
+        std_name: "Precondition Required",
+        int_code: Some(428),
+        int_name: Some("Precondition Required"),
+        desc: "The origin server requires the request to be conditional. This is intended to prevent the 'loss of update' problem, where a client retrieves the state of a resource with GET, modifies it, and returns it to the server with PUT while a third party modifies the state of the resource. server, which leads to a conflict.",
+      },
+      ResponsesClientCodes::TooManyRequests => ResponseTuple {
+        std_code: 429,
+        std_name: "Too Many Requests",
+        int_code: Some(429),
+        int_name: Some("Too Many Requests"),
+        desc: "The user has sent too many requests in a given amount of time (rate limiting).",
+      },
+      ResponsesClientCodes::RequestHeaderFieldsTooLarge => ResponseTuple {
+        std_code: 431,
+        std_name: "Request Header Fields Too Large",
+        int_code: Some(431),
+        int_name: Some("Request Header Fields Too Large"),
+        desc: "The server is unwilling to process the request because the header fields are too long. The request can be returned after reducing the size of the headers.",
+      },
+      ResponsesClientCodes::LoginRequired => ResponseTuple {
+        std_code: 401,
+        std_name: "Unauthorized",
+        int_code: Some(432),
+        int_name: Some("Login Required"),
+        desc: "Authentication is required to access the resource",
+      },
+      ResponsesClientCodes::OriginError => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(433),
+        int_name: Some("Origin Error"),
+        desc: "The request was rejected due to an origin server/client IP issue",
+      },
+      ResponsesClientCodes::DestinationError => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(434),
+        int_name: Some("DestinationError"),
+        desc: "The request was rejected due to a destination server/config issue",
+      },
+      ResponsesClientCodes::TooLarge => ResponseTuple {
+        std_code: 413,
+        std_name: "Payload Too Large",
+        int_code: Some(435),
+        int_name: Some("TooLarge"),
+        desc: "The request or resource is too large for the server to handle",
+      },
+      ResponsesClientCodes::SSLCertificateError => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(436),
+        int_name: Some("SSLCertificateError"),
+        desc: "An invalid or untrusted SSL certificate was encountered",
+      },
+      ResponsesClientCodes::SSLCertificateRequired => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(437),
+        int_name: Some("SSLCertificateRequired"),
+        desc: "The server requires a valid SSL certificate for secure connections",
+      },
+      ResponsesClientCodes::NoCertificate => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(438),
+        int_name: Some("NoCertificate"),
+        desc: "No SSL certificate was provided by the client",
+      },
+      ResponsesClientCodes::LoginTimeout => ResponseTuple {
+        std_code: 401,
+        std_name: "Unauthorized",
+        int_code: Some(440),
+        int_name: Some("LoginTimeout"),
+        desc: "The client session timed out; must log in again, unofficial (IIS)",
+      },
+      ResponsesClientCodes::OverDataQuota => ResponseTuple {
+        std_code: 413,
+        std_name: "Payload Too Large",
+        int_code: Some(441),
+        int_name: Some("OverDataQuota"),
+        desc: "The client exceeded the allocated data quota",
+      },
+      ResponsesClientCodes::NoResponse => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(444),
+        int_name: Some("NoResponse"),
+        desc: "The server closed the connection without sending a response, unofficial (Nginx)",
+      },
+      ResponsesClientCodes::RetryWith => ResponseTuple {
+        std_code: 428,
+        std_name: "Precondition Required",
+        int_code: Some(449),
+        int_name: Some("RetryWith"),
+        desc: "The user has not provided the required information, unofficial (IIS)",
+      },
+      ResponsesClientCodes::BlockedByWindowsParentalControls => ResponseTuple {
+        std_code: 403,
+        std_name: "Forbidden",
+        int_code: Some(450),
+        int_name: Some("BlockedByWindowsParentalControls"),
+        desc: "Resource blocked by Windows Parental Controls, unofficial",
+      },
+      ResponsesClientCodes::UnavailableForLegalReasons => ResponseTuple {
+        std_code: 451,
+        std_name: "Unavailable For Legal Reasons",
+        int_code: Some(451),
+        int_name: Some("UnavailableForLegalReasons"),
+        desc: "Access denied for legal reasons (censorship, local laws)",
+      },
+      ResponsesClientCodes::TooManyRecipients => ResponseTuple {
+        std_code: 429,
+        std_name: "Too Many Requests",
+        int_code: Some(452),
+        int_name: Some("TooManyRecipients"),
+        desc: "Unable to process the request because it contains too many recipients",
+      },
+      ResponsesClientCodes::MethodNotValidInThisState => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(455),
+        int_name: Some("MethodNotValidInThisState"),
+        desc: "The specified method is not valid for the current resource state",
+      },
+      ResponsesClientCodes::UnrecoverableError => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(456),
+        int_name: Some("UnrecoverableError"),
+        desc: "A critical server error prevents continuing processing",
+      },
+      ResponsesClientCodes::ClientClosedConnexionPrematurely => ResponseTuple {
+        std_code: 408,
+        std_name: "Request Timeout",
+        int_code: Some(460),
+        int_name: Some("ClientClosedConnexionPrematurely"),
+        desc: "Client closed the connection prematurely, often due to timeout or interruption",
+      },
+      ResponsesClientCodes::TooManyForwardedIPAddresses => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(463),
+        int_name: Some("TooManyForwardedIPAddresses"),
+        desc: "Excessive forwarded IP addresses in the headers, possible misconfiguration",
+      },
+      ResponsesClientCodes::InternetSecurityError => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(467),
+        int_name: Some("InternetSecurityError"),
+        desc: "A violation or misconfiguration in internet security policies occurred",
+      },
+      ResponsesClientCodes::RequestHeaderTooLarge => ResponseTuple {
+        std_code: 431,
+        std_name: "Request Header Fields Too Large",
+        int_code: Some(494),
+        int_name: Some("RequestHeaderTooLarge"),
+        desc: "Headers too large to process, unofficial (Nginx)",
+      },
+      ResponsesClientCodes::CertError => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(495),
+        int_name: Some("CertError"),
+        desc: "SSL cert from client invalid or cannot be verified, unofficial (Nginx)",
+      },
+      ResponsesClientCodes::NoCert => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(496),
+        int_name: Some("NoCert"),
+        desc: "A required client certificate was not provided, unofficial (Nginx)",
+      },
+      ResponsesClientCodes::HTTPToHTTPS => ResponseTuple {
+        std_code: 400,
+        std_name: "Bad Request",
+        int_code: Some(497),
+        int_name: Some("HTTPToHTTPS"),
+        desc: "Client sent HTTP to server requiring HTTPS, unofficial (Nginx)",
+      },
+      ResponsesClientCodes::InvalidToken => ResponseTuple {
+        std_code: 401,
+        std_name: "Unauthorized",
+        int_code: Some(498),
+        int_name: Some("Invalid Token"),
+        desc: "Invalid, expired, or malformed token, unofficial (ArcGIS)",
+      },
+      ResponsesClientCodes::ClientClosedRequest => ResponseTuple {
+        std_code: 408,
+        std_name: "Request Timeout",
+        int_code: Some(499),
+        int_name: Some("ClientClosedRequest"),
+        desc: "Client closed the connection before server response, unofficial (Nginx)",
+      },
+    }
+  }
+}
+
+/// Delegates to `as_tuple` to generate a detailed JSON response.
+
+pub fn as_json(&self) -> Value {
+  self.as_tuple().to_json_response()
+}
+
+// -------------------------
+// Impl "ToU16" (custom trait) - must be at the **same level** as the main impl,
+// not inside another impl
+// -------------------------
 impl ToU16 for ResponsesClientCodes {
   fn to_u16(self) -> u16 {
-    self.into() // Conversion`Into<u16>`
+    self.into() // Conversion `Into<u16>` (provided by num_enum::IntoPrimitive)
   }
 }
 
-/// implementation of a custom trait `FromU16` for the `ResponsesLocalApiCodes` enumeration. We provide a “from_u16” method which converts a value from the enumeration into an `Option<Self>` type. The method uses the `try_from` method to perform the conversion, which relies on the `TryFromPrimitive` trait implemented for enum variants. The conversion is possible thanks to the IntoPrimitive derivative in the enum
+// -------------------------
+// Impl "FromU16" (custom trait) - same, outside the main impl
+// -------------------------
 impl FromU16 for ResponsesClientCodes {
   fn from_u16(code: u16) -> Option<Self> {
-    Self::try_from(code).ok() // Conversion`TryFrom<u16>`
+    Self::try_from(code).ok()
   }
 }
 
-/// implementation of a custom trait `Into` for the `ResponsesLocalApiCodes` enumeration. We provide an “into” method which converts a value from the enumeration into a tuple containing a `u16` and a `&'static str`. The method calls the `to_u16` method to get the status code and the `get_str` method to get the description. The `unwrap_or` method is used to provide a default value in case the description is not found. The method returns the tuple containing the status code and the description
+// -------------------------
+// Impl "Into<(u16, &'static str)>" - same
+// -------------------------
 impl Into<(u16, &'static str)> for ResponsesClientCodes {
   fn into(self) -> (u16, &'static str) {
-    let code: u16 = self.to_u16();
-    let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
+    let std_code: u16 = self.to_u16();
+    // Here, we use `to_string()` which comes from `Display` => "BadRequest", "Unauthorized", ...
+    let std_name = self.to_string();
+    (std_code, std_name)
   }
-}
-
-/// Functions return raw data as a tuple for further processing or formats containing HTTP status code, status message and description of various client error responses.
-pub fn bad_request_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::BadRequest;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Bad Request", description)
-}
-
-pub fn unauthorized_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::Unauthorized;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Unauthorized", description)
-}
-
-pub fn payment_required_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::PaymentRequired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Payment Required", description)
-}
-
-pub fn forbidden_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::Forbidden;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Forbidden", description)
-}
-
-pub fn not_found_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::NotFound;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Not Found", description)
-}
-
-pub fn method_not_allowed_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::MethodNotAllowed;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Method Not Allowed", description)
-}
-
-pub fn not_acceptable_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::NotAcceptable;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Not Acceptable", description)
-}
-
-pub fn proxy_authentication_required_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::ProxyAuthenticationRequired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Proxy Authentication Required", description)
-}
-
-pub fn request_timeout_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::RequestTimeout;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Request Timeout", description)
-}
-
-pub fn conflict_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::Conflict;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Conflict", description)
-}
-
-pub fn gone_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::Gone;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Gone", description)
-}
-
-pub fn length_required_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::LengthRequired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Length Required", description)
-}
-
-pub fn precondition_failed_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::PreconditionFailed;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Precondition Failed", description)
-}
-
-pub fn payload_too_large_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::PayloadTooLarge;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Payload Too Large", description)
-}
-
-pub fn request_uri_too_long_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::RequestUriTooLong;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Request URI Too Long", description)
-}
-
-pub fn unsupported_media_type_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::UnsupportedMediaType;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Unsupported Media Type", description)
-}
-
-pub fn requested_range_unsatisfiable_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::RequestedRangeUnsatisfiable;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Requested Range Unsatisfiable", description)
-}
-
-pub fn expectation_failed_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::ExpectationFailed;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Expectation Failed", description)
-}
-
-pub fn im_a_teapot_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::ImATeapot;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "I'm a teapot", description)
-}
-
-pub fn page_expired_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::PageExpired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Page Expired", description)
-}
-
-pub fn method_failure_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::MethodFailure;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Method Failure", description)
-}
-
-pub fn misdirected_request_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::MisdirectedRequest;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Misdirected Request", description)
-}
-
-pub fn unprocessable_entity_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::UnprocessableEntity;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Unprocessable Entity", description)
-}
-
-pub fn locked_temporarily_unavailable_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::LockedTemporarilyUnavailable;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Locked Temporarily Unavailable", description)
-}
-
-pub fn failed_dependency_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::FailedDependency;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Failed Dependency", description)
-}
-
-pub fn too_early_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::TooEarly;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Too Early", description)
-}
-
-pub fn upgrade_required_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::UpgradeRequired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Upgrade Required", description)
-}
-
-pub fn precondition_required_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::PreconditionRequired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Precondition Required", description)
-}
-
-pub fn too_many_requests_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::TooManyRequests;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Too Many Requests", description)
-}
-
-pub fn request_header_fields_too_large_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::RequestHeaderFieldsTooLarge;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Request Header Fields Too Large", description)
-}
-
-pub fn login_required_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::LoginRequired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Login Required", description)
-}
-
-pub fn origin_error_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::OriginError;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Origin Error", description)
-}
-
-pub fn destination_error_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::DestinationError;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Destination Error", description)
-}
-
-pub fn too_large_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::TooLarge;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Too Large", description)
-}
-
-pub fn ssl_certificate_error_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::SSLCertificateError;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "SSL Certificate Error", description)
-}
-
-pub fn ssl_certificate_required_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::SSLCertificateRequired;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "SSL Certificate Required", description)
-}
-
-pub fn no_certificate_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::NoCertificate;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "No Certificate", description)
-}
-
-pub fn login_timeout_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::LoginTimeout;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Login Timeout", description)
-}
-
-pub fn over_data_quota_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::OverDataQuota;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Over Data Quota", description)
-}
-
-pub fn no_response_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::NoResponse;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "No Response", description)
-}
-
-pub fn retry_with_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::RetryWith;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Retry With", description)
-}
-
-pub fn blocked_by_windows_parental_controls_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::BlockedByWindowsParentalControls;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Blocked By Windows Parental Controls", description)
-}
-
-pub fn unavailable_for_legal_reasons_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::UnavailableForLegalReasons;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Unavailable For Legal Reasons", description)
-}
-
-pub fn too_many_recipients_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::TooManyRecipients;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Too Many Recipients", description)
-}
-
-pub fn method_not_valid_in_this_state_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::MethodNotValidInThisState;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Method Not Valid In This State", description)
-}
-
-pub fn unrecoverable_error_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::UnrecoverableError;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Unrecoverable Error", description)
-}
-
-pub fn client_closed_connexion_prematurely_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::ClientClosedConnexionPrematurely;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Client Closed Connexion Prematurely", description)
-}
-
-pub fn too_many_forwarded_ip_addresses_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::TooManyForwardedIPAddresses;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Too Many Forwarded IP Addresses", description)
-}
-
-pub fn internet_security_error_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::InternetSecurityError;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Internet Security Error", description)
-}
-
-pub fn temporary_unavailable_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::TemporaryUnavailable;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Temporary Unavailable", description)
-}
-
-pub fn request_header_too_large_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::RequestHeaderTooLarge;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Request Header Too Large", description)
-}
-
-pub fn cert_error_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::CertError;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Cert Error", description)
-}
-
-pub fn no_cert_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::NoCert;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "No Cert", description)
-}
-
-pub fn http_to_https_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::HTTPToHTTPS;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "HTTP To HTTPS", description)
-}
-
-pub fn invalid_token_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::InvalidToken;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Invalid Token", description)
-}
-
-pub fn client_closed_request_tuple() -> (u16, &'static str, &'static str) {
-  let code = ResponsesClientCodes::ClientClosedRequest;
-  let description = code.get_str("Description").unwrap_or("No description");
-  (code.to_u16(), "Client Closed Request", description)
-}
-
-/// Functions return formatted data as JSON containing HTTP status code, status message and description of various informational responses.
-pub fn bad_request() -> serde_json::Value {
-  let (code, name, desc) = bad_request_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn unauthorized() -> serde_json::Value {
-  let (code, name, desc) = unauthorized_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-pub fn payment_required() -> serde_json::Value {
-  let (code, name, desc) = payment_required_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn forbidden() -> serde_json::Value {
-  let (code, name, desc) = forbidden_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn not_found() -> serde_json::Value {
-  let (code, name, desc) = not_found_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn method_not_allowed() -> serde_json::Value {
-  let (code, name, desc) = method_not_allowed_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn not_acceptable() -> serde_json::Value {
-  let (code, name, desc) = not_acceptable_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn proxy_authentication_required() -> serde_json::Value {
-  let (code, name, desc) = proxy_authentication_required_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn request_timeout() -> serde_json::Value {
-  let (code, name, desc) = request_timeout_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn conflict() -> serde_json::Value {
-  let (code, name, desc) = conflict_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn gone() -> serde_json::Value {
-  let (code, name, desc) = gone_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn length_required() -> serde_json::Value {
-  let (code, name, desc) = length_required_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn precondition_failed() -> serde_json::Value {
-  let (code, name, desc) = precondition_failed_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn payload_too_large() -> serde_json::Value {
-  let (code, name, desc) = payload_too_large_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn request_uri_too_long() -> serde_json::Value {
-  let (code, name, desc) = request_uri_too_long_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn unsupported_media_type() -> serde_json::Value {
-  let (code, name, desc) = unsupported_media_type_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn requested_range_unsatisfiable() -> serde_json::Value {
-  let (code, name, desc) = requested_range_unsatisfiable_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn expectation_failed() -> serde_json::Value {
-  let (code, name, desc) = expectation_failed_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn im_a_teapot() -> serde_json::Value {
-  let (code, name, desc) = im_a_teapot_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn page_expired() -> serde_json::Value {
-  let (code, name, desc) = page_expired_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn method_failure() -> serde_json::Value {
-  let (code, name, desc) = method_failure_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn misdirected_request() -> serde_json::Value {
-  let (code, name, desc) = misdirected_request_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn unprocessable_entity() -> serde_json::Value {
-  let (code, name, desc) = unprocessable_entity_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn locked_temporarily_unavailable() -> serde_json::Value {
-  let (code, name, desc) = locked_temporarily_unavailable_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn failed_dependency() -> serde_json::Value {
-  let (code, name, desc) = failed_dependency_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn too_early() -> serde_json::Value {
-  let (code, name, desc) = too_early_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn upgrade_required() -> serde_json::Value {
-  let (code, name, desc) = upgrade_required_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn precondition_required() -> serde_json::Value {
-  let (code, name, desc) = precondition_required_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn too_many_requests() -> serde_json::Value {
-  let (code, name, desc) = too_many_requests_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn request_header_fields_too_large() -> serde_json::Value {
-  let (code, name, desc) = request_header_fields_too_large_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn login_required() -> serde_json::Value {
-  let (code, name, desc) = login_required_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn origin_error() -> serde_json::Value {
-  let (code, name, desc) = origin_error_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn destination_error() -> serde_json::Value {
-  let (code, name, desc) = destination_error_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn too_large() -> serde_json::Value {
-  let (code, name, desc) = too_large_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn ssl_certificate_error() -> serde_json::Value {
-  let (code, name, desc) = ssl_certificate_error_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn ssl_certificate_required() -> serde_json::Value {
-  let (code, name, desc) = ssl_certificate_required_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn no_certificate() -> serde_json::Value {
-  let (code, name, desc) = no_certificate_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn login_timeout() -> serde_json::Value {
-  let (code, name, desc) = login_timeout_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn over_data_quota() -> serde_json::Value {
-  let (code, name, desc) = over_data_quota_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn no_response() -> serde_json::Value {
-  let (code, name, desc) = no_response_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn retry_with() -> serde_json::Value {
-  let (code, name, desc) = retry_with_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn blocked_by_windows_parental_controls() -> serde_json::Value {
-  let (code, name, desc) = blocked_by_windows_parental_controls_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn unavailable_for_legal_reasons() -> serde_json::Value {
-  let (code, name, desc) = unavailable_for_legal_reasons_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn too_many_recipients() -> serde_json::Value {
-  let (code, name, desc) = too_many_recipients_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn method_not_valid_in_this_state() -> serde_json::Value {
-  let (code, name, desc) = method_not_valid_in_this_state_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn unrecoverable_error() -> serde_json::Value {
-  let (code, name, desc) = unrecoverable_error_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn client_closed_connexion_prematurely() -> serde_json::Value {
-  let (code, name, desc) = client_closed_connexion_prematurely_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn too_many_forwarded_ip_addresses() -> serde_json::Value {
-  let (code, name, desc) = too_many_forwarded_ip_addresses_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn internet_security_error() -> serde_json::Value {
-  let (code, name, desc) = internet_security_error_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn temporary_unavailable() -> serde_json::Value {
-  let (code, name, desc) = temporary_unavailable_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn request_header_too_large() -> serde_json::Value {
-  let (code, name, desc) = request_header_too_large_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn cert_error() -> serde_json::Value {
-  let (code, name, desc) = cert_error_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn no_cert() -> serde_json::Value {
-  let (code, name, desc) = no_cert_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn http_to_https() -> serde_json::Value {
-  let (code, name, desc) = http_to_https_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn invalid_token() -> serde_json::Value {
-  let (code, name, desc) = invalid_token_tuple();
-  json!({ "status": code, "name": name, "description": desc })
-}
-
-pub fn client_closed_request() -> serde_json::Value {
-  let (code, name, desc) = client_closed_request_tuple();
-  json!({ "status": code, "name": name, "description": desc })
 }
 
 // Unit tests
@@ -881,11 +512,30 @@ mod tests {
   use super::*;
 
   #[test]
+  fn test_as_json_not_found() {
+    let response = ResponsesClientCodes::NotFound;
+    let json_result = response.as_json();
+    let expected_json = serde_json::json!({
+        "standard http code": {
+            "code": 404,
+            "name": "Not Found"
+        },
+        "internal http code": {
+            "code": 4041,
+            "name": "Custom Not Found"
+        },
+        "description": "The requested resource could not be found."
+    });
+
+    assert_eq!(json_result, expected_json);
+  }
+
+  #[test]
   fn test_generated_function_bad_request() {
     let response = ResponsesClientCodes::BadRequest;
     let (code, description) = response.into();
     assert_eq!(code, 400);
-    assert_eq!(description, "The server cannot process the request due to malformed syntax or invalid parameters in the client request");
+    assert_eq!(description, "Bad Request");
   }
 
   #[test]
@@ -896,37 +546,8 @@ mod tests {
   }
 
   #[test]
-  fn tes_from_u16_not_found() {
+  fn test_from_u16_not_found() {
     let response = ResponsesClientCodes::from_u16(404);
     assert_eq!(response, Some(ResponsesClientCodes::NotFound));
-  }
-
-  #[test]
-  fn test_login_required_tuple() {
-    assert_eq!(
-          login_required_tuple(),
-          (
-              432,
-              "Login Required",
-              "Authentication is required to access the requested resource, typically in web applications"
-          )
-      );
-  }
-
-  #[test]
-  fn test_internet_security_error() {
-    let (code, name, description) = internet_security_error_tuple();
-    assert_eq!(code, 467);
-    let response = json!({
-        "status": code,
-        "name": name,
-        "description": description
-    });
-    assert_eq!(response["status"], 467);
-    assert_eq!(response["name"], "Internet Security Error");
-    assert_eq!(
-        response["description"],
-        "An internet security policy violation or configuration issue occurred, often related to SSL/TLS settings, certificates, or protocol mismatches"
-    );
   }
 }
