@@ -3,14 +3,17 @@ use crate::utils::json_formatter::JsonFormatter;
 use crate::utils::response_tuple::ResponseTuple;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde_json::Value;
+use std::borrow::Cow;
 use strum_macros::{Display, EnumIter, EnumProperty};
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
 /// Example usage:
 /// ```
-/// let response = ResponsesClientCodes::BadRequest;
-/// let json = response.to_detailed_json();
+/// use simbld_http::responses::client::ResponsesClientCodes::BadRequest;
+///
+/// let response = BadRequest;
+/// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
 
@@ -465,19 +468,25 @@ impl ResponsesClientCodes {
         int_name: Some("ClientClosedRequest"),
         desc: "Client closed the connection before server response, unofficial (Nginx)",
       },
+      _ => ResponseTuple {
+        std_code: 0,
+        std_name: "No description",
+        int_code: Some(0),
+        int_name: Some("No description"),
+        desc: "No description",
+      },
     }
+  }
+
+  /// Delegates to `as_tuple` to generate a detailed JSON response.
+
+  pub fn as_json(&self) -> Value {
+    self.as_tuple().to_json_response()
   }
 }
 
-/// Delegates to `as_tuple` to generate a detailed JSON response.
-
-pub fn as_json(&self) -> Value {
-  self.as_tuple().to_json_response()
-}
-
 // -------------------------
-// Impl "ToU16" (custom trait) - must be at the **same level** as the main impl,
-// not inside another impl
+// Impl "ToU16" (custom trait for conversion to u16)
 // -------------------------
 impl ToU16 for ResponsesClientCodes {
   fn to_u16(self) -> u16 {
@@ -486,7 +495,7 @@ impl ToU16 for ResponsesClientCodes {
 }
 
 // -------------------------
-// Impl "FromU16" (custom trait) - same, outside the main impl
+// Impl "FromU16" (custom trait for conversion from u16)
 // -------------------------
 impl FromU16 for ResponsesClientCodes {
   fn from_u16(code: u16) -> Option<Self> {
@@ -495,18 +504,21 @@ impl FromU16 for ResponsesClientCodes {
 }
 
 // -------------------------
-// Impl "Into<(u16, &'static str)>" - same
+// Impl "Into<(u16, Cow<'static, str>)> (conversion to tuple, used in the `response_tuple` module)"
 // -------------------------
-impl Into<(u16, &'static str)> for ResponsesClientCodes {
-  fn into(self) -> (u16, &'static str) {
+impl Into<(u16, Cow<'static, str>)> for ResponsesClientCodes {
+  fn into(self) -> (u16, Cow<'static, str>) {
     let std_code: u16 = self.to_u16();
-    // Here, we use `to_string()` which comes from `Display` => "BadRequest", "Unauthorized", ...
+
     let std_name = self.to_string();
-    (std_code, std_name)
+    (std_code, Cow::Owned(std_name))
   }
 }
 
-// Unit tests
+
+// -------------------------
+// Tests
+// -------------------------
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -516,17 +528,12 @@ mod tests {
     let response = ResponsesClientCodes::NotFound;
     let json_result = response.as_json();
     let expected_json = serde_json::json!({
-        "standard http code": {
-            "code": 404,
-            "name": "Not Found"
-        },
-        "internal http code": {
-            "code": 4041,
-            "name": "Custom Not Found"
-        },
-        "description": "The requested resource could not be found."
+      "std_code": 404,
+      "std_name": "Not Found",
+      "int_code": 404,
+      "int_name": "Not Found",
+      "desc": "The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client."
     });
-
     assert_eq!(json_result, expected_json);
   }
 
