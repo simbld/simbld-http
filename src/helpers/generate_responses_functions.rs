@@ -12,7 +12,7 @@
 /// ```
 
 #[macro_export]
-macro_rules! generate_responses_functions_unified_always_metadata {
+macro_rules! generate_responses_functions {
     (
         $( #[$meta:meta] )*
         $enum_name:ident,
@@ -117,7 +117,7 @@ pub enum UnifiedTuple {
 mod tests {
   use super::*;
 
-  generate_responses_functions_unified_always_metadata! {
+  generate_responses_functions! {
       #[derive(Debug, PartialEq)]
       ResponseCode,
       Success => (200, "OK", "Request succeeded", 200, "OK", 123, "req-1", "user-1", "status-1"),
