@@ -9,12 +9,18 @@ pub mod service;
 pub mod success;
 pub mod wrapper;
 
+pub use helpers::auth_middleware::AuthMiddleware;
+pub use helpers::http_interceptor_helper::HttpInterceptor;
+pub use helpers::unified_middleware_helper::UnifiedMiddleware;
+pub use mocks::mock_responses::MockResponses;
+pub use responses::wrapper::ResponseWrapper;
+
 pub use actix_responder::CustomResponse;
-pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
 pub use informational::ResponsesInformationalCodes;
 pub use local::ResponsesLocalApiCodes;
 pub use redirection::ResponsesRedirectionCodes;
+pub use responses::client::ResponsesClientCodes;
 pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
 pub use success::ResponsesSuccessCodes;
@@ -38,7 +44,7 @@ pub enum ResponsesTypes {
   LocalApiError(ResponsesLocalApiCodes),
 }
 
-generate_http_response_functions!(
+generate_responses_functions!(
   ResponsesClientCodes,
   ResponsesCrawlerCodes,
   ResponsesInformationalCodes,
@@ -150,5 +156,70 @@ impl ToU16 for ResponsesTypes {
       ResponsesTypes::CrawlerError(code_enum) => code_enum.to_u16(),
       ResponsesTypes::LocalApiError(code_enum) => code_enum.to_u16(),
     }
+  }
+}
+
+/// Implementation to convert a `ResponsesTypes` to `(u16, &str)`.
+impl From<ResponsesTypes> for (u16, &'static str) {
+  fn from(code: ResponsesTypes) -> Self {
+    match code {
+      ResponsesTypes::Informational(code_enum) => code_enum.into(),
+      ResponsesTypes::Success(code_enum) => code_enum.into(),
+      ResponsesTypes::Redirection(code_enum) => code_enum.into(),
+      ResponsesTypes::ClientError(code_enum) => code_enum.into(),
+      ResponsesTypes::ServerError(code_enum) => code_enum.into(),
+      ResponsesTypes::ServiceError(code_enum) => code_enum.into(),
+      ResponsesTypes::CrawlerError(code_enum) => code_enum.into(),
+      ResponsesTypes::LocalApiError(code_enum) => code_enum.into(),
+    }
+  }
+}
+
+/// Implementation for converting `ResponsesTypes` to a tuple `(u16, &'static str)`.
+impl From<InformationalCodes> for (u16, &'static str) {
+  fn from(code: InformationalCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
+  }
+}
+
+impl From<SuccessCodes> for (u16, &'static str) {
+  fn from(code: SuccessCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
+  }
+}
+
+impl From<RedirectionCodes> for (u16, &'static str) {
+  fn from(code: RedirectionCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
+  }
+}
+
+impl From<ClientErrorCodes> for (u16, &'static str) {
+  fn from(code: ClientErrorCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
+  }
+}
+
+impl From<ServerErrorCodes> for (u16, &'static str) {
+  fn from(code: ServerErrorCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
+  }
+}
+
+impl From<ServiceErrorCodes> for (u16, &'static str) {
+  fn from(code: ServiceErrorCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
+  }
+}
+
+impl From<ResponsesCrawlerCodes> for (u16, &'static str) {
+  fn from(code: ResponsesCrawlerCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
+  }
+}
+
+impl From<LocalApiErrorCodes> for (u16, &'static str) {
+  fn from(code: LocalApiErrorCodes) -> Self {
+    (code.to_u16(), code.get_str("Description").unwrap_or(""))
   }
 }

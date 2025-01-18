@@ -6,7 +6,7 @@
 use crate::helpers::to_u16_helper::ToU16;
 use crate::responses::ResponsesTypes;
 use crate::responses::{
-  ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesInformationalCodes, ResponsesLocalApiCodes,
+  ResponsesCrawlerCodes, ResponsesInformationalCodes, ResponsesLocalApiCodes,
   ResponsesRedirectionCodes, ResponsesServerCodes, ResponsesServiceCodes, ResponsesSuccessCodes,
 };
 use serde_json::{json, Value};
@@ -14,7 +14,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 use std::time::SystemTime;
 use strum::EnumProperty;
-use strum::IntoEnumIterator;
 
 /// Takes an input of type `ResponsesTypes`, extracts the associated response code and description,
 /// and returns a tuple containing the code as a `u16` and the description as a static string reference (`&'static str`).

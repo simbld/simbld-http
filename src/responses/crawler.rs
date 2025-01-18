@@ -1,7 +1,7 @@
-use crate::generate_responses_functions_unified;
+use crate::helpers::generate_responses_functions;
 use crate::helpers::generate_responses_functions::UnifiedTuple;
 
-generate_responses_functions_unified! {
+generate_responses_functions! {
   #[derive(Debug, Clone, PartialEq)]
   #[repr(u16)]
   ResponsesCrawlerCodes,
@@ -39,8 +39,8 @@ generate_responses_functions_unified! {
 ///     let code = ResponsesCrawlerCodes::ParsingErrorHeader;
 ///     assert_eq!(code.to_u16(), 400);
 ///
-///     let maybe = ResponsesCrawlerCodes::from_u16(400);
-///     assert_eq!(maybe, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
+///     let status = ResponsesCrawlerCodes::from_u16(400);
+///     assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
 ///
 ///     let tuple = code.as_tuple();
 ///     assert_eq!(tuple.std_code, 400);
@@ -66,9 +66,8 @@ mod tests {
 
   #[test]
   fn test_crawler_codes_from_u16() {
-    let maybe = ResponsesCrawlerCodes::from_u16(400);
-    // Matches the first variant with std_code = 400
-    assert_eq!(maybe, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
+    let status = ResponsesCrawlerCodes::from_u16(400);
+    assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
   }
 
   #[test]

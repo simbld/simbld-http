@@ -116,59 +116,72 @@ pub enum UnifiedTuple {
 #[cfg(test)]
 mod tests {
   use super::*;
-
-  generate_responses_functions! {
-      #[derive(Debug, PartialEq)]
-      ResponseCode,
-      Success => (200, "OK", "Request succeeded", 200, "OK", 123, "req-1", "user-1", "status-1"),
-      NotFound => (404, "Not Found", "Resource not found", 404, "Not Found", 456, "req-2", "user-2", "status-2"),
-      InternalError => (500, "Internal Server Error", "An error occurred", 500, "Internal Server Error", 789, "req-3", "user-3", "status-3"),
-      CustomError => (600, "Custom Error", "A custom error occurred", 601, "Custom Error", 101, "req-4", "user-4", "status-4")
-  }
+  use crate::helpers::to_u16_helper::ToU16;
+  use crate::responses::ResponsesTypes;
 
   #[test]
   fn test_to_u16() {
-    assert_eq!(ResponseCode::Success.to_u16(), 200);
-    assert_eq!(ResponseCode::NotFound.to_u16(), 404);
+    let success_code = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
+    let redirection_code = ResponsesTypes::Redirection(ResponsesRedirectionCodes::MovedPermanently);
+    assert_eq!(success_code.to_u16(), 200);
+    assert_eq!(redirection_code.to_u16(), 301);
   }
 
   #[test]
   fn test_from_u16() {
-    assert_eq!(ResponseCode::from_u16(200), Some(ResponseCode::Success));
-    assert_eq!(ResponseCode::from_u16(999), None);
+    let status = ResponsesTypes::from_u16(400);
+    assert_eq!(status, Some(ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest)));
   }
 
   #[test]
   fn test_as_tuple() {
-    let code = ResponseCode::InternalError;
+    let code = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::InvalidURL);
+    let tuple = code.as_tuple();
     assert_eq!(
-      code.as_tuple(),
+      tuple,
       UnifiedTuple::NineFields(
-        500,
-        "Internal Server Error",
-        "An error occurred",
-        500,
-        "Internal Server Error",
-        789,
-        "req-3",
-        "user-3",
-        "status-3"
+        400,
+        "Bad Request",
+        "Invalid URL encountered by crawler.",
+        786,
+        "Invalid URL",
+        110,
+        "req-13",
+        "user-13",
+        "status-13"
       )
     );
   }
 
   #[test]
   fn test_as_json() {
-    let code = ResponseCode::Success;
-    let json_val = code.as_json();
-    assert_eq!(json_val["standard http code"]["code"], 200);
-    assert_eq!(json_val["metadata"]["meta1"], 123);
+    let code = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::RobotsTemporarilyUnavailable);
+    let json_result = code.as_json();
+    let expected = serde_json::json!({
+        "standard http code": {
+            "code": 503,
+            "name": "Service Unavailable"
+        },
+        "internal http code": {
+            "code": 741,
+            "name": "Robots Temporarily Unavailable"
+        },
+        "description": "Robots temporarily unavailable.",
+        "metadata": {
+            "meta1": 103,
+            "meta2": "req-6",
+            "meta3": "user-6",
+            "meta4": "status-6"
+        }
+    });
+    assert_eq!(json_result, expected);
   }
 
   #[test]
-  fn test_into() {
-    let code = ResponseCode::CustomError;
-    let std_code: u16 = code.into();
-    assert_eq!(std_code, 600);
+  fn test_into_tuple() {
+    let code = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ProgrammableRedirection);
+    let (std_code, std_name): (u16, &'static str) = code.into();
+    assert_eq!(std_code, 302);
+    assert_eq!(std_name, "Found");
   }
 }
