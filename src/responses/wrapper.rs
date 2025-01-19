@@ -7,7 +7,7 @@
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rustpeut on mo
 ///
 /// let responses = generate_responses();
 /// println!("{}", responses);

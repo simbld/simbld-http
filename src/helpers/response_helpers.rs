@@ -3,10 +3,11 @@
 /// Arguments:
 ///
 /// * `response`: The `response` parameter in the provided code snippets refers to an enumeration type `ResponsesTypes` that represents various HTTP response code families and their descriptions. Snippet functions use this enumeration to extract information such as response codes, descriptions, and metadata related to HTTP responses.
-use crate::helpers::to_u16_helper::ToU16;
+// use crate::helpers::to_u16_helper::ToU16;
 use crate::responses::ResponsesTypes;
+use crate::responses::*;
 use crate::responses::{
-  ResponsesCrawlerCodes, ResponsesInformationalCodes, ResponsesLocalApiCodes,
+  ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesInformationalCodes, ResponsesLocalApiCodes,
   ResponsesRedirectionCodes, ResponsesServerCodes, ResponsesServiceCodes, ResponsesSuccessCodes,
 };
 use serde_json::{json, Value};
@@ -14,6 +15,79 @@ use std::collections::HashMap;
 use std::time::Duration;
 use std::time::SystemTime;
 use strum::EnumProperty;
+use strum::IntoEnumIterator;
+
+impl ResponsesTypes {
+  pub fn get_str(&self, key: &str) -> Option<&'static str> {
+    match self {
+      ResponsesTypes::Client(code) => code.as_tuple().get_str(key),
+      ResponsesTypes::Crawler(code) => code.as_tuple().get_str(key),
+      ResponsesTypes::Informational(code) => code.as_tuple().get_str(key),
+      ResponsesTypes::Local(code) => code.as_tuple().get_str(key),
+      ResponsesTypes::Redirection(code) => code.as_tuple().get_str(key),
+      ResponsesTypes::Server(code) => code.as_tuple().get_str(key),
+      ResponsesTypes::Service(code) => code.as_tuple().get_str(key),
+      ResponsesTypes::Success(code) => code.as_tuple().get_str(key),
+    }
+  }
+
+  pub fn description(&self) -> &'static str {
+    match self {
+      ResponsesTypes::Client(code) => code.as_tuple().description(),
+      ResponsesTypes::Crawler(code) => code.as_tuple().description(),
+      ResponsesTypes::Informational(code) => code.as_tuple().description(),
+      ResponsesTypes::Local(code) => code.as_tuple().description(),
+      ResponsesTypes::Redirection(code) => code.as_tuple().description(),
+      ResponsesTypes::Server(code) => code.as_tuple().description(),
+      ResponsesTypes::Service(code) => code.as_tuple().description(),
+      ResponsesTypes::Success(code) => code.as_tuple().description(),
+    }
+  }
+
+  pub fn to_u16(&self) -> u16 {
+    match self {
+      ResponsesTypes::Client(code) => code.to_u16(),
+      ResponsesTypes::Crawler(code) => code.to_u16(),
+      ResponsesTypes::Informational(code) => code.to_u16(),
+      ResponsesTypes::Local(code) => code.to_u16(),
+      ResponsesTypes::Redirection(code) => code.to_u16(),
+      ResponsesTypes::Server(code) => code.to_u16(),
+      ResponsesTypes::Service(code) => code.to_u16(),
+      ResponsesTypes::Success(code) => code.to_u16(),
+    }
+  }
+
+  pub fn as_json(&self) -> Value {
+    match self {
+      ResponsesTypes::Client(code) => code.as_json(),
+      ResponsesTypes::Crawler(code) => code.as_json(),
+      ResponsesTypes::Informational(code) => code.as_json(),
+      ResponsesTypes::Local(code) => code.as_json(),
+      ResponsesTypes::Redirection(code) => code.as_json(),
+      ResponsesTypes::Server(code) => code.as_json(),
+      ResponsesTypes::Service(code) => code.as_json(),
+      ResponsesTypes::Success(code) => code.as_json(),
+    }
+  }
+}
+
+// Implémentations pour les itérations
+#[derive(EnumIter)]
+pub enum ResponsesIter {
+  Client(ResponsesClientCodes),
+  Crawler(ResponsesCrawlerCodes),
+  Informational(ResponsesInformationalCodes),
+  Local(ResponsesLocalApiCodes),
+  Redirection(ResponsesRedirectionCodes),
+  Server(ResponsesServerCodes),
+  Service(ResponsesServiceCodes),
+  Success(ResponsesSuccessCodes),
+}
+
+// Fonctions helper pour l'itération
+pub fn iter_responses() -> impl Iterator<Item = ResponsesTypes> {
+  ResponsesIter::iter().map(|code| code.into())
+}
 
 /// Takes an input of type `ResponsesTypes`, extracts the associated response code and description,
 /// and returns a tuple containing the code as a `u16` and the description as a static string reference (`&'static str`).

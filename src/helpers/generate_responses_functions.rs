@@ -10,6 +10,8 @@
 /// let code = ResponseSuccessCodes::Ok;
 /// println!("{}", code.as_json().to_string());
 /// ```
+// Import serde_json crate
+use serde_json::{json, Value};
 
 #[macro_export]
 macro_rules! generate_responses_functions {
@@ -23,6 +25,23 @@ macro_rules! generate_responses_functions {
         $( #[$meta] )*
         pub enum $enum_name {
             $($variant),*
+        }
+
+        // Wrapper enum
+        #[derive(Debug, Clone, PartialEq)]
+        pub enum ResponseWrapper {
+            Standard($enum_name),
+            Custom {
+                std_code: u16,
+                std_name: &'static str,
+                description: &'static str,
+                int_code: u16,
+                int_name: &'static str,
+                meta1: u32,
+                meta2: &'static str,
+                meta3: &'static str,
+                meta4: &'static str,
+            }
         }
 
         impl $enum_name {
@@ -67,11 +86,11 @@ macro_rules! generate_responses_functions {
             }
 
             /// Returns a JSON object with 9 fields every time (metadata always included).
-            pub fn as_json(&self) -> ::serde_json::Value {
+            pub fn as_json(&self) -> Value {
                 match self {
                     $(
                         Self::$variant => {
-                            ::serde_json::json!({
+                            json!({
                                 "standard http code": { "code": $std_code, "name": $std_name },
                                 "internal http code": { "code": $int_code, "name": $int_name },
                                 "description": $desc,
@@ -88,10 +107,71 @@ macro_rules! generate_responses_functions {
             }
         }
 
+        /// Implementing as_json for ResponsesTypes
+        impl ResponsesTypes {
+            pub fn as_json(&self) -> Value {
+                match self {
+                    ResponsesTypes::Success(code) => code.as_json(),
+                    ResponsesTypes::Redirection(code) => code.as_json(),
+                    ResponsesTypes::ClientError(code) => code.as_json(),
+                    ResponsesTypes::CrawlerError(code) => code.as_json(),
+                }
+            }
+        }
+
+        impl ResponseWrapper {
+            pub fn to_u16(&self) -> u16 {
+                match self {
+                    Self::Standard(code) => code.to_u16(),
+                    Self::Custom { std_code, .. } => *std_code
+                }
+            }
+
+            pub fn as_tuple(&self) -> UnifiedTuple {
+                match self {
+                    Self::Standard(code) => code.as_tuple(),
+                    Self::Custom { std_code, std_name, description, int_code, int_name,
+                                 meta1, meta2, meta3, meta4 } => {
+                        UnifiedTuple::NineFields(
+                            *std_code, std_name, description, *int_code, int_name,
+                            *meta1, meta2, meta3, meta4
+                        )
+                    }
+                }
+            }
+
+            pub fn as_json(&self) -> Value {
+                match self {
+                    Self::Standard(code) => code.as_json(),
+                    Self::Custom { std_code, std_name, description, int_code, int_name,
+                                 meta1, meta2, meta3, meta4 } => {
+                        json!({
+                            "standard http code": { "code": std_code, "name": std_name },
+                            "internal http code": { "code": int_code, "name": int_name },
+                            "description": description,
+                            "metadata": {
+                                "meta1": meta1,
+                                "meta2": meta2,
+                                "meta3": meta3,
+                                "meta4": meta4
+                            }
+                        })
+                    }
+                }
+            }
+        }
+
         /// Converts the enum into its standard code as `u16`.
         impl ::std::convert::From<$enum_name> for u16 {
             fn from(value: $enum_name) -> Self {
                 value.to_u16()
+            }
+        }
+
+        /// Converts the enum into a tuple `(u16, &'static str)`.
+        impl ::std::convert::From<$enum_name> for (u16, &'static str) {
+            fn from(value: $enum_name) -> Self {
+                (value.to_u16(), value.get_str("Description").unwrap_or(""))
             }
         }
     }
@@ -116,8 +196,10 @@ pub enum UnifiedTuple {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::helpers::to_u16_helper::ToU16;
-  use crate::responses::ResponsesTypes;
+  use crate::responses::{
+    ResponseWrapper, ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesCrawlerCodes,
+    ResponsesRedirectionCodes, ResponsesSuccessCodes, ResponsesTypes, UnifiedTuple,
+  };
 
   #[test]
   fn test_to_u16() {
@@ -133,31 +215,37 @@ mod tests {
     assert_eq!(status, Some(ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest)));
   }
 
-  #[test]
-  fn test_as_tuple() {
-    let code = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::InvalidURL);
-    let tuple = code.as_tuple();
-    assert_eq!(
-      tuple,
-      UnifiedTuple::NineFields(
-        400,
-        "Bad Request",
-        "Invalid URL encountered by crawler.",
-        786,
-        "Invalid URL",
-        110,
-        "req-13",
-        "user-13",
-        "status-13"
-      )
-    );
+  #[cfg(test)]
+  mod tests {
+    use super::*;
+    use crate::responses::{ResponsesCrawlerCodes, ResponsesTypes, UnifiedTuple};
+
+    #[test]
+    fn test_as_tuple() {
+      let code = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::InvalidURL);
+      let tuple = code.as_tuple();
+      assert_eq!(
+        tuple,
+        UnifiedTuple::NineFields(
+          400,
+          "Bad Request",
+          "Invalid URL encountered by crawler.",
+          786,
+          "Invalid URL",
+          110,
+          "req-13",
+          "user-13",
+          "status-13"
+        )
+      );
+    }
   }
 
   #[test]
   fn test_as_json() {
     let code = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::RobotsTemporarilyUnavailable);
     let json_result = code.as_json();
-    let expected = serde_json::json!({
+    let expected = json!({
         "standard http code": {
             "code": 503,
             "name": "Service Unavailable"

@@ -1,4 +1,5 @@
 #[macro_use]
+
 pub mod helpers;
 pub mod mocks;
 pub mod responses;
@@ -9,6 +10,8 @@ pub use helpers::http_interceptor_helper::HttpInterceptor;
 pub use helpers::unified_middleware_helper::UnifiedMiddleware;
 pub use mocks::mock_responses::MockResponses;
 pub use responses::wrapper::ResponseWrapper;
+
+pub use helpers::generate_responses_functions;
 
 pub use inflector::Inflector;
 pub use strum::IntoEnumIterator;
@@ -25,5 +28,63 @@ pub use crate::responses::ResponsesSuccessCodes;
 
 #[cfg(test)]
 mod tests {
+  use crate::responses::ResponsesCrawlerCodes;
+  use crate::responses::UnifiedTuple;
 
+  #[test]
+  fn test_crawler_codes_to_u16() {
+    let code = ResponsesCrawlerCodes::ParsingErrorHeader;
+    assert_eq!(code.to_u16(), 400);
+  }
+
+  #[test]
+  fn test_crawler_codes_from_u16() {
+    let status = ResponsesCrawlerCodes::from_u16(400);
+    assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
+  }
+
+  #[test]
+  fn test_crawler_codes_as_tuple() {
+    let code = ResponsesCrawlerCodes::InvalidURL;
+    let tuple = code.as_tuple();
+    assert_eq!(
+      tuple,
+      UnifiedTuple::NineFields(
+        400,
+        "Bad Request",
+        "Invalid URL encountered by crawler.",
+        786,
+        "Invalid URL",
+        110,
+        "req-13",
+        "user-13",
+        "status-13"
+      )
+    );
+  }
+
+  #[test]
+  fn test_crawler_codes_as_json() {
+    let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
+    let json_result = code.as_json();
+    let expected = serde_json::json!({
+        "standard http code": {
+            "code": 503,
+            "name": "Service Unavailable"
+        },
+        "internal http code": {
+            "code": 741,
+            "name": "Robots Temporarily Unavailable"
+        },
+        "description": "Robots temporarily unavailable.",
+        "metadata": {
+            "meta1": 103,
+            "meta2": "req-6",
+            "meta3": "user-6",
+            "meta4": "status-6"
+        }
+    });
+
+    assert_eq!(json_result, expected);
+  }
 }
