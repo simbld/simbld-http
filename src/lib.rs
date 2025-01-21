@@ -49,16 +49,12 @@ mod tests {
     let tuple = code.as_tuple();
     assert_eq!(
       tuple,
-      UnifiedTuple::NineFields(
+      UnifiedTuple::FiveFields(
         400,
         "Bad Request",
         "Invalid URL encountered by crawler.",
         786,
-        "Invalid URL",
-        110,
-        "req-13",
-        "user-13",
-        "status-13"
+        "Invalid URL"
       )
     );
   }
@@ -76,13 +72,7 @@ mod tests {
             "code": 741,
             "name": "Robots Temporarily Unavailable"
         },
-        "description": "Robots temporarily unavailable.",
-        "metadata": {
-            "meta1": 103,
-            "meta2": "req-6",
-            "meta3": "user-6",
-            "meta4": "status-6"
-        }
+        "description": "Robots temporarily unavailable."
     });
 
     assert_eq!(json_result, expected);

@@ -1,6 +1,5 @@
 /// representing HTTP codes along with metadata.
 ///
-/// Metadata is always displayed in the JSON representation.
 /// Any filtering or conditional display of metadata should be
 /// handled on the front-end side.
 ///
@@ -10,8 +9,6 @@
 /// let code = ResponseSuccessCodes::Ok;
 /// println!("{}", code.as_json().to_string());
 /// ```
-// Import serde_json crate
-use serde_json::{json, Value};
 
 #[macro_export]
 macro_rules! generate_responses_functions {
@@ -19,7 +16,7 @@ macro_rules! generate_responses_functions {
         $( #[$meta:meta] )*
         $enum_name:ident,
         $(
-            $variant:ident => ($std_code:expr, $std_name:expr, $desc:expr, $int_code:expr, $int_name:expr, $meta1:expr, $meta2:expr, $meta3:expr, $meta4:expr)
+            $variant:ident => ($std_code:expr, $std_name:expr, $desc:expr, $int_code:expr, $int_name:expr)
         ),* $(,)?
     ) => {
         $( #[$meta] )*
@@ -36,11 +33,7 @@ macro_rules! generate_responses_functions {
                 std_name: &'static str,
                 description: &'static str,
                 int_code: u16,
-                int_name: &'static str,
-                meta1: u32,
-                meta2: &'static str,
-                meta3: &'static str,
-                meta4: &'static str,
+                int_name: &'static str
             }
         }
 
@@ -70,16 +63,12 @@ macro_rules! generate_responses_functions {
             pub fn as_tuple(&self) -> UnifiedTuple {
                 match self {
                     $(
-                        Self::$variant => UnifiedTuple::NineFields(
+                        Self::$variant => UnifiedTuple::FiveFields(
                             $std_code,
                             $std_name,
                             $desc,
                             $int_code,
-                            $int_name,
-                            $meta1,
-                            $meta2,
-                            $meta3,
-                            $meta4
+                            $int_name
                         ),
                     )*
                 }
@@ -93,13 +82,7 @@ macro_rules! generate_responses_functions {
                             json!({
                                 "standard http code": { "code": $std_code, "name": $std_name },
                                 "internal http code": { "code": $int_code, "name": $int_name },
-                                "description": $desc,
-                                "metadata": {
-                                    "meta1": $meta1,
-                                    "meta2": $meta2,
-                                    "meta3": $meta3,
-                                    "meta4": $meta4
-                                }
+                                "description": $desc
                             })
                         },
                     )*
@@ -111,10 +94,14 @@ macro_rules! generate_responses_functions {
         impl ResponsesTypes {
             pub fn as_json(&self) -> Value {
                 match self {
+                    ResponsesTypes::Informational(code) => code.as_json(),
                     ResponsesTypes::Success(code) => code.as_json(),
                     ResponsesTypes::Redirection(code) => code.as_json(),
                     ResponsesTypes::ClientError(code) => code.as_json(),
                     ResponsesTypes::CrawlerError(code) => code.as_json(),
+                    ResponsesTypes::LocalApiError(code) => code.as_json(),
+                    ResponsesTypes::ServerError(code) => code.as_json(),
+                    ResponsesTypes::ServiceError(code) => code.as_json(),
                 }
             }
         }
@@ -130,11 +117,9 @@ macro_rules! generate_responses_functions {
             pub fn as_tuple(&self) -> UnifiedTuple {
                 match self {
                     Self::Standard(code) => code.as_tuple(),
-                    Self::Custom { std_code, std_name, description, int_code, int_name,
-                                 meta1, meta2, meta3, meta4 } => {
-                        UnifiedTuple::NineFields(
-                            *std_code, std_name, description, *int_code, int_name,
-                            *meta1, meta2, meta3, meta4
+                    Self::Custom { std_code, std_name, description, int_code, int_name} => {
+                        UnifiedTuple::FiveFields(
+                            *std_code, std_name, description, *int_code, int_name
                         )
                     }
                 }
@@ -143,18 +128,11 @@ macro_rules! generate_responses_functions {
             pub fn as_json(&self) -> Value {
                 match self {
                     Self::Standard(code) => code.as_json(),
-                    Self::Custom { std_code, std_name, description, int_code, int_name,
-                                 meta1, meta2, meta3, meta4 } => {
+                    Self::Custom { std_code, std_name, description, int_code, int_name} => {
                         json!({
                             "standard http code": { "code": std_code, "name": std_name },
                             "internal http code": { "code": int_code, "name": int_name },
-                            "description": description,
-                            "metadata": {
-                                "meta1": meta1,
-                                "meta2": meta2,
-                                "meta3": meta3,
-                                "meta4": meta4
-                            }
+                            "description": description
                         })
                     }
                 }
@@ -174,23 +152,21 @@ macro_rules! generate_responses_functions {
                 (value.to_u16(), value.get_str("Description").unwrap_or(""))
             }
         }
+
+        ///
+        impl ::std::fmt::Display for $enum_name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                write!(f, "{:?}", self)
+            }
+        }
+
     }
 }
 
 /// Represents a unified structure with 9 fields.
 #[derive(Debug, PartialEq)]
 pub enum UnifiedTuple {
-  NineFields(
-    u16,
-    &'static str,
-    &'static str,
-    u16,
-    &'static str,
-    u32,
-    &'static str,
-    &'static str,
-    &'static str,
-  ),
+  FiveFields(u16, &'static str, &'static str, u16, &'static str),
 }
 
 #[cfg(test)]
@@ -226,16 +202,12 @@ mod tests {
       let tuple = code.as_tuple();
       assert_eq!(
         tuple,
-        UnifiedTuple::NineFields(
+        UnifiedTuple::FiveFields(
           400,
           "Bad Request",
           "Invalid URL encountered by crawler.",
           786,
-          "Invalid URL",
-          110,
-          "req-13",
-          "user-13",
-          "status-13"
+          "Invalid URL"
         )
       );
     }
@@ -254,13 +226,7 @@ mod tests {
             "code": 741,
             "name": "Robots Temporarily Unavailable"
         },
-        "description": "Robots temporarily unavailable.",
-        "metadata": {
-            "meta1": 103,
-            "meta2": "req-6",
-            "meta3": "user-6",
-            "meta4": "status-6"
-        }
+        "description": "Robots temporarily unavailable."
     });
     assert_eq!(json_result, expected);
   }

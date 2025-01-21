@@ -45,6 +45,9 @@ pub enum ResponsesServerCodes {
 }
 
 generate_responses_functions! {
+  #[derive(Debug, Clone, PartialEq)]
+  #[repr(u16)]
+  ResponsesServerCodes,
   InternalServerError => (500, "Internal Server Error", "The server encountered an unexpected condition that prevented it from fulfilling the request. This could be due to a misconfiguration, an unhandled exception, or resource exhaustion", 500, "Internal Server Error", 0, "", "", ""),
   NotImplemented => (501, "Not Implemented", "The server does not support the functionality required to fulfill the request. This might be because the server does not recognize the request method or lacks the capability to process it", 501, "Not Implemented", 0, "", "", ""),
   BadGateway => (502, "Bad Gateway", "The server, while acting as a gateway or proxy, received an invalid response from an upstream server. This could be due to the upstream server being down or misconfigured", 502, "Bad Gateway", 0, "", "", ""),
