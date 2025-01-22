@@ -1,3 +1,4 @@
+use crate::responses::{ResponsesTypes, UnifiedTuple};
 /// representing HTTP codes along with metadata.
 ///
 /// Any filtering or conditional display of metadata should be

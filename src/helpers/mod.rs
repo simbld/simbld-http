@@ -1,4 +1,3 @@
-#[macro_use]
 pub mod auth_middleware;
 pub mod from_u16_helper;
 pub mod generate_responses_functions;

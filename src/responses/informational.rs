@@ -1,12 +1,11 @@
-use crate::helpers::generate_responses_functions::generate_responses_functions;
-use serde_json::json;
+use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
 /// * Example:
 /// ```rust
 ///
-/// use simbld_http::responses::informational::ResponsesInformationalCodes::ContinueRequest;
+/// use simbld_http::responses::ResponsesInformationalCodes::ContinueRequest;
 ///
 /// let response = ContinueRequest;
 /// let json = response.as_json();
@@ -28,16 +27,17 @@ pub enum ResponsesInformationalCodes {
 }
 
 generate_responses_functions! {
-  ContinueRequest => (100, "Continue", "The server has received the initial part of the request, the headers, and asks the client to continue request, proceed to send the body of the request, a POST request", 100, "Continue Request", 0, "", "", ""),
-  SwitchingProtocols => (101, "Switching Protocols", "The server is complying with a request to switch protocols, used in WebSocket connections", 101, "Switching Protocols", 0, "", "", ""),
-  Processing => (102, "Processing", "Indicates the server is processing the request but has not yet finished, used to prevent timeout errors in asynchronous operations, webdav RFC 2518", 102, "Processing", 0, "", "", ""),
-  EarlyHints => (103, "Early Hints", "Experimental: The server provides preliminary hints to the client, such as preloading resources while the final response is being prepared", 103, "Early Hints", 0, "", "", ""),
-  ConnectionResetByPeer => (100, "Continue", "The connection was forcibly closed by a peer, possibly due to a protocol error, a timeout, or a network issue", 104, "Connection Reset By Peer", 0, "", "", ""),
-  NameNotResolved => (100, "Continue", "The server could not resolve the domain name provided in the request, indicating a DNS lookup failure, The requested hostname cannot be resolved to an IP address", 105, "Name Not Resolved", 0, "", "", ""),
-  NoResponse => (100, "Continue", "The server did not provide a response, possibly due to a timeout or a connection issue, The server didn’t send any response within the timeout period. This status code is not specified in any RFCs, but it is used in some scenarios to indicate that the server closed the connection without sending any response", 106, "No Response", 0, "", "", ""),
-  RetryWith => (100, "Continue", "The server indicates that the client should retry the request with appropriate changes or additional information, new or different credentials, use a different protocol or in a different location", 107, "Retry With", 0, "", "", ""),
-  ResponseIsStale => (100, "Continue", "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired", 108, "Response Is Stale", 0, "", "", ""),
-  RevalidationFailed => (100, "Continue", "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired", 109, "Revalidation Failed", 0, "", "", ""),
+  ResponsesInformationalCodes,
+  ContinueRequest => (100, "Continue", "The server has received the initial part of the request, the headers, and asks the client to continue request, proceed to send the body of the request, a POST request", 100, "Continue Request"),
+  SwitchingProtocols => (101, "Switching Protocols", "The server is complying with a request to switch protocols, used in WebSocket connections", 101, "Switching Protocols"),
+  Processing => (102, "Processing", "Indicates the server is processing the request but has not yet finished, used to prevent timeout errors in asynchronous operations, webdav RFC 2518", 102, "Processing"),
+  EarlyHints => (103, "Early Hints", "Experimental: The server provides preliminary hints to the client, such as preloading resources while the final response is being prepared", 103, "Early Hints"),
+  ConnectionResetByPeer => (100, "Continue", "The connection was forcibly closed by a peer, possibly due to a protocol error, a timeout, or a network issue", 104, "Connection Reset By Peer"),
+  NameNotResolved => (100, "Continue", "The server could not resolve the domain name provided in the request, indicating a DNS lookup failure, The requested hostname cannot be resolved to an IP address", 105, "Name Not Resolved"),
+  NoResponse => (100, "Continue", "The server did not provide a response, possibly due to a timeout or a connection issue, The server didn’t send any response within the timeout period. This status code is not specified in any RFCs, but it is used in some scenarios to indicate that the server closed the connection without sending any response", 106, "No Response"),
+  RetryWith => (100, "Continue", "The server indicates that the client should retry the request with appropriate changes or additional information, new or different credentials, use a different protocol or in a different location", 107, "Retry With"),
+  ResponseIsStale => (100, "Continue", "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired", 108, "Response Is Stale"),
+  RevalidationFailed => (100, "Continue", "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired", 109, "Revalidation Failed"),
 }
 
 /// This file defines the `ResponsesInformationalCodes` enum and provides five main functionalities:
@@ -49,7 +49,7 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::ResponsesInformationalCodes;
+  use crate::responses::{ResponsesInformationalCodes, UnifiedTuple};
 
   #[test]
   fn test_to_16_switching_protocols() {
@@ -70,16 +70,12 @@ mod tests {
     let tuple = code.as_tuple();
     assert_eq!(
       tuple,
-      UnifiedTuple::NineFields(
+      UnifiedTuple::FiveFields(
         100,
         "Continue",
         "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired",
         108,
-        "Response Is Stale",
-        190,
-        "req-2",
-        "user-2",
-        "status-2",
+        "Response Is Stale"
       )
     );
   }
@@ -97,13 +93,7 @@ mod tests {
         "code": 100,
         "name": "Continue"
         },
-        "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired",
-      "metadata": {
-        "meta1": 109,
-        "meta2": "req-13",
-        "meta3": "user-13",
-        "meta4": "status-13"
-      }
+        "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired"
     });
     assert_eq!(json_result, expected_json);
   }

@@ -1,12 +1,11 @@
-use crate::helpers::generate_responses_functions::generate_responses_functions;
-use serde_json::json;
+use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
 /// * Example:
 /// ```rust
 ///
-/// use simbld_http::responses::service::ResponsesServiceCodes::ReadingError;
+/// use simbld_http::responses::ResponsesServiceCodes::ReadingError;
 ///
 /// let response = ReadingError;
 /// let json = response.as_json();
@@ -34,22 +33,23 @@ pub enum ResponsesServiceCodes {
 }
 
 generate_responses_functions! {
-  ReadingError => (500, "Internal Server Error", "An error occurred while reading the response or data from the server", 611, "Reading Error", 0, "", "", ""),
-  ConnectionError => (500, "Internal Server Error", "A connection issue occurred, preventing successful communication with the server", 612, "Connection Error", 0, "", "", ""),
-  ReadingTimeExpired => (500, "Internal Server Error", "The reading operation exceeded the allowed time limit, resulting in a timeout", 613, "Reading Time Expired", 0, "", "", ""),
-  SSLHandshakeFailed => (500, "Internal Server Error", "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols", 614, "SSL Handshake Failed", 0, "", "", ""),
-  AnotherReadingError => (500, "Internal Server Error", "A generic error occurred while reading the response or data", 615, "Another Reading Error", 0, "", "", ""),
-  FBAAnomaly => (500, "Internal Server Error", "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input", 616, "FBA Anomaly", 0, "", "", ""),
-  CodingError => (500, "Internal Server Error", "An error in the implementation or logic caused the request to fail", 617, "Coding Error", 0, "", "", ""),
-  RedirectWithoutRedirectURL => (500, "Internal Server Error", "The server issued a redirect response but did not provide a valid redirect URL", 618, "Redirect Without Redirect URL", 0, "", "", ""),
-  DNSLookupFailed => (500, "Internal Server Error", "The DNS lookup for the specified domain failed, indicating a potential network or configuration issue", 680, "DNS Lookup Failed", 0, "", "", ""),
-  SyntacticallyIncorrectURL => (500, "Internal Server Error", "The provided URL is syntactically incorrect and cannot be processed", 690, "Syntactically Incorrect URL", 0, "", "", ""),
-  LostConnection => (500, "Internal Server Error", "The connection to the server was lost unexpectedly during communication", 691, "Lost Connection", 0, "", "", ""),
-  WriteTimeout => (500, "Internal Server Error", "The operation timed out while attempting to write data to the server", 692, "Write Timeout", 0, "", "", ""),
-  SelectionFailed => (500, "Internal Server Error", "The requested operation failed during a selection or matching process", 693, "Selection Failed", 0, "", "", ""),
-  WriteError => (500, "Internal Server Error", "An error occurred while attempting to write data to the destination", 694, "Write Error", 0, "", "", ""),
-  IncompleteBlockHeader => (500, "Internal Server Error", "A block header was incomplete or malformed, preventing further processing", 695, "Incomplete Block Header", 0, "", "", ""),
-  UnexpectedError => (500, "Internal Server Error", "An unexpected error occurred, often indicative of an unforeseen issue or bug", 699, "Unexpected Error", 0, "", "", ""),
+  ResponsesServiceCodes,
+  ReadingError => (500, "Internal Server Error", "An error occurred while reading the response or data from the server", 611, "Reading Error"),
+  ConnectionError => (500, "Internal Server Error", "A connection issue occurred, preventing successful communication with the server", 612, "Connection Error"),
+  ReadingTimeExpired => (500, "Internal Server Error", "The reading operation exceeded the allowed time limit, resulting in a timeout", 613, "Reading Time Expired"),
+  SSLHandshakeFailed => (500, "Internal Server Error", "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols", 614, "SSL Handshake Failed"),
+  AnotherReadingError => (500, "Internal Server Error", "A generic error occurred while reading the response or data", 615, "Another Reading Error"),
+  FBAAnomaly => (500, "Internal Server Error", "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input", 616, "FBA Anomaly"),
+  CodingError => (500, "Internal Server Error", "An error in the implementation or logic caused the request to fail", 617, "Coding Error"),
+  RedirectWithoutRedirectURL => (500, "Internal Server Error", "The server issued a redirect response but did not provide a valid redirect URL", 618, "Redirect Without Redirect URL"),
+  DNSLookupFailed => (500, "Internal Server Error", "The DNS lookup for the specified domain failed, indicating a potential network or configuration issue", 680, "DNS Lookup Failed"),
+  SyntacticallyIncorrectURL => (500, "Internal Server Error", "The provided URL is syntactically incorrect and cannot be processed", 690, "Syntactically Incorrect URL"),
+  LostConnection => (500, "Internal Server Error", "The connection to the server was lost unexpectedly during communication", 691, "Lost Connection"),
+  WriteTimeout => (500, "Internal Server Error", "The operation timed out while attempting to write data to the server", 692, "Write Timeout"),
+  SelectionFailed => (500, "Internal Server Error", "The requested operation failed during a selection or matching process", 693, "Selection Failed"),
+  WriteError => (500, "Internal Server Error", "An error occurred while attempting to write data to the destination", 694, "Write Error"),
+  IncompleteBlockHeader => (500, "Internal Server Error", "A block header was incomplete or malformed, preventing further processing", 695, "Incomplete Block Header"),
+  UnexpectedError => (500, "Internal Server Error", "An unexpected error occurred, often indicative of an unforeseen issue or bug", 699, "Unexpected Error"),
 }
 
 /// This file defines the `ResponsesServiceCodes` enum and provides five main functionalities:
@@ -61,7 +61,7 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::ResponsesServiceCodes;
+  use crate::responses::{ResponsesServiceCodes, UnifiedTuple};
 
   #[test]
   fn test_service_codes_to_u16() {
@@ -82,16 +82,12 @@ mod tests {
     let tuple = code.as_tuple();
     assert_eq!(
       tuple,
-      UnifiedTuple::NineFields(
+      UnifiedTuple::FiveFields(
         500,
         "Internal Server Error",
         "A connection issue occurred, preventing successful communication with the server",
         612,
-        "Connection Error",
-        110,
-        "req-13",
-        "user-13",
-        "status-13"
+        "Connection Error"
       )
     );
   }
@@ -109,13 +105,7 @@ mod tests {
             "code": 613,
             "name": "Reading Time Expired"
         },
-        "description": "The reading operation exceeded the allowed time limit, resulting in a timeout",
-        "metadata": {
-            "meta1": 110,
-            "meta2": "req-13",
-            "meta3": "user-13",
-            "meta4": "status-13"
-        }
+        "description": "The reading operation exceeded the allowed time limit, resulting in a timeout"
     });
     assert_eq!(json_result, expected_json);
   }

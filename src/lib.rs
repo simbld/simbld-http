@@ -1,5 +1,4 @@
 #[macro_use]
-
 pub mod helpers;
 pub mod mocks;
 pub mod responses;
@@ -9,7 +8,6 @@ pub use helpers::auth_middleware::AuthMiddleware;
 pub use helpers::http_interceptor_helper::HttpInterceptor;
 pub use helpers::unified_middleware_helper::UnifiedMiddleware;
 pub use mocks::mock_responses::MockResponses;
-pub use responses::wrapper::ResponseWrapper;
 
 pub use helpers::generate_responses_functions;
 
