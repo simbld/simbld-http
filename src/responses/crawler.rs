@@ -1,6 +1,4 @@
-use crate::generate_responses_functions;
-/// Enum representing HTTP response status codes and descriptions.
-/// Each variant corresponds to a specific HTTP status code.
+/// Enum representing HTTP response status codes for crawler-specific responses.
 ///
 /// * Example:
 /// ```rust
@@ -9,26 +7,8 @@ use crate::generate_responses_functions;
 /// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
-#[repr(u16)]
-pub enum ResponsesCrawlerCodes {
-  ParsingErrorUnfinishedHeader,
-  ParsingErrorHeader,
-  ParsingErrorMissingHTTPCode,
-  ParsingErrorBody,
-  ExcludedByRobotsTxtFile,
-  RobotsTemporarilyUnavailable,
-  ExcludedByDefinitionOfExplorationSpace,
-  NotAllowedByLocalExplorationSpace,
-  IncorrectProtocolOrNonStandardSystemPort,
-  ExcludedByFileTypeExclusions,
-  InvalidCard,
-  CannotDisablePhysicalCard,
-  InvalidURL,
-  NoIndexMetaTag,
-  ProgrammableRedirection,
-  RedirectedToAnotherURL,
-}
+use crate::generate_responses_functions;
+use crate::UnifiedTuple;
 
 generate_responses_functions! {
   ResponsesCrawlerCodes,
@@ -59,19 +39,18 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesCrawlerCodes, UnifiedTuple};
+  use crate::responses::UnifiedTuple;
 
   #[test]
   fn test_crawler_codes_to_u16() {
     let response = ResponsesCrawlerCodes::ParsingErrorHeader;
-    let code = response.to_u16();
-    assert_eq!(code, 400);
+    assert_eq!(response.to_u16(), 400);
   }
 
   #[test]
   fn test_crawler_codes_from_u16() {
-    let status = ResponsesCrawlerCodes::from_u16(400);
-    assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
+    let status = crate::responses::ResponsesCrawlerCodes::from_u16(400);
+    assert_eq!(status, Some(crate::responses::ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
   }
 
   #[test]

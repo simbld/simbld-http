@@ -1,4 +1,3 @@
-use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
@@ -11,54 +10,9 @@ use crate::generate_responses_functions;
 /// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
+use crate::generate_responses_functions;
+use crate::UnifiedTuple;
 
-#[derive(Debug, Clone, PartialEq)]
-#[repr(u16)]
-pub enum ResponsesRedirectionCodes {
-  MultipleChoices,
-  MovedPermanently,
-  Found,
-  SeeOther,
-  NotModified,
-  UseProxy,
-  SwitchProxy,
-  TemporaryRedirect,
-  PermanentRedirect,
-  TooManyRedirects,
-  RedirectMethod,
-  Unassigned,
-  MovedPermanentlyRedirected,
-  MovedTemporarilyRedirected,
-  SeeOtherRedirected,
-  NotModifiedRedirected,
-  UseProxyRedirected,
-  UnusedRedirected,
-  TemporaryRedirectRedirected,
-  PermanentRedirected,
-  TooManyRedirectsRedirected,
-  RedirectMethodRedirected,
-  UserNameOkPasswordNeeded,
-  NoNeedAccountForLogin,
-  SessionKeyNotPresentInHeader,
-  SessionKeyPresentAndNotDecryptableParsable,
-  ServerIsUnwillingToProcessTheRequest,
-  ChallengeResponseAuthenticationOk,
-  ChallengeResponseAuthenticationFailed,
-  LengthRequired,
-  PreconditionFailed,
-  RequestEntityTooLarge,
-  UnsupportedMediaType,
-  RequestedRangeNotSatisfiable,
-  ExpectationFailed,
-  ImATeapot,
-  ErrorAccessingURL,
-  TriggerNotFound,
-  AccessDenied,
-  ConditionFailed,
-  MandatoryParameterIsNull,
-  TheParameterDoesNotExist,
-  DataBLOBShouldNotBeNullForPostMethod,
-}
 
 generate_responses_functions! {
   ResponsesRedirectionCodes,

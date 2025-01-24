@@ -1,5 +1,5 @@
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
-use serde_json::json;
+
 
 /// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
 ///

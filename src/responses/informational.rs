@@ -1,4 +1,3 @@
-use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
@@ -11,20 +10,9 @@ use crate::generate_responses_functions;
 /// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
-#[repr(u16)]
-pub enum ResponsesInformationalCodes {
-  ContinueRequest,
-  SwitchingProtocols,
-  Processing,
-  EarlyHints,
-  ConnectionResetByPeer,
-  NameNotResolved,
-  NoResponse,
-  RetryWith,
-  ResponseIsStale,
-  RevalidationFailed,
-}
+use crate::generate_responses_functions;
+use crate::UnifiedTuple;
+
 
 generate_responses_functions! {
   ResponsesInformationalCodes,
@@ -85,15 +73,15 @@ mod tests {
     let code = ResponsesInformationalCodes::RevalidationFailed;
     let json_result = code.as_json();
     let expected_json = json!({
-        "standard http code": {
-        "code": 109,
-        "name": "Revalidation Failed"
-        },
-        "internal http code": {
+      "standard http code": {
         "code": 100,
         "name": "Continue"
-        },
-        "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired"
+      },
+      "internal http code": {
+        "code": 109,
+        "name": "Revalidation Failed"
+      },
+      "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired"
     });
     assert_eq!(json_result, expected_json);
   }

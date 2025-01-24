@@ -94,7 +94,7 @@ where
 
       let status_code = res.status().as_u16();
       if let Some(description) =
-        crate::helpers::response_helpers::get_description_by_code(status_code)
+        crate::helpers::response_helpers::get_description_by_code(status_code).as_deref()
       {
         res.headers_mut().insert(
           HeaderName::from_static("x-status-description"),

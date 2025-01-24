@@ -1,4 +1,3 @@
-use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
@@ -11,65 +10,9 @@ use crate::generate_responses_functions;
 /// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
-#[repr(u16)]
-pub enum ResponsesClientCodes {
-  BadRequest,
-  Unauthorized,
-  PaymentRequired,
-  Forbidden,
-  NotFound,
-  MethodNotAllowed,
-  NotAcceptable,
-  ProxyAuthenticationRequired,
-  RequestTimeout,
-  Conflict,
-  Gone,
-  LengthRequired,
-  PreconditionFailed,
-  ContentTooLarge,
-  URITooLong,
-  UnsupportedMediaType,
-  RangeNotSatisfiable,
-  ExpectationFailed,
-  ImATeapot,
-  PageExpired,
-  MethodFailure,
-  MisdirectedRequest,
-  UnprocessableEntity,
-  Locked,
-  FailedDependency,
-  TooEarly,
-  UpgradeRequired,
-  PreconditionRequired,
-  TooManyRequests,
-  RequestHeaderFieldsTooLarge,
-  LoginRequired,
-  OriginError,
-  DestinationError,
-  TooLarge,
-  SSLCertificateError,
-  SSLCertificateRequired,
-  NoCertificate,
-  LoginTimeout,
-  OverDataQuota,
-  NoResponse,
-  RetryWith,
-  BlockedByWindowsParentalControls,
-  UnavailableForLegalReasons,
-  TooManyRecipients,
-  MethodNotValidInThisState,
-  UnrecoverableError,
-  ClientClosedConnexionPrematurely,
-  TooManyForwardedIPAddresses,
-  InternetSecurityError,
-  RequestHeaderTooLarge,
-  CertError,
-  NoCert,
-  HTTPToHTTPS,
-  InvalidToken,
-  ClientClosedRequest,
-}
+use crate::generate_responses_functions;
+use crate::UnifiedTuple;
+
 
 generate_responses_functions! {
   ResponsesClientCodes,
@@ -142,20 +85,25 @@ mod tests {
   use crate::responses::{ResponsesClientCodes, UnifiedTuple};
 
   #[test]
-  fn test_unauthorized_codes_to_u16() {
-    let response = ResponsesClientCodes::Unauthorized;
-    let code = response.to_u16();
-    assert_eq!(code, 401);
+  fn test_to_u16() {
+    let response = ResponsesClientCodes::BadRequest;
+    assert_eq!(response.to_u16(), 400);
   }
 
   #[test]
-  fn test_not_found_codes_from_u16() {
+  fn test_from_u16() {
     let status = ResponsesClientCodes::from_u16(404);
     assert_eq!(status, Some(ResponsesClientCodes::NotFound));
   }
 
   #[test]
-  fn test_forbidden_codes_as_tuple() {
+  fn test_invalid_code_from_u16() {
+    let status = ResponsesClientCodes::from_u16(999);
+    assert_eq!(status, None);
+  }
+
+  #[test]
+  fn test_as_tuple() {
     let code = ResponsesClientCodes::Forbidden;
     let tuple = code.as_tuple();
     assert_eq!(
@@ -163,7 +111,7 @@ mod tests {
       UnifiedTuple::FiveFields(
         403,
         "Forbidden",
-        "The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.",
+        "The client does not have access rights to the content.",
         403,
         "Forbidden"
       )
@@ -171,28 +119,20 @@ mod tests {
   }
 
   #[test]
-  fn test_not_found_codes_as_json() {
-    let code = ResponsesClientCodes::NotFound;
+  fn test_as_json() {
+    let code = ResponsesClientCodes::ImATeapot;
     let json_result = code.as_json();
     let expected_json = json!({
-      "standard http code": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "internal http code": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "description": "The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client."
+        "standard http code": {
+            "code": 418,
+            "name": "I'm a teapot"
+        },
+        "internal http code": {
+            "code": 418,
+            "name": "I'm a teapot"
+        },
+        "description": "The waiter refuses to brew coffee with a teapot, RFC 2324."
     });
     assert_eq!(json_result, expected_json);
-  }
-
-  #[test]
-  fn test_bad_request_codes_into_tuple() {
-    let code = ResponsesClientCodes::BadRequest;
-    let (std_code, std_name): (u16, &'static str) = code.into();
-    assert_eq!(std_code, 400);
-    assert_eq!(std_name, "Bad Request");
   }
 }

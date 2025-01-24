@@ -1,7 +1,18 @@
+/// This module organizes and provides enums for various HTTP response status codes and categories.
+/// It includes the following categories:
+/// - Informational (1xx)
+/// - Success (2xx)
+/// - Redirection (3xx)
+/// - Client (4xx)
+/// - Server (5xx)
+/// - Local API and custom codes
+/// - Service and Crawler-specific responses
+
 #[macro_use]
 pub mod actix_responder;
 pub mod client;
 pub mod crawler;
+pub mod http_code;
 pub mod informational;
 pub mod local;
 pub mod redirection;
@@ -9,9 +20,11 @@ pub mod server;
 pub mod service;
 pub mod success;
 
+// Public exports for response codes
 pub use actix_responder::CustomResponse;
 pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
+pub use http_code::HttpCode;
 pub use informational::ResponsesInformationalCodes;
 pub use local::ResponsesLocalApiCodes;
 pub use redirection::ResponsesRedirectionCodes;
@@ -19,9 +32,12 @@ pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
 pub use success::ResponsesSuccessCodes;
 
-use serde_json::Value;
+use strum::IntoEnumIterator;
 
-#[derive(Debug, PartialEq)]
+/// Enum representing the main categories of HTTP response codes.
+/// Combines multiple categories into a unified type for simplified handling.
+
+#[derive(Debug, PartialEq, IntoEnumIterator)]
 pub enum ResponsesTypes {
   Informational(ResponsesInformationalCodes),
   Success(ResponsesSuccessCodes),
@@ -34,6 +50,7 @@ pub enum ResponsesTypes {
 }
 
 impl ResponsesTypes {
+  /// Converts the enum variant to its corresponding HTTP status code as `u16`.
   pub fn to_u16(&self) -> u16 {
     match self {
       ResponsesTypes::Informational(code_enum) => code_enum.to_u16(),
@@ -47,6 +64,7 @@ impl ResponsesTypes {
     }
   }
 
+  /// Converts the enum variant into a JSON representation.
   pub fn as_json(&self) -> Value {
     match self {
       ResponsesTypes::Informational(code_enum) => code_enum.as_json(),
@@ -60,7 +78,8 @@ impl ResponsesTypes {
     }
   }
 
-  pub fn as_tuple(&self) -> (u16, &'static str, &'static str) {
+  /// Converts the enum variant into a tuple representation.
+  pub fn as_tuple(&self) -> UnifiedTuple {
     match self {
       ResponsesTypes::Informational(code_enum) => code_enum.as_tuple(),
       ResponsesTypes::Success(code_enum) => code_enum.as_tuple(),
@@ -73,39 +92,33 @@ impl ResponsesTypes {
     }
   }
 
+  /// Attempts to construct a `ResponsesTypes` variant from a given `u16` code.
   pub fn from_u16(code: u16) -> Option<Self> {
-    if let Some(enum_code) = ResponsesInformationalCodes::from_u16(code) {
-      return Some(ResponsesTypes::Informational(enum_code));
-    }
-    if let Some(enum_code) = ResponsesSuccessCodes::from_u16(code) {
-      return Some(ResponsesTypes::Success(enum_code));
-    }
-    if let Some(enum_code) = ResponsesRedirectionCodes::from_u16(code) {
-      return Some(ResponsesTypes::Redirection(enum_code));
-    }
-    if let Some(enum_code) = ResponsesClientCodes::from_u16(code) {
-      return Some(ResponsesTypes::ClientError(enum_code));
-    }
-    if let Some(enum_code) = ResponsesServerCodes::from_u16(code) {
-      return Some(ResponsesTypes::ServerError(enum_code));
-    }
-    if let Some(enum_code) = ResponsesServiceCodes::from_u16(code) {
-      return Some(ResponsesTypes::ServiceError(enum_code));
-    }
-    if let Some(enum_code) = ResponsesCrawlerCodes::from_u16(code) {
-      return Some(ResponsesTypes::CrawlerError(enum_code));
-    }
-    if let Some(enum_code) = ResponsesLocalApiCodes::from_u16(code) {
-      return Some(ResponsesTypes::LocalApiError(enum_code));
-    }
-    None
+    ResponsesInformationalCodes::from_u16(code)
+      .map(ResponsesTypes::Informational)
+      .or_else(|| ResponsesSuccessCodes::from_u16(code).map(ResponsesTypes::Success))
+      .or_else(|| ResponsesRedirectionCodes::from_u16(code).map(ResponsesTypes::Redirection))
+      .or_else(|| ResponsesClientCodes::from_u16(code).map(ResponsesTypes::ClientError))
+      .or_else(|| ResponsesServerCodes::from_u16(code).map(ResponsesTypes::ServerError))
+      .or_else(|| ResponsesServiceCodes::from_u16(code).map(ResponsesTypes::ServiceError))
+      .or_else(|| ResponsesCrawlerCodes::from_u16(code).map(ResponsesTypes::CrawlerError))
+      .or_else(|| ResponsesLocalApiCodes::from_u16(code).map(ResponsesTypes::LocalApiError))
   }
 }
 
-/// Represents a unified structure with 5 fields.
+/// Represents a unified structure with five fields for response metadata.
 #[derive(Debug, PartialEq)]
 pub enum UnifiedTuple {
   FiveFields(u16, &'static str, &'static str, u16, &'static str),
+}
+
+impl UnifiedTuple {
+  /// Extracts the description field from the tuple.
+  pub fn get_description(&self) -> &'static str {
+    match self {
+      UnifiedTuple::FiveFields(_, _, desc, _, _) => desc,
+    }
+  }
 }
 
 #[cfg(test)]
@@ -131,7 +144,7 @@ mod tests {
     let tuple = code.as_tuple();
     assert_eq!(
       tuple,
-      UnifiedTuple::FivesFields(
+      UnifiedTuple::FiveFields(
         400,
         "Bad Request",
         "Invalid URL encountered by crawler.",
@@ -145,7 +158,7 @@ mod tests {
   fn test_as_json() {
     let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
     let json_result = code.as_json();
-    let expected = serde_json::json!({
+    let expected = json!({
         "standard http code": {
             "code": 503,
             "name": "Service Unavailable"
@@ -165,5 +178,11 @@ mod tests {
     let (std_code, std_name): (u16, &'static str) = code.into();
     assert_eq!(std_code, 302);
     assert_eq!(std_name, "Found");
+  }
+
+  #[test]
+  fn test_from_u16_unknown_code() {
+    let result = ResponsesTypes::from_u16(9999);
+    assert!(result.is_none());
   }
 }

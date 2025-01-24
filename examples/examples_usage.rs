@@ -1,5 +1,6 @@
+
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use serde_json::{json, Value};
+
 use simbld_http::helpers::{
   http_interceptor_helper::HttpInterceptor, response_helpers,
   response_with_cookie_helper::ok_with_cookie, response_with_headers_helper::ok_with_headers,

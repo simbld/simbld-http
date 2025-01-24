@@ -1,4 +1,4 @@
-use serde_json::Value;
+
 
 /// Trait to convert a structure into a detailed JSON response.
 /// This is used to centralize the logic for JSON generation.

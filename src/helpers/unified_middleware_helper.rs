@@ -15,11 +15,11 @@ use actix_web::{
 };
 use futures_util::future::{ok, LocalBoxFuture, Ready};
 use log::{debug, error, info, warn};
-use serde_json::json;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
+
 
 #[derive(Debug)]
 pub struct UnifiedMiddleware {

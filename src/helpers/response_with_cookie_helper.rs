@@ -1,5 +1,3 @@
-use serde_json::json;
-
 /// The functions return JSON responses with status codes and descriptions, including a cookie.
 ///
 /// Arguments:
@@ -22,8 +20,9 @@ use serde_json::json;
 /// println!("{}", bad_request_response);
 /// ```
 ///
-
 /// This function is used to return a JSON response with a status of 200 and a description of "OK" along with a cookie.
+
+
 pub fn ok_with_cookie(cookie: (&str, &str)) -> String {
   let (key, value) = cookie;
   json!({

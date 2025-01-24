@@ -1,4 +1,3 @@
-use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
@@ -11,39 +10,9 @@ use crate::generate_responses_functions;
 /// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
-#[repr(u16)]
-pub enum ResponsesSuccessCodes {
-  Ok,
-  Created,
-  Accepted,
-  NonAuthoritativeInformation,
-  NoContent,
-  ResetContent,
-  PartialContent,
-  MultiStatus,
-  AlreadyReported,
-  IMUsedGetRequest,
-  ContentDifferent,
-  ContentLocation,
-  ObjectData,
-  MultipleResourceInstances,
-  TransformApplied,
-  ContentDeleted,
-  IMUsedPostRequest,
-  DeltaEncodingApplied,
-  ThisIsFine,
-  ContentTransferred,
-  LoadBalancerStarted,
-  LoadBalancerEnded,
-  AuthenticationSuccessful,
-  LowOnStorageSpace,
-  EntityRecognizedNotProcessable,
-  ResourceAccessedLocked,
-  MethodNotFound,
-  ExtendedCode,
-  MiscellaneousPersistentWarningStart,
-}
+use crate::generate_responses_functions;
+use crate::UnifiedTuple;
+
 
 generate_responses_functions! {
   ResponsesSuccessCodes,
@@ -88,7 +57,6 @@ generate_responses_functions! {
 mod tests {
   use super::*;
   use crate::responses::{ResponsesSuccessCodes, UnifiedTuple};
-  use serde_json::json;
 
   #[test]
   fn test_success_codes_to_u16() {

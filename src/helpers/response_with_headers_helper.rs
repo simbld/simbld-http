@@ -1,4 +1,3 @@
-use serde_json::json;
 
 use std::collections::HashMap;
 
@@ -22,16 +21,16 @@ use std::collections::HashMap;
 /// headers.insert("Content-Type", "application/json");
 /// let response = ok_with_headers(headers);
 /// println!("{}", response);
+/// pub fn ok_with_headers(headers: HashMap<&str, &str>) -> String {
+///  json!({
+///      "status": "OK",
+///      "code": 200,
+///      "description": "Request processed successfully",
+///      "headers": headers
+///  })
+///  .to_string()
+/// }
 /// ```
-pub fn ok_with_headers(headers: HashMap<&str, &str>) -> String {
-  json!({
-      "status": "OK",
-      "code": 200,
-      "description": "Request processed successfully",
-      "headers": headers
-  })
-  .to_string()
-}
 
 /// This helper function is used to return a JSON response with a status of 400 and a description of "Bad Request" along with the data and headers provided.
 ///

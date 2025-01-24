@@ -1,6 +1,6 @@
+use crate::helpers::get_str_helper::GetDescription;
 use crate::responses::ResponsesTypes;
 use chrono::Utc;
-use serde_json::json;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -53,6 +53,14 @@ pub fn get_response_description(response: ResponsesTypes) -> (u16, &'static str)
   let code = response.to_u16();
   let description = response.get_str("Description").unwrap_or("No description available.");
   (code, description)
+}
+
+/// Recovers the description from the tuple
+pub fn get_description_by_code(status_code: u16) -> &'static str {
+  match ResponsesTypes::from_u16(status_code) {
+    Some(response) => response.as_tuple().get_description(),
+    None => "Description not available",
+  }
 }
 
 /// Converts a `ResponsesTypes` into a JSON string with metadata.
@@ -137,9 +145,9 @@ pub fn filter_codes_by_range_with_metadata(
 
 #[cfg(test)]
 mod tests {
+  use super::*;
   use crate::ResponsesSuccessCodes::Ok;
 
-  use super::*;
   use std::collections::HashMap;
   use std::time::Duration;
 

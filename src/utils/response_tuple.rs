@@ -1,5 +1,5 @@
 use crate::utils::json_formatter::JsonFormatter;
-use serde_json::{json, Value};
+
 
 /// A struct representing the details of an HTTP response code.
 /// Provides a tuple-like representation for compatibility with older APIs.

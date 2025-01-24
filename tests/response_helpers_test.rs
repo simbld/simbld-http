@@ -3,6 +3,8 @@ use simbld_http::helpers::{response_with_cookie_helper::*, response_with_headers
 use simbld_http::responses::{wrapper::ResponseWrapper, *};
 use std::collections::HashMap;
 
+
+
 /// Example of dynamic response generation
 fn main() {
   // Generate functions for all HTTP status codes
@@ -39,7 +41,7 @@ fn test_ok_with_headers() {
   headers.insert("x-correlation-id", "abc-def");
 
   let response = ok_with_headers(headers.clone());
-  let parsed: serde_json::Value = serde_json::from_str(&response).unwrap();
+  let parsed: Value = from_str(&response).unwrap();
 
   assert_eq!(parsed["status"], "OK");
   assert_eq!(parsed["headers"]["x-trace-id"], "123456");
@@ -53,7 +55,7 @@ fn test_bad_request_with_headers() {
   headers.insert("x-correlation-id", "fed-cba");
 
   let response = bad_request_with_headers(headers.clone());
-  let parsed: serde_json::Value = serde_json::from_str(&response).unwrap();
+  let parsed: Value = from_str(&response).unwrap();
 
   assert_eq!(parsed["status"], "Bad Request");
   assert_eq!(parsed["headers"]["x-trace-id"], "654321");

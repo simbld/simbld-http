@@ -1,4 +1,3 @@
-use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
@@ -11,26 +10,9 @@ use crate::generate_responses_functions;
 /// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
-#[repr(u16)]
-pub enum ResponsesServiceCodes {
-  ReadingError,
-  ConnectionError,
-  ReadingTimeExpired,
-  SSLHandshakeFailed,
-  AnotherReadingError,
-  FBAAnomaly,
-  CodingError,
-  RedirectWithoutRedirectURL,
-  DNSLookupFailed,
-  SyntacticallyIncorrectURL,
-  LostConnection,
-  WriteTimeout,
-  SelectionFailed,
-  WriteError,
-  IncompleteBlockHeader,
-  UnexpectedError,
-}
+use crate::generate_responses_functions;
+use crate::UnifiedTuple;
+
 
 generate_responses_functions! {
   ResponsesServiceCodes,

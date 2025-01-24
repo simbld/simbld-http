@@ -1,4 +1,3 @@
-use crate::generate_responses_functions;
 /// Enum representing HTTP response status codes and descriptions.
 /// Each variant corresponds to a specific HTTP status code.
 ///
@@ -11,37 +10,9 @@ use crate::generate_responses_functions;
 /// let json = response.as_json();
 /// println!("{:?}", json);
 /// ```
+use crate::generate_responses_functions;
+use crate::UnifiedTuple;
 
-#[derive(Debug, Clone, PartialEq)]
-#[repr(u16)]
-pub enum ResponsesServerCodes {
-  InternalServerError,
-  NotImplemented,
-  BadGateway,
-  ServiceUnavailable,
-  GatewayTimeout,
-  HTTPVersionNotSupported,
-  VariantAlsoNegotiates,
-  InsufficientStorage,
-  LoopDetected,
-  BandwidthLimitExceeded,
-  NotExtended,
-  NetworkAuthenticationRequired,
-  UnknownError,
-  WebServerIsDown,
-  ConnectionTimedOut,
-  OriginIsUnreachable,
-  TimeoutOccurred,
-  SSLHandshakeFailed,
-  InvalidSSLCertificate,
-  RailgunError,
-  SiteIsOverloaded,
-  SiteIsFrozen,
-  OriginDNSError,
-  NoSiteDetected,
-  NetworkReadTimeoutError,
-  NetworkConnectTimeoutError,
-}
 
 generate_responses_functions! {
   ResponsesServerCodes,

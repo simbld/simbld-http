@@ -1,46 +1,55 @@
+/// Provides response codes, helpers, and utility functions for HTTP response management.
 #[macro_use]
 pub mod helpers;
 pub mod mocks;
 pub mod responses;
 pub mod utils;
 
+// Public exports for helpers
 pub use helpers::auth_middleware::AuthMiddleware;
+pub use helpers::generate_responses_functions;
 pub use helpers::http_interceptor_helper::HttpInterceptor;
 pub use helpers::unified_middleware_helper::UnifiedMiddleware;
+
+// Public exports for mocks
 pub use mocks::mock_responses::MockResponses;
 
-pub use helpers::generate_responses_functions;
-
+// External crates re-exported for convenience
+pub use crate::responses::UnifiedTuple;
 pub use inflector::Inflector;
-pub use strum::IntoEnumIterator;
-pub use strum_macros::EnumIter;
+pub use serde_json::{json, Value};
 
-pub use crate::responses::ResponsesClientCodes;
-pub use crate::responses::ResponsesCrawlerCodes;
-pub use crate::responses::ResponsesInformationalCodes;
-pub use crate::responses::ResponsesLocalApiCodes;
-pub use crate::responses::ResponsesRedirectionCodes;
-pub use crate::responses::ResponsesServerCodes;
-pub use crate::responses::ResponsesServiceCodes;
-pub use crate::responses::ResponsesSuccessCodes;
+// Public exports for response modules
+pub use responses::ResponsesClientCodes;
+pub use responses::ResponsesCrawlerCodes;
+pub use responses::ResponsesInformationalCodes;
+pub use responses::ResponsesLocalApiCodes;
+pub use responses::ResponsesRedirectionCodes;
+pub use responses::ResponsesServerCodes;
+pub use responses::ResponsesServiceCodes;
+pub use responses::ResponsesSuccessCodes;
 
+// Module for tests
 #[cfg(test)]
 mod tests {
-  use crate::responses::ResponsesCrawlerCodes;
-  use crate::responses::UnifiedTuple;
+  use super::*;
+  use crate::responses::{ResponsesCrawlerCodes, UnifiedTuple};
 
+  /// Test `to_u16` method for `ResponsesCrawlerCodes`.
   #[test]
   fn test_crawler_codes_to_u16() {
     let code = ResponsesCrawlerCodes::ParsingErrorHeader;
     assert_eq!(code.to_u16(), 400);
   }
 
+  /// Test `from_u16` method for `ResponsesCrawlerCodes`.
   #[test]
   fn test_crawler_codes_from_u16() {
     let status = ResponsesCrawlerCodes::from_u16(400);
     assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
   }
 
+  /// Test `as_tuple` method for `ResponsesCrawlerCodes`.
   #[test]
   fn test_crawler_codes_as_tuple() {
     let code = ResponsesCrawlerCodes::InvalidURL;
@@ -57,11 +66,12 @@ mod tests {
     );
   }
 
+  /// Test `as_json` method for `ResponsesCrawlerCodes`.
   #[test]
   fn test_crawler_codes_as_json() {
     let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
     let json_result = code.as_json();
-    let expected = serde_json::json!({
+    let expected = json!({
         "standard http code": {
             "code": 503,
             "name": "Service Unavailable"

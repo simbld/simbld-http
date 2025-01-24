@@ -1,5 +1,4 @@
 use actix_web::{web, App, HttpResponse, HttpServer};
-use serde_json::json;
 use simbld_http::helpers::response_helpers::{
   transform_to_json_with_metadata, transform_to_xml_with_metadata,
 };
