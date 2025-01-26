@@ -18,6 +18,24 @@ use strum::EnumProperty;
 
 fn examples_with_helpers() {
   println!("=== Examples with Helpers ===");
+  
+  let response = ResponsesCrawlerCodes::ParsingErrorHeader;
+  
+  // Convertir en code HTTP
+  let http_code = response.to_http_code();
+  println!("{:?}", http_code);
+  
+  // Obtenir le code standard en u16
+  let std_code = response.to_u16();
+  println!("Standard code: {}", std_code);
+  
+  // Convertir en tuple
+  let tuple = response.as_tuple();
+  println!("{:?}", tuple);
+  
+  // Convertir en JSON
+  let json = response.as_json();
+  println!("{}", json);
 
   let (bad_request_code, bad_request_name, bad_request_desc) = bad_request_tuple();
 

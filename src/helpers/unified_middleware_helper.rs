@@ -1,3 +1,4 @@
+use serde_json::json;
 /// The code defines a unified middleware in Rust for managing CORS, advanced logs, and rate limiting in Actix Web.
 ///
 /// Properties:

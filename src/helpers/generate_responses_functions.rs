@@ -1,142 +1,153 @@
 /// Macro to generate response-related functions and implementations for enums.
 ///
-/// Arguments:
-/// - `$enum_name`: The name of the enum.
-/// - `$variant => ($std_code, $std_name, $desc, $int_code, $int_name)`: Variants with associated data.
+/// The macro generates a new enum with the specified name and enum variants.
+/// It also generates methods to convert between the enum variants and their corresponding HTTP status codes.
 ///
-/// Example usage:
+/// The macro generates the following methods:
+/// - `to_http_code`: Converts the enum variant to its corresponding `HttpCode`.
+/// - `to_u16`: Returns the "standard" code (std_code) as `u16`.
+/// - `from_u16`: Attempts to construct an enum variant from a given `u16` code.
+/// - `as_tuple`: Converts the enum variant into a tuple representation.
+/// - `as_json`: Converts the enum variant into a JSON representation.
+///
+/// The generated enum and methods can be used to simplify handling and conversion of HTTP response codes in Rust.
+///
+/// # Example
+///
 /// ```rust
 /// generate_responses_functions! {
 ///   ExampleEnum,
 ///   Variant1 => (200, "OK", "Description", 1001, "InternalName")
 /// }
 /// ```
-use crate::responses::ResponsesTypes;
+///
+/// # Arguments
+///
+/// - `$enum_name`: The name of the enum.
+/// - `$variant => ($std_code, $std_name, $desc, $int_code, $int_name)`: Variants with associated data.
 
-/// Macro to generate response-related enums and their associated methods.
 #[macro_export]
 macro_rules! generate_responses_functions {
-($enum_name:ident, $($variant:ident => ($std_code:expr, $std_name:expr, $description:expr, $int_code:expr, $int_name:expr)),+ $(,)?) => {
-/// Enum representing HTTP response codes with standard and optional internal fields.
-#[derive(Debug, PartialEq)]
-/// Enum representing various HTTP response codes and metadata.
-pub enum $enum_name {
-	$($variant),*
+    ($enum_name:ident, $($variant:ident => ($std_code:expr, $std_name:expr, $description:expr, $int_code:expr, $int_name:expr)),+ $(,)?) => {
+        #[derive(Debug, PartialEq)]
+        pub enum $enum_name {
+            $($variant),*
+        }
+
+        impl $enum_name {
+            pub fn to_http_code(&self) -> crate::responses::http_code::HttpCode {
+    match self {
+        $(
+            Self::$variant => crate::responses::http_code::HttpCode::new(
+                $std_code,
+                $std_name,
+                $description,
+                $int_code,
+                $int_name,
+            ),
+        )+
+    }
 }
 
-impl $enum_name {
-	/// Converts the enum variant to its corresponding `HttpCode`.
-	pub fn to_http_code(&self) -> HttpCode {
-		match self {
-			$(
-				Self::$variant => HttpCode::new_internal(
-					$std_code,
-					$std_name,
-					$description,
-					$int_code,
-					$int_name,
-				),
-			)+
-		}
-	}
+            pub fn to_u16(&self) -> u16 {
+                match self {
+                    $(
+                        Self::$variant => $std_code,
+                    )*
+                }
+            }
 
-		/// Returns the "standard" code (std_code) as `u16`.
-		pub fn to_u16(&self) -> u16 {
-			match self {
-				$(
-					Self::$variant => $std_code,
-				)*
-			}
-		}
+            pub fn from_u16(code: u16) -> Option<Self> {
+                match code {
+                    $(
+                        $std_code => Some(Self::$variant),
+                        $int_code => Some(Self::$variant),
+                    )+
+                    _ => None,
+                }
+            }
 
-		/// Attempts to construct an enum variant from a given `u16` code.
-		pub fn from_u16(code: u16) -> Option<Self> {
-			match code {
-				$(
-					$std_code => Some(Self::$variant),
-					$int_code => Some(Self::$variant),
-				)+
-				_ => None,
-			}
-		}
+            pub fn as_tuple(&self) -> (u16, &'static str, &'static str, u16, &'static str) {
+                self.to_http_code().as_tuple()
+            }
 
-		/// Converts the enum variant into a tuple representation.
-		pub fn as_tuple(&self) -> (u16, &'static str, &'static str, Option<u16>, Option<&'static str>) {
-			self.to_http_code().as_tuple()
-		}
+            pub fn as_json(&self) -> serde_json::Value {
+                self.to_http_code().as_json()
+            }
+        }
 
-			/// Converts the enum variant into a JSON representation.
-		pub fn as_json(&self) -> serde_json::Value {
-			self.to_http_code().as_json()
-		}
-	}
+        impl From<$enum_name> for u16 {
+            fn from(value: $enum_name) -> Self {
+                value.to_u16()
+            }
+        }
 
-	/// Allows conversion from the enum to `u16`.
-	impl From<$enum_name> for u16 {
-		fn from(value: $enum_name) -> Self {
-			value.to_u16()
-		}
-	}
-
-	/// Allows conversion from the enum to `(u16, &'static str)`.
-	impl From<$enum_name> for (u16, &'static str) {
-		fn from(value: $enum_name) -> Self {
-			(value.to_u16(), value.as_tuple().get_description())
-		}
-	}
-};
+        impl From<$enum_name> for (u16, &'static str) {
+            fn from(value: $enum_name) -> Self {
+                (value.to_u16(), value.as_tuple().2)
+            }
+        }
+    };
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::responses::ResponsesSuccessCodes;
-
+    use crate::responses::UnifiedTuple;
+    use crate::responses::ResponsesCrawlerCodes;
+    use serde_json::json;
+    
     #[test]
-    fn test_to_u16() {
-        let response = ResponsesSuccessCodes::Ok;
-        assert_eq!(response.to_u16(), 200);
+    fn test_crawler_codes_to_u16() {
+        let response = ResponsesCrawlerCodes::ParsingErrorHeader;
+        assert_eq!(response.to_u16(), 400);
     }
-
+    
     #[test]
-    fn test_from_u16() {
-        let response = ResponsesSuccessCodes::from_u16(200);
-        assert_eq!(response, Some(ResponsesSuccessCodes::Ok));
+    fn test_crawler_codes_from_u16() {
+        let status = ResponsesCrawlerCodes::from_u16(400);
+        assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
     }
-
+    
     #[test]
-    fn test_as_tuple() {
-        let response = ResponsesSuccessCodes::Ok;
-        let tuple = response.as_tuple();
+    fn test_crawler_codes_as_tuple() {
+        let code = ResponsesCrawlerCodes::InvalidURL;
+        let tuple = code.as_tuple();
         assert_eq!(
             tuple,
-            UnifiedTuple::FiveFields(200, "OK", "Request processed successfully.", 1000, "Success")
+            UnifiedTuple::FiveFields(
+                400,
+                "Bad Request",
+                "Invalid URL encountered by crawler.",
+                786,
+                "Invalid URL"
+            )
         );
     }
-
+    
     #[test]
-    fn test_as_json() {
-        let response = ResponsesSuccessCodes::Ok;
-        let json_result = response.as_json();
+    fn test_crawler_codes_as_json() {
+        let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
+        let json_result = code.as_json();
         let expected_json = json!({
             "standard http code": {
-                "code": 200,
-                "name": "OK"
+                "code": 503,
+                "name": "Service Unavailable"
             },
             "internal http code": {
-                "code": 1000,
-                "name": "Success"
+                "code": 741,
+                "name": "Robots Temporarily Unavailable"
             },
-            "description": "Request processed successfully."
+            "description": "Robots temporarily unavailable."
         });
         assert_eq!(json_result, expected_json);
     }
-
+    
     #[test]
-    fn test_into_conversion() {
-        let response = ResponsesSuccessCodes::Ok;
-        let (code, desc): (u16, &'static str) = response.into();
-        assert_eq!(code, 200);
-        assert_eq!(desc, "Request processed successfully.");
+    fn test_crawler_codes_into_tuple() {
+        let code = ResponsesCrawlerCodes::ProgrammableRedirection;
+        let (std_code, std_name): (u16, &'static str) = code.into();
+        assert_eq!(std_code, 302);
+        assert_eq!(std_name, "Found");
     }
 }

@@ -11,8 +11,6 @@
 /// println!("{:?}", json);
 /// ```
 use crate::generate_responses_functions;
-use crate::UnifiedTuple;
-
 
 generate_responses_functions! {
   ResponsesClientCodes,

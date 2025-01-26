@@ -52,3 +52,33 @@ impl HttpCode {
     )
   }
 }
+
+/// Represents a list of detailed HTTP codes.
+pub struct HttpCodeList {
+  pub http_codes: Vec<HttpCode>,
+}
+
+impl HttpCodeList {
+  /// Creates a new `HttpCodeList`.
+  pub fn new(http_codes: Vec<HttpCode>) -> Self {
+    Self { http_codes }
+  }
+
+  /// Converts the `HttpCodeList` into a JSON representation.
+  pub fn as_json(&self) -> serde_json::Value {
+    let mut http_codes_json = Vec::new();
+    for http_code in &self.http_codes {
+      http_codes_json.push(http_code.as_json());
+    }
+    serde_json::json!({ "http_codes": http_codes_json })
+  }
+
+  /// Returns the list of tuples representation of the `HttpCodeList`.
+  pub fn as_tuples(&self) -> Vec<(u16, &'static str, &'static str, u16, &'static str)> {
+    let mut http_codes_tuples = Vec::new();
+    for http_code in &self.http_codes {
+      http_codes_tuples.push(http_code.as_tuple());
+    }
+    http_codes_tuples
+  }
+}

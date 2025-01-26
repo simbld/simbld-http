@@ -1,6 +1,5 @@
 use crate::utils::json_formatter::JsonFormatter;
-
-
+use serde_json::json;
 /// A struct representing the details of an HTTP response code.
 /// Provides a tuple-like representation for compatibility with older APIs.
 ///
@@ -33,7 +32,7 @@ pub struct ResponseTuple {
 }
 
 impl JsonFormatter for ResponseTuple {
-  fn to_json_response(&self) -> Value {
+  fn to_json_response(&self) -> serde_json::Value {
     json!({
         "standard http code": {
             "code": self.std_code,

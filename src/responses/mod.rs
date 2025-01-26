@@ -37,7 +37,7 @@ use strum::IntoEnumIterator;
 /// Enum representing the main categories of HTTP response codes.
 /// Combines multiple categories into a unified type for simplified handling.
 
-#[derive(Debug, PartialEq, IntoEnumIterator)]
+#[derive(Debug, PartialEq)]
 pub enum ResponsesTypes {
   Informational(ResponsesInformationalCodes),
   Success(ResponsesSuccessCodes),
@@ -65,7 +65,7 @@ impl ResponsesTypes {
   }
 
   /// Converts the enum variant into a JSON representation.
-  pub fn as_json(&self) -> Value {
+  pub fn as_json(&self) -> serde_json::Value {
     match self {
       ResponsesTypes::Informational(code_enum) => code_enum.as_json(),
       ResponsesTypes::Success(code_enum) => code_enum.as_json(),

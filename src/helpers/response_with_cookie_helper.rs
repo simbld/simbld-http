@@ -1,3 +1,5 @@
+use serde_json::json;
+
 /// The functions return JSON responses with status codes and descriptions, including a cookie.
 ///
 /// Arguments:
