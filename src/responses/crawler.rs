@@ -1,17 +1,17 @@
 use crate::generate_responses_functions;
 generate_responses_functions! {
-/// Converts the `ResponsesCrawlerCodes` variant to a tuple representation.
-/// The tuple contains the standard HTTP code, standard name, description, internal code, and internal name.
-///
-/// * Example:
-/// ```rust
-/// use simbld_http::responses::ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader;
-/// let response = ParsingErrorUnfinishedHeader;
-/// let tuple = response.as_tuple();
-/// println!("{:?}", tuple);
-/// ```
-///
-/// The output will be `(400, "Bad Request", "Parsing error: unfinished header.", 700, "Parsing Error: Unfinished Header")`.
+// Converts the `ResponsesCrawlerCodes` variant to a tuple representation.
+// The tuple contains the standard HTTP code, standard name, description, internal code, and internal name.
+//
+// * Example:
+// ```rust
+// use simbld_http::responses::ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader;
+// let response = ParsingErrorUnfinishedHeader;
+// let tuple = response.as_tuple();
+// println!("{:?}", tuple);
+// ```
+//
+// The output will be `(400, "Bad Request", "Parsing error: unfinished header.", 700, "Parsing Error: Unfinished Header")`.
     ResponsesCrawlerCodes,
     ParsingErrorUnfinishedHeader => (400, "Bad Request", "Parsing error: unfinished header.", 700, "Parsing Error: Unfinished Header"),
     ParsingErrorHeader => (400, "Bad Request", "Parsing error in the header.", 710, "Parsing Error: Header"),
@@ -36,19 +36,19 @@ mod tests {
   use super::*;
   use crate::responses::UnifiedTuple;
   use serde_json::json;
-  
+
   #[test]
   fn test_crawler_codes_to_u16() {
     let response = ResponsesCrawlerCodes::ParsingErrorHeader;
     assert_eq!(response.to_u16(), 400);
   }
-  
+
   #[test]
   fn test_crawler_codes_from_u16() {
     let status = ResponsesCrawlerCodes::from_u16(400);
     assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
   }
-  
+
   #[test]
   fn test_crawler_codes_as_tuple() {
     let code = ResponsesCrawlerCodes::InvalidURL;
@@ -64,25 +64,25 @@ mod tests {
       )
     );
   }
-  
+
   #[test]
   fn test_crawler_codes_as_json() {
     let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
     let json_result = code.as_json();
     let expected_json = json!({
-            "standard_http_code": {
-                "code": 503,
-                "name": "Service Unavailable"
-            },
-            "internal_http_code": {
-                "code": 741,
-                "name": "Robots Temporarily Unavailable"
-            },
-            "description": "Robots temporarily unavailable."
-        });
+        "standard_http_code": {
+            "code": 503,
+            "name": "Service Unavailable"
+        },
+        "internal_http_code": {
+            "code": 741,
+            "name": "Robots Temporarily Unavailable"
+        },
+        "description": "Robots temporarily unavailable."
+    });
     assert_eq!(json_result, expected_json);
   }
-  
+
   #[test]
   fn test_crawler_codes_into_tuple() {
     let code = ResponsesCrawlerCodes::ProgrammableRedirection;
