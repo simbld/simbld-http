@@ -31,6 +31,12 @@ generate_responses_functions! {
     RedirectedToAnotherURL => (302, "Found", "Redirected to another URL (crawler-based).", 3021, "Redirected to Another URL"),
 }
 
+// This file defines the `ResponsesCrawlerCodes` enum and provides five main functionalities:
+// 1. `to_u16()` - returns the standard HTTP code as a `u16`.
+// 2. `from_u16(u16) -> Option<Self>` - attempts to build a variant from a given code.
+// 3. `as_tuple()` - returns a `UnifiedTuple` with standard/internal codes, names, and a description.
+// 4. `as_json()` - converts the variant to a JSON object.
+// 5. `Into<(u16, &'static str)>` - yields `(std_code, std_name)`.
 #[cfg(test)]
 mod tests {
   use super::*;
