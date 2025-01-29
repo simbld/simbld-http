@@ -1,6 +1,15 @@
+use crate::responses::HttpCode;
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use serde_json::json;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
 
+#[derive(Clone, Debug)]
+pub struct HttpCode {
+  pub standard_code: u16,
+  pub standard_name: &'static str,
+  pub description: &'static str,
+  pub internal_code: u16,
+  pub internal_name: String,
+}
 
 /// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
 ///
@@ -9,29 +18,18 @@ use actix_web::{web, HttpRequest, HttpResponse, Responder};
 /// * `name`: The name associated with the response (String).
 /// * `data`: Extra data payload included in the response (String).
 /// * `description`: A string describing the response further (String).
+
 #[derive(Clone, Debug)]
 pub struct CustomResponse {
-  code: u16,
-  name: String,
-  data: String,
-  description: String,
+  pub http_code: HttpCode, // intègre directement un HttpCode
+  pub data: String,        // contenu additionnel pour enrichir la réponse
 }
 
 /// Associated functions (constructor, etc.) for `CustomResponse`.
 impl CustomResponse {
   /// Creates a new `CustomResponse` with owned Strings (no lifetimes constraints).
-  pub fn new<S: Into<String>>(
-    code: u16,
-    name: impl Into<String>,
-    data: S,
-    description: impl Into<String>,
-  ) -> Self {
-    Self {
-      code,
-      name: name.into(),
-      data: data.into(),
-      description: description.into(),
-    }
+  pub fn new(http_code: HttpCode, data: impl Into<String>) -> Self {
+    Self { http_code, data: data.into() }
   }
 }
 
@@ -41,11 +39,14 @@ impl Responder for CustomResponse {
   type Body = actix_web::body::BoxBody;
 
   fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
-    HttpResponse::build(actix_web::http::StatusCode::from_u16(self.code).unwrap()).json(json!({
-        "status": self.code,
-        "name": self.name,
-        "description": self.description,
-        "data": self.data
+    HttpResponse::build(
+      actix_web::http::StatusCode::from_u16(self.http_code.standard_code).unwrap(),
+    )
+    .json(json!({
+        "status": self.http_code.standard_code,
+        "name": self.http_code.standard_name,
+        "description": self.http_code.description,
+        "data": self.data,
     }))
   }
 }
@@ -66,15 +67,19 @@ pub async fn custom_response_handler(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use actix_web::{http::StatusCode, test, App};
+  use actix_web::{http::StatusCode, test, web, App};
 
   #[actix_web::test]
   async fn test_custom_response_responder() {
     // Step 1: Create a custom response
     let custom_response = CustomResponse {
-      code: 200,
-      name: "OK".to_string(),
-      description: "Success".to_string(),
+      http_code: HttpCode {
+        standard_code: 200,
+        standard_name: "OK",
+        description: "Success",
+        internal_code: 0,
+        internal_name: "Internal OK".to_string(),
+      },
       data: "Test data".to_string(),
     };
 

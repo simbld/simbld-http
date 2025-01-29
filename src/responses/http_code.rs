@@ -8,21 +8,19 @@ pub struct HttpCode {
   pub internal_name: &'static str,
 }
 
+/// Represents a unified structure with five fields for non-standard response metadata.
 impl HttpCode {
-  /// Creates a new `HttpCode`.
-  pub fn new(
-    standard_code: u16,
-    standard_name: &'static str,
-    description: &'static str,
-    internal_code: u16,
-    internal_name: &'static str,
-  ) -> Self {
-    Self {
-      standard_code,
-      standard_name,
-      description,
-      internal_code,
-      internal_name,
+  pub fn as_combined_fields(&self) -> UnifiedTuple {
+    if self.standard_code == self.internal_code {
+      UnifiedTuple::ThreeFields(self.standard_code, self.standard_name, self.description)
+    } else {
+      UnifiedTuple::FiveFields(
+        self.standard_code,
+        self.standard_name,
+        self.description,
+        self.internal_code,
+        self.internal_name,
+      )
     }
   }
 
@@ -42,13 +40,13 @@ impl HttpCode {
   }
 
   /// Returns the tuple representation of the `HttpCode`.
-  pub fn as_tuple(&self) -> (u16, &'static str, &'static str, u16, &'static str) {
+  pub fn as_tuple(&self) -> (&u16, &&'static str, &&'static str, &u16, &&'static str) {
     (
-      self.standard_code,
-      self.standard_name,
-      self.description,
-      self.internal_code,
-      self.internal_name,
+      &self.standard_code,
+      &self.standard_name,
+      &self.description,
+      &self.internal_code,
+      &self.internal_name,
     )
   }
 }

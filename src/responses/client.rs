@@ -13,7 +13,8 @@ generate_responses_functions! {
 // let json = response.as_json();
 // println!("{:?}", json);
 // ```
-  ResponsesClientCodes,
+  "Enum representing HTTP response status codes and descriptions for ResponsesClientCodes",
+    ResponsesClientCodes,
   BadRequest => (400, "Bad Request", "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).", 400, "Bad Request"),
   Unauthorized => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 401, "Unauthorized"),
   PaymentRequired => (402, "Payment Required", "The initial purpose of this code was for digital payment systems, however this status code is rarely used and no standard convention exists.", 402, "Payment Required"),
