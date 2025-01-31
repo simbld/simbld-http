@@ -1,20 +1,7 @@
-/// Enum representing HTTP response status codes and descriptions.
-/// Each variant corresponds to a specific HTTP status code.
-///
-/// * Example:
-/// ```rust
-///
-/// use simbld_http::responses::ResponsesSuccessCodes::Created;
-///
-/// let response = Created;
-/// let json = response.as_json();
-/// println!("{:?}", json);
-/// ```
 use crate::generate_responses_functions;
-use crate::UnifiedTuple;
-
 
 generate_responses_functions! {
+  "",
   ResponsesSuccessCodes,
   Ok => (200, "OK", "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response", 200, "Ok"),
   Created => (201, "Created", "Request processed successfully and document created, with a new resource created, and the URI of the new resource returned, if available", 201, "Created"),
@@ -47,17 +34,11 @@ generate_responses_functions! {
   MiscellaneousPersistentWarningStart => (200, "OK", "The server has returned a miscellaneous persistent warning, and the response body contains the warning message, indicating that the server has returned a miscellaneous persistent warning, and the response body may contain the warning message, the server has encountered a warning condition that is not covered by other status codes", 299, "Miscellaneous Persistent Warning Start"),
 }
 
-/// This file defines the `ResponsesSuccessCodes` enum and provides five main functionalities:
-/// 1. `to_u16()` - returns the standard HTTP code as a `u16`.
-/// 2. `from_u16(u16) -> Option<Self>` - attempts to build a variant from a given code.
-/// 3. `as_tuple()` - returns a `UnifiedTuple` with standard/internal codes, names, and a description.
-/// 4. `as_json()` - converts the variant to a JSON object.
-/// 5. `Into<(u16, &'static str)>` - yields `(std_code, std_name)`.
 #[cfg(test)]
 mod tests {
   use super::*;
   use crate::responses::{ResponsesSuccessCodes, UnifiedTuple};
-
+  
   #[test]
   fn test_success_codes_to_u16() {
     let response = ResponsesSuccessCodes::Ok;

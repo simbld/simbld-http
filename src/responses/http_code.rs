@@ -10,17 +10,26 @@ pub struct HttpCode {
 
 /// Represents a unified structure with five fields for non-standard response metadata.
 impl HttpCode {
-  pub fn as_combined_fields(&self) -> UnifiedTuple {
+  /// Creates a new `HttpCode`.
+  pub fn as_combined_fields(&self) -> serde_json::Value {
     if self.standard_code == self.internal_code {
-      UnifiedTuple::ThreeFields(self.standard_code, self.standard_name, self.description)
+      json!({
+          "code": self.standard_code,
+          "name": self.standard_name,
+          "description": self.description
+      })
     } else {
-      UnifiedTuple::FiveFields(
-        self.standard_code,
-        self.standard_name,
-        self.description,
-        self.internal_code,
-        self.internal_name,
-      )
+      json!({
+          "standard_http_code": {
+              "code": self.standard_code,
+              "name": self.standard_name
+          },
+          "internal_http_code": {
+              "code": self.internal_code,
+              "name": self.internal_name
+          },
+          "description": self.description
+      })
     }
   }
 

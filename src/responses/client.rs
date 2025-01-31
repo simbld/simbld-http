@@ -1,19 +1,7 @@
 use crate::generate_responses_functions;
 
 generate_responses_functions! {
-// Enum representing HTTP response status codes and descriptions.
-// Each variant corresponds to a specific HTTP status code.
-//
-// * Example:
-// ```rust
-//
-// use simbld_http::responses::ResponsesClientCodes::BadRequest;
-//
-// let response = BadRequest;
-// let json = response.as_json();
-// println!("{:?}", json);
-// ```
-  "Enum representing HTTP response status codes and descriptions for ResponsesClientCodes",
+  "",
     ResponsesClientCodes,
   BadRequest => (400, "Bad Request", "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).", 400, "Bad Request"),
   Unauthorized => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 401, "Unauthorized"),
@@ -72,17 +60,11 @@ generate_responses_functions! {
   ClientClosedRequest => (400, "Bad Request", "The client closed the connection before the server could send a response.", 499, "ClientClosedRequest"),
 }
 
-// This file defines the `ResponsesClientCodes` enum and provides five main functionalities:
-// 1. `to_u16()` - returns the standard HTTP code as a `u16`.
-// 2. `from_u16(u16) -> Option<Self>` - attempts to build a variant from a given code.
-// 3. `as_tuple()` - returns a `UnifiedTuple` with standard/internal codes, names, and a description.
-// 4. `as_json()` - converts the variant to a JSON object.
-// 5. `Into<(u16, &'static str)>` - yields `(std_code, std_name)`.
 #[cfg(test)]
 mod tests {
   use super::*;
   use crate::responses::{ResponsesClientCodes, UnifiedTuple};
-
+  
   #[test]
   fn test_to_u16() {
     let response = ResponsesClientCodes::BadRequest;

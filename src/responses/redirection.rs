@@ -1,20 +1,7 @@
-/// Enum representing HTTP response status codes and descriptions.
-/// Each variant corresponds to a specific HTTP status code.
-///
-/// * Example:
-/// ```rust
-///
-/// use simbld_http::responses::ResponsesRedirectionCodes::MultipleChoices;
-///
-/// let response = MultipleChoices;
-/// let json = response.as_json();
-/// println!("{:?}", json);
-/// ```
 use crate::generate_responses_functions;
-use crate::UnifiedTuple;
-
 
 generate_responses_functions! {
+  "",
   ResponsesRedirectionCodes,
   MultipleChoices => (300, "Multiple Choices", "The request has more than one possible response. The user-agent or user should choose one of them. There is no standardized way of choosing one of the responses, but HTML links to the possibilities are recommended so the user can pick manually", 300, "Multiple Choices"),
   MovedPermanently => (301, "Moved Permanently", "The resource has been permanently moved to a new URI. Future requests should use the new URI. This status code is typically used for URL redirection", 301, "Moved Permanently"),
@@ -61,17 +48,11 @@ generate_responses_functions! {
   DataBLOBShouldNotBeNullForPostMethod => (300, "Multiple Choices", "The data payload for a POST request must not be null. This status code is used to inform the client that the data BLOB should not be null for POST method", 356, "Data BLOB Should Not Be Null For Post Method"),
 }
 
-/// This file defines the `ResponsesRedirectionCodes` enum and provides five main functionalities:
-/// 1. `to_u16()` - returns the standard HTTP code as a `u16`.
-/// 2. `from_u16(u16) -> Option<Self>` - attempts to build a variant from a given code.
-/// 3. `as_tuple()` - returns a `UnifiedTuple` with standard/internal codes, names, and a description.
-/// 4. `as_json()` - converts the variant to a JSON object.
-/// 5. `Into<(u16, &'static str)>` - yields `(std_code, std_name)`.
 #[cfg(test)]
 mod tests {
   use super::*;
   use crate::responses::{ResponsesRedirectionCodes, UnifiedTuple};
-
+  
   #[test]
   fn test_redirection_codes_to_u16() {
     let response = ResponsesRedirectionCodes::MultipleChoices;

@@ -24,7 +24,6 @@ pub mod success;
 pub use actix_responder::CustomResponse;
 pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
-pub use http_code::HttpCode;
 pub use informational::ResponsesInformationalCodes;
 pub use local::ResponsesLocalApiCodes;
 pub use redirection::ResponsesRedirectionCodes;
@@ -32,12 +31,15 @@ pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
 pub use success::ResponsesSuccessCodes;
 
+// Public exports for response types
+use crate::responses::http_code::HttpCode;
 use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 /// Enum representing the main categories of HTTP response codes.
 /// Combines multiple categories into a unified type for simplified handling.
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, EnumIter)]
 pub enum ResponsesTypes {
   Informational(ResponsesInformationalCodes),
   Success(ResponsesSuccessCodes),
@@ -77,19 +79,18 @@ impl ResponsesTypes {
       ResponsesTypes::LocalApiError(code) => code.as_json(),
     }
   }
-  
-  
+
   /// Converts the enum variant into a tuple representation.
-  pub fn as_tuple(&self) -> UnifiedTuple {
+  pub fn as_tuple(&self) -> HttpCode {
     match self {
-      ResponsesTypes::Informational(code) => code.as_tuple(),
-      ResponsesTypes::Success(code) => code.as_tuple(),
-      ResponsesTypes::Redirection(code) => code.as_tuple(),
-      ResponsesTypes::ClientError(code) => code.as_tuple(),
-      ResponsesTypes::ServerError(code) => code.as_tuple(),
-      ResponsesTypes::ServiceError(code) => code.as_tuple(),
-      ResponsesTypes::CrawlerError(code) => code.as_tuple(),
-      ResponsesTypes::LocalApiError(code) => code.as_tuple(),
+      ResponsesTypes::Informational(code) => code.to_http_code(),
+      ResponsesTypes::Success(code) => code.to_http_code(),
+      ResponsesTypes::Redirection(code) => code.to_http_code(),
+      ResponsesTypes::ClientError(code) => code.to_http_code(),
+      ResponsesTypes::ServerError(code) => code.to_http_code(),
+      ResponsesTypes::ServiceError(code) => code.to_http_code(),
+      ResponsesTypes::CrawlerError(code) => code.to_http_code(),
+      ResponsesTypes::LocalApiError(code) => code.to_http_code(),
     }
   }
 
@@ -121,20 +122,18 @@ impl ResponsesTypes {
     }
     None
   }
-}
 
-/// Represents a unified structure with five fields for response metadata.
-#[derive(Debug, PartialEq)]
-pub enum UnifiedTuple {
-  ThreeFields(u16, &'static str, &'static str),
-  FiveFields(u16, &'static str, &'static str, u16, &'static str),
-}
-
-impl UnifiedTuple {
-  pub fn get_description(&self) -> &'static str {
+  /// Converts the enum variant into an `HttpCode` representation.
+  pub fn as_http_code(&self) -> HttpCode {
     match self {
-      UnifiedTuple::ThreeFields(_, _, description) => description,
-      UnifiedTuple::FiveFields(_, _, description, _, _) => description,
+      ResponsesTypes::Informational(code) => code.as_http_code(),
+      ResponsesTypes::Success(code) => code.as_http_code(),
+      ResponsesTypes::Redirection(code) => code.as_http_code(),
+      ResponsesTypes::ClientError(code) => code.as_http_code(),
+      ResponsesTypes::ServerError(code) => code.as_http_code(),
+      ResponsesTypes::ServiceError(code) => code.as_http_code(),
+      ResponsesTypes::CrawlerError(code) => code.as_http_code(),
+      ResponsesTypes::LocalApiError(code) => code.as_http_code(),
     }
   }
 }
@@ -150,41 +149,45 @@ mod tests {
       400
     );
   }
-  
+
   #[test]
   fn test_as_tuple() {
-    // Cas où le code interne et standard sont identiques
-    assert_eq!(
-      ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader).as_tuple(),
-      UnifiedTuple::ThreeFields(400, "Parsing Error", "Parsing error: Unfinished header.")
-    );
-    
-    // Cas où le code interne et standard sont différents
-    assert_eq!(
-      ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ExcludedByRobotsTxtFile).as_tuple(),
-      UnifiedTuple::FiveFields(
-        403,
-        "Forbidden",
-        "Access denied by Robots.txt file.",
-        700,
-        "Excluded by Robots.txt"
-      )
-    );
+    // Case where the internal and standard codes are identical
+    let tuple_result =
+      ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
+        .as_http_code();
+
+    assert_eq!(tuple_result.standard_code, 400);
+    assert_eq!(tuple_result.standard_name, "Parsing Error");
+    assert_eq!(tuple_result.description, "Parsing error: Unfinished header.");
+    assert_eq!(tuple_result.internal_code, 400); // Identique au standard
+    assert_eq!(tuple_result.internal_name, "Parsing Error");
+    // Case where the internal and standard codes are different
+    let tuple_result_diff =
+      ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ExcludedByRobotsTxtFile).as_http_code();
+
+    assert_eq!(tuple_result_diff.standard_code, 403);
+    assert_eq!(tuple_result_diff.standard_name, "Forbidden");
+    assert_eq!(tuple_result_diff.description, "Access denied by Robots.txt file.");
+    assert_eq!(tuple_result_diff.internal_code, 700); // Différent du standard
+    assert_eq!(tuple_result_diff.internal_name, "Excluded by Robots.txt");
   }
-  
+
   #[test]
   fn test_as_json() {
-    // Cas où le code interne et standard sont identiques
-    let json_value = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader).as_json();
+    // Case where the internal and standard codes are identical
+    let json_value =
+      ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader).as_json();
     let expected_json = serde_json::json!({
         "code": 400,
         "name": "Parsing Error",
         "description": "Parsing error: Unfinished header."
     });
     assert_eq!(json_value, expected_json);
-    
-    // Cas où le code interne et standard sont différents
-    let json_value = ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ExcludedByRobotsTxtFile).as_json();
+
+    // Case where the internal and standard codes are different
+    let json_value =
+      ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ExcludedByRobotsTxtFile).as_json();
     let expected_json = serde_json::json!({
         "std_code": 403,
         "std_name": "Forbidden",
@@ -194,7 +197,7 @@ mod tests {
     });
     assert_eq!(json_value, expected_json);
   }
-  
+
   #[test]
   fn test_from_u16() {
     assert_eq!(

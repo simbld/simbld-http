@@ -15,7 +15,6 @@ pub use helpers::unified_middleware_helper::UnifiedMiddleware;
 pub use mocks::mock_responses::MockResponses;
 
 // External crates re-exported for convenience
-pub use crate::responses::UnifiedTuple;
 pub use inflector::Inflector;
 pub use serde_json::{json, Value};
 
@@ -33,8 +32,8 @@ pub use responses::ResponsesSuccessCodes;
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesCrawlerCodes, UnifiedTuple};
-
+  use crate::responses::{http_code::HttpCode, ResponsesCrawlerCodes};
+  
   /// Test `to_u16` method for `ResponsesCrawlerCodes`.
   #[test]
   fn test_crawler_codes_to_u16() {
@@ -53,16 +52,16 @@ mod tests {
   #[test]
   fn test_crawler_codes_as_tuple() {
     let code = ResponsesCrawlerCodes::InvalidURL;
-    let tuple = code.as_tuple();
+    let http_code = code.as_http_code();
     assert_eq!(
-      tuple,
-      UnifiedTuple::FiveFields(
-        400,
-        "Bad Request",
-        "Invalid URL encountered by crawler.",
-        786,
-        "Invalid URL"
-      )
+      http_code,
+      HttpCode {
+        standard_code: 400,
+        standard_name: "Bad Request",
+        description: "Invalid URL encountered by crawler.",
+        internal_code: 786,
+        internal_name: "Invalid URL"
+      }
     );
   }
 

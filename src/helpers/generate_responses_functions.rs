@@ -96,47 +96,17 @@ macro_rules! generate_responses_functions {
             }
 
             /// Converts the enum variant into a tuple representation.
-          pub fn as_tuple(&self) -> UnifiedTuple {
-    let http_code = self.to_http_code();
-
-    if http_code.internal_code == http_code.standard_code {
-        UnifiedTuple::ThreeFields(
-            http_code.standard_code,
-            http_code.standard_name,
-            self.description(), // Appel à la méthode centralisée
-        )
-    } else {
-        UnifiedTuple::FiveFields(
-            http_code.standard_code,
-            http_code.standard_name,
-            self.description(), // Appel à la méthode centralisée
-            http_code.internal_code,
-            http_code.internal_name,
-        )
-    }
-}
+          pub fn as_http_code(&self) -> crate::responses::http_code::HttpCode {
+                self.to_http_code()
+            }
 
             /// Converts the enum variant into a JSON representation.
           pub fn as_json(&self) -> serde_json::Value {
-    let http_code = self.to_http_code();
+                let http_code = self.to_http_code();
 
-    if http_code.internal_code == http_code.standard_code {
-        serde_json::json!({
-            "code": http_code.standard_code,
-            "name": http_code.standard_name,
-            "description": self.description(),
-        })
-    } else {
-        serde_json::json!({
-            "std_code": http_code.standard_code,
-            "std_name": http_code.standard_name,
-            "description": self.description(),
-            "int_code": http_code.internal_code,
-            "int_name": http_code.internal_name,
-        })
-    }
-}
+                http_code.as_json()
             }
+        }
 
             /// Converts the enum variant in a code http representation.
         impl From<$enum_name> for u16 {
@@ -151,70 +121,73 @@ macro_rules! generate_responses_functions {
                 (value.to_u16(), value.as_tuple().2)
             }
         }
-        }
+    };
     }
 
 #[cfg(test)]
 mod tests {
-  use crate::responses::ResponsesCrawlerCodes;
-  use crate::responses::UnifiedTuple;
+  use serde_json::json;
   
   #[test]
-  fn test_crawler_codes_to_u16() {
-    assert_eq!(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.to_u16(), 400);
+  fn test_to_u16_and_from_u16() {
+    assert_eq!(ResponsesClientCodes::BadRequest.to_u16(), 400);
+    assert_eq!(ResponsesClientCodes::from_u16(400), Some(ResponsesClientCodes::BadRequest));
+    assert_eq!(ResponsesClientCodes::from_u16(550), Some(ResponsesClientCodes::CustomClientError));
+    assert_eq!(ResponsesClientCodes::from_u16(999), None); // Code non valide
   }
 
   #[test]
-  fn test_crawler_codes_from_u16() {
+  fn test_as_json() {
+    let response_code = ResponsesClientCodes::BadRequest;
+    let result = response_code.as_json();
     assert_eq!(
-      ResponsesCrawlerCodes::from_u16(400),
-      Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
+      result,
+      json!({
+          "code": 400,
+          "name": "Bad Request",
+          "description": "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax)."
+      })
     );
-    assert_eq!(ResponsesCrawlerCodes::from_u16(999), None);
+
+    let response_code_custom = ResponsesClientCodes::CustomClientError;
+    let result_custom = response_code_custom.as_json();
+    assert_eq!(
+      result_custom,
+      json!({
+          "std_code": 450,
+          "std_name": "Custom Client Error",
+          "description": "This is a custom client error that does not map directly to standard HTTP code.",
+          "int_code": 550,
+          "int_name": "Internal Custom Error"
+      })
+    );
   }
 
   #[test]
-  fn test_crawler_codes_as_tuple() {
-    // Case where the internal and standard codes are identical
+  fn test_as_tuple() {
+    let response_code = ResponsesClientCodes::BadRequest;
+    let result = response_code.as_tuple();
     assert_eq!(
-      ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.as_tuple(),
-      UnifiedTuple::ThreeFields(400, "Parsing Error", "Parsing error: Unfinished header.")
-    );
-
-    // Case where the internal and standard codes are different
-    assert_eq!(
-      ResponsesCrawlerCodes::ExcludedByRobotsTxtFile.as_tuple(),
-      UnifiedTuple::FiveFields(
-        403,
-        "Forbidden",
-        "Access denied by Robots.txt file.",
-        700,
-        "Excluded by Robots.txt"
+      result,
+      UnifiedTuple::ThreeFields(
+        400,
+        "Bad Request",
+        "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax)."
       )
     );
-  }
 
-  #[test]
-  fn test_crawler_codes_as_json() {
-    // Case where the internal and standard codes are identical
-    let json_value = ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.as_json();
-    let expected_json = serde_json::json!({
-        "code": 400,
-        "name": "Parsing Error",
-        "description": "Parsing error: Unfinished header."
-    });
-    assert_eq!(json_value, expected_json);
-
-    // Case where the internal and standard codes are different
-    let json_value = ResponsesCrawlerCodes::ExcludedByRobotsTxtFile.as_json();
-    let expected_json = serde_json::json!({
-        "std_code": 403,
-        "std_name": "Forbidden",
-        "description": "Access denied by Robots.txt file.",
-        "int_code": 700,
-        "int_name": "Excluded by Robots.txt"
-    });
-    assert_eq!(json_value, expected_json);
+    let response_code_custom = ResponsesClientCodes::CustomClientError;
+    let result_custom = response_code_custom.as_tuple();
+    assert_eq!(
+      result_custom,
+      UnifiedTuple::FiveFields(
+        450,
+        "Custom Client Error",
+        "This is a custom client error that does not map directly to standard HTTP code.",
+        550,
+        "Internal Custom Error"
+      )
+    );
   }
 
   #[test]

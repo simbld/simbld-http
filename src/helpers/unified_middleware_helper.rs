@@ -1,6 +1,6 @@
-use actix_service::{Service, ServiceFactory};
+use actix_service::Service;
 use actix_web::dev::{ServiceRequest, ServiceResponse, Transform};
-use actix_web::Error;
+use actix_web::{HttpResponse, ResponseError};
 use futures_util::future::{ok, LocalBoxFuture, Ready};
 /// The code defines a unified middleware in Rust for managing CORS, advanced logs, and rate limiting in Actix Web.
 ///
@@ -16,6 +16,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
+use thiserror::Error;
 
 // Unique structure for managing unified middleware.
 #[derive(Debug)]
@@ -27,6 +28,43 @@ pub struct UnifiedMiddleware {
   pub intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
 }
 
+// Error type for middleware errors.
+#[derive(Debug, Error)]
+pub enum UnifiedError {
+  // Middleware-specific errors.
+  #[error("Internal Error occurred in the middleware")]
+  InternalMiddlewareError,
+  #[error("Invalid Request")]
+  InvalidRequest,
+  #[error("Unauthorized Access")]
+  Unauthorized,
+
+  // IO and JSON-related errors.
+  #[error("I/O Error: {0}")]
+  Io(#[from] std::io::Error),
+  #[error("JSON Error: {0}")]
+  Json(#[from] serde_json::Error),
+}
+
+// Implementation of the ResponseError trait for UnifiedError.
+impl actix_web::ResponseError for UnifiedError {
+  fn error_response(&self) -> HttpResponse {
+    match self {
+      // Middleware-specific errors.
+      UnifiedError::InternalMiddlewareError => {
+        HttpResponse::InternalServerError().body("Internal middleware error.")
+      },
+      UnifiedError::InvalidRequest => HttpResponse::BadRequest().body("Invalid request."),
+      UnifiedError::Unauthorized => HttpResponse::Unauthorized().body("Unauthorized."),
+
+      // IO and JSON-specific errors.
+      UnifiedError::Io(_) => HttpResponse::InternalServerError().body("I/O error occurred."),
+      UnifiedError::Json(_) => HttpResponse::BadRequest().body("JSON parsing error."),
+    }
+  }
+}
+
+// Implementation of the UnifiedMiddleware structure.
 impl UnifiedMiddleware {
   pub fn new(
     allowed_origins: Vec<String>,
@@ -44,6 +82,20 @@ impl UnifiedMiddleware {
   }
 }
 
+// Implement Debug for UnifiedMiddleware to display the content of the struct.
+impl std::fmt::Debug for UnifiedMiddleware {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("UnifiedMiddleware")
+      .field("allowed_origins", &self.allowed_origins)
+      .field("rate_limiters", &"Arc<Mutex<...>>") // Content hidden to avoid complex Debug
+      .field("max_requests", &self.max_requests)
+      .field("window_duration", &self.window_duration)
+      .field("intercept_dependencies", &"<function>")
+      .finish()
+  }
+}
+
+// Implementation of the Transform trait for UnifiedMiddleware.
 impl<S, B> Transform<S, ServiceRequest> for UnifiedMiddleware
 where
   S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
@@ -78,6 +130,7 @@ pub struct UnifiedMiddlewareService<S> {
   intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
 }
 
+// Implementation of the Service trait for UnifiedMiddlewareService.
 impl<S, B> Service<ServiceRequest> for UnifiedMiddlewareService<S>
 where
   S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
@@ -96,7 +149,7 @@ where
   fn call(&self, req: ServiceRequest) -> Self::Future {
     // Logical interceptor
     if !(self.intercept_dependencies)(&req) {
-      return Box::pin(async { Err(Error::from(())) });
+      return Box::pin(async { Err(UnifiedError::InternalMiddlewareError.into()) });
     }
 
     // Implementation of rate limiting
@@ -106,6 +159,7 @@ where
     let mut rate_limiters = self.rate_limiters.lock().unwrap();
     let entry = rate_limiters.entry(remote_addr).or_insert((0, now));
 
+    // Reset time window if needed.
     if now.duration_since(entry.1) > self.window_duration {
       *entry = (1, now);
     } else {
@@ -113,12 +167,12 @@ where
     }
 
     if entry.0 > self.max_requests as u64 {
-      return Box::pin(async { Err(Error::from(())) });
+      return Box::pin(async { Err(UnifiedError::InvalidRequest.into()) });
     }
 
-    // Move to the next service
+    // Delegate request to the next service.
     let service = self.service.clone();
-    Box::pin(async move { service.call(req).await })
+    Box::pin(async move { service.call(req).await.map_err(UnifiedError::from) })
   }
 }
 

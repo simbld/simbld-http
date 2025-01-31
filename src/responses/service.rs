@@ -1,20 +1,7 @@
-/// Enum representing HTTP response status codes and descriptions.
-/// Each variant corresponds to a specific HTTP status code.
-///
-/// * Example:
-/// ```rust
-///
-/// use simbld_http::responses::ResponsesServiceCodes::ReadingError;
-///
-/// let response = ReadingError;
-/// let json = response.as_json();
-/// println!("{:?}", json);
-/// ```
 use crate::generate_responses_functions;
-use crate::UnifiedTuple;
-
 
 generate_responses_functions! {
+  "",
   ResponsesServiceCodes,
   ReadingError => (500, "Internal Server Error", "An error occurred while reading the response or data from the server", 611, "Reading Error"),
   ConnectionError => (500, "Internal Server Error", "A connection issue occurred, preventing successful communication with the server", 612, "Connection Error"),
@@ -34,17 +21,11 @@ generate_responses_functions! {
   UnexpectedError => (500, "Internal Server Error", "An unexpected error occurred, often indicative of an unforeseen issue or bug", 699, "Unexpected Error"),
 }
 
-/// This file defines the `ResponsesServiceCodes` enum and provides five main functionalities:
-/// 1. `to_u16()` - returns the standard HTTP code as a `u16`.
-/// 2. `from_u16(u16) -> Option<Self>` - attempts to build a variant from a given code.
-/// 3. `as_tuple()` - returns a `UnifiedTuple` with standard/internal codes, names, and a description.
-/// 4. `as_json()` - converts the variant to a JSON object.
-/// 5. `Into<(u16, &'static str)>` - yields `(std_code, std_name)`.
 #[cfg(test)]
 mod tests {
   use super::*;
   use crate::responses::{ResponsesServiceCodes, UnifiedTuple};
-
+  
   #[test]
   fn test_service_codes_to_u16() {
     let response = ResponsesServiceCodes::ReadingError;

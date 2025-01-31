@@ -34,6 +34,7 @@ use futures_util::future::{ok, LocalBoxFuture, Ready};
 use std::rc::Rc;
 use std::task::{Context, Poll};
 
+
 #[derive(Debug)]
 pub struct HttpInterceptor;
 
@@ -49,9 +50,7 @@ where
   type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
   fn new_transform(&self, service: S) -> Self::Future {
-    ok(HttpInterceptorMiddleware {
-      service: Rc::new(service),
-    })
+    ok(HttpInterceptorMiddleware { service: Rc::new(service) })
   }
 }
 
@@ -94,7 +93,7 @@ where
 
       let status_code = res.status().as_u16();
       if let Some(description) =
-        crate::helpers::response_helpers::get_description_by_code(status_code).as_deref()
+        crate::helpers::response_helpers::get_description_by_code(status_code).as_ref()
       {
         res.headers_mut().insert(
           HeaderName::from_static("x-status-description"),
@@ -111,7 +110,7 @@ where
 mod tests {
   use super::*;
   use actix_web::{test, web, App, HttpResponse};
-
+  
   #[actix_web::test]
   async fn test_http_interceptor() {
     let app = test::init_service(

@@ -1,4 +1,3 @@
-
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 
 use simbld_http::helpers::{
@@ -18,21 +17,21 @@ use strum::EnumProperty;
 
 fn examples_with_helpers() {
   println!("=== Examples with Helpers ===");
-  
+
   let response = ResponsesCrawlerCodes::ParsingErrorHeader;
-  
+
   // Convertir en code HTTP
   let http_code = response.to_http_code();
   println!("{:?}", http_code);
-  
+
   // Obtenir le code standard en u16
   let std_code = response.to_u16();
   println!("Standard code: {}", std_code);
-  
+
   // Convertir en tuple
   let tuple = response.as_tuple();
   println!("{:?}", tuple);
-  
+
   // Convertir en JSON
   let json = response.as_json();
   println!("{}", json);
@@ -87,6 +86,7 @@ fn examples_with_helpers() {
     rate_limiters: Arc::new(Mutex::new(HashMap::new())),
     max_requests: 100,
     window_duration: Duration::from_secs(60),
+    intercept_dependencies: None,
   };
   println!("Created UnifiedMiddleware: {:?}", unified_middleware);
 
@@ -101,8 +101,7 @@ fn examples_with_helpers() {
   })
   .to_string();
   let bad_request_desc = "Bad request example description";
-  let custom_response =
-    CustomResponse::new(bad_request_code, bad_request_name, body_str, bad_request_desc);
+  let custom_response = CustomResponse::new(bad_request_code, body_str);
   println!("CustomResponse from bad_request: {:?}", custom_response);
 
   // Example 9: Using helpers with success codes
@@ -165,7 +164,7 @@ async fn example_client_error() -> impl Responder {
   let (code, name, description) = bad_request_tuple();
   let body_str = json!({ "description": description }).to_string();
   let client_error_desc = "Some user-friendly explanation for the bad request";
-  CustomResponse::new(code, name, body_str, client_error_desc)
+  CustomResponse::new(code, body_str)
 }
 
 // Route for Ok with cookies
@@ -199,7 +198,7 @@ async fn example_server_error() -> impl Responder {
   })
   .to_string();
 
-  CustomResponse::new(code, "Internal Server Error", error_str, "Server error occurred")
+  CustomResponse::new(code, error_str)
 }
 
 // Route to example JSON response
@@ -235,6 +234,7 @@ async fn main() -> std::io::Result<()> {
         rate_limiters: Arc::new(Mutex::new(HashMap::new())),
         max_requests: 100,
         window_duration: std::time::Duration::from_secs(60),
+        intercept_dependencies: None,
       })
       .wrap(HttpInterceptor) // Specific interceptor
       .route("/transform_bad_request_to_json", web::get().to(transform_bad_request_to_json))

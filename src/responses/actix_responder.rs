@@ -1,15 +1,6 @@
-use crate::responses::HttpCode;
-use actix_web::{HttpRequest, HttpResponse, Responder};
+use crate::responses::http_code::HttpCode;
+use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde_json::json;
-
-#[derive(Clone, Debug)]
-pub struct HttpCode {
-  pub standard_code: u16,
-  pub standard_name: &'static str,
-  pub description: &'static str,
-  pub internal_code: u16,
-  pub internal_name: String,
-}
 
 /// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
 ///
@@ -21,8 +12,8 @@ pub struct HttpCode {
 
 #[derive(Clone, Debug)]
 pub struct CustomResponse {
-  pub http_code: HttpCode, // intègre directement un HttpCode
-  pub data: String,        // contenu additionnel pour enrichir la réponse
+  pub http_code: HttpCode,
+  pub data: String,
 }
 
 /// Associated functions (constructor, etc.) for `CustomResponse`.
@@ -68,7 +59,7 @@ pub async fn custom_response_handler(
 mod tests {
   use super::*;
   use actix_web::{http::StatusCode, test, web, App};
-
+  
   #[actix_web::test]
   async fn test_custom_response_responder() {
     // Step 1: Create a custom response
