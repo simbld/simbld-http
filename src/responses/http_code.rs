@@ -1,3 +1,5 @@
+use serde_json::json;
+
 /// Represents a detailed HTTP code with its associated properties.
 #[derive(Debug, Clone, PartialEq)]
 pub struct HttpCode {

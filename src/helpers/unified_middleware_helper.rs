@@ -98,12 +98,12 @@ impl std::fmt::Debug for UnifiedMiddleware {
 // Implementation of the Transform trait for UnifiedMiddleware.
 impl<S, B> Transform<S, ServiceRequest> for UnifiedMiddleware
 where
-  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = UnifiedError> + 'static,
   B: 'static,
 {
   // Inherited response and error types.
   type Response = ServiceResponse<B>;
-  type Error = Error;
+  type Error = UnifiedError;
   type Transform = UnifiedMiddlewareService<S>;
   type InitError = ();
   type Future = Ready<Result<Self::Transform, Self::InitError>>;
@@ -133,11 +133,11 @@ pub struct UnifiedMiddlewareService<S> {
 // Implementation of the Service trait for UnifiedMiddlewareService.
 impl<S, B> Service<ServiceRequest> for UnifiedMiddlewareService<S>
 where
-  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+  S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = UnifiedError> + 'static,
   B: 'static,
 {
   type Response = ServiceResponse<B>;
-  type Error = Error;
+  type Error = UnifiedError;
   type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
   // Checks if the main service is ready.
@@ -188,7 +188,7 @@ mod tests {
   use super::*;
   use actix_web::{test, web, App, HttpResponse};
   use std::time::Duration;
-
+  
   #[actix_web::test]
   async fn test_rate_limiting() {
     let middleware = UnifiedMiddleware::new(
