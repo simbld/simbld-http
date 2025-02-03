@@ -12,7 +12,6 @@
 pub mod actix_responder;
 pub mod client;
 pub mod crawler;
-pub mod http_code;
 pub mod informational;
 pub mod local;
 pub mod redirection;
@@ -32,14 +31,12 @@ pub use service::ResponsesServiceCodes;
 pub use success::ResponsesSuccessCodes;
 
 // Public exports for response types
-use crate::responses::http_code::HttpCode;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use crate::helpers::http_code_helper::HttpCode;
 
 /// Enum representing the main categories of HTTP response codes.
 /// Combines multiple categories into a unified type for simplified handling.
 
-#[derive(Debug, PartialEq, EnumIter)]
+#[derive(Debug, PartialEq)]
 pub enum ResponsesTypes {
   Informational(ResponsesInformationalCodes),
   Success(ResponsesSuccessCodes),
@@ -126,14 +123,14 @@ impl ResponsesTypes {
   /// Converts the enum variant into an `HttpCode` representation.
   pub fn as_http_code(&self) -> HttpCode {
     match self {
-      ResponsesTypes::Informational(code) => code.as_http_code(),
-      ResponsesTypes::Success(code) => code.as_http_code(),
-      ResponsesTypes::Redirection(code) => code.as_http_code(),
-      ResponsesTypes::ClientError(code) => code.as_http_code(),
-      ResponsesTypes::ServerError(code) => code.as_http_code(),
-      ResponsesTypes::ServiceError(code) => code.as_http_code(),
-      ResponsesTypes::CrawlerError(code) => code.as_http_code(),
-      ResponsesTypes::LocalApiError(code) => code.as_http_code(),
+      ResponsesTypes::Informational(code) => code.to_http_code(),
+      ResponsesTypes::Success(code) => code.to_http_code(),
+      ResponsesTypes::Redirection(code) => code.to_http_code(),
+      ResponsesTypes::ClientError(code) => code.to_http_code(),
+      ResponsesTypes::ServerError(code) => code.to_http_code(),
+      ResponsesTypes::ServiceError(code) => code.to_http_code(),
+      ResponsesTypes::CrawlerError(code) => code.to_http_code(),
+      ResponsesTypes::LocalApiError(code) => code.to_http_code(),
     }
   }
 }

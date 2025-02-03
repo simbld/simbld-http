@@ -63,7 +63,7 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesClientCodes, UnifiedTuple};
+  use crate::responses::ResponsesClientCodes;
   
   #[test]
   fn test_to_u16() {
@@ -86,15 +86,16 @@ mod tests {
   #[test]
   fn test_as_tuple() {
     let code = ResponsesClientCodes::Forbidden;
-    let tuple = code.as_tuple();
+    let http_code = code.to_http_code();
+    let tuple = http_code.as_tuple();
     assert_eq!(
       tuple,
-      UnifiedTuple::FiveFields(
-        403,
-        "Forbidden",
-        "The client does not have access rights to the content.",
-        403,
-        "Forbidden"
+      (
+        &403,
+        &"Forbidden",
+        &"The client does not have access rights to the content.",
+        &403,
+        &"Forbidden"
       )
     );
   }
@@ -103,7 +104,7 @@ mod tests {
   fn test_as_json() {
     let code = ResponsesClientCodes::ImATeapot;
     let json_result = code.as_json();
-    let expected_json = json!({
+    let expected_json = serde_json::json!({
         "standard http code": {
             "code": 418,
             "name": "I'm a teapot"

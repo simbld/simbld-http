@@ -1,4 +1,4 @@
-use crate::responses::http_code::HttpCode;
+use crate::helpers::http_code_helper::HttpCode;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde_json::json;
 

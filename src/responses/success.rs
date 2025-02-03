@@ -58,12 +58,10 @@ mod tests {
     let tuple = code.as_tuple();
     assert_eq!(
       tuple,
-      UnifiedTuple::FiveFields(
+      UnifiedTuple(
         202,
         "Accepted",
         "Request processed, but with no guarantee of results, and no indication of the final status of the request, which will be processed asynchronously, such as a request to create a new resource",
-        202,
-        "Accepted"
       )
     );
   }

@@ -32,7 +32,8 @@ pub use responses::ResponsesSuccessCodes;
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{http_code::HttpCode, ResponsesCrawlerCodes};
+  use crate::helpers::http_code_helper::HttpCode;
+  use crate::responses::ResponsesCrawlerCodes;
   
   /// Test `to_u16` method for `ResponsesCrawlerCodes`.
   #[test]
