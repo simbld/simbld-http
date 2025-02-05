@@ -36,53 +36,53 @@ mod tests {
   use crate::responses::ResponsesCrawlerCodes;
   
   /// Test `to_u16` method for `ResponsesCrawlerCodes`.
-  #[test]
-  fn test_crawler_codes_to_u16() {
-    let code = ResponsesCrawlerCodes::ParsingErrorHeader;
-    assert_eq!(code.to_u16(), 400);
-  }
+    #[test]
+    fn test_crawler_codes_to_u16() {
+        let code = ResponsesCrawlerCodes::ParsingErrorHeader;
+        assert_eq!(code.to_u16(), 400);
+    }
 
-  /// Test `from_u16` method for `ResponsesCrawlerCodes`.
-  #[test]
-  fn test_crawler_codes_from_u16() {
-    let status = ResponsesCrawlerCodes::from_u16(400);
-    assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
-  }
+    /// Test `from_u16` method for `ResponsesCrawlerCodes`.
+    #[test]
+    fn test_crawler_codes_from_u16() {
+        let status = ResponsesCrawlerCodes::from_u16(400);
+        assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
+    }
 
-  /// Test `as_tuple` method for `ResponsesCrawlerCodes`.
-  #[test]
-  fn test_crawler_codes_as_tuple() {
-    let code = ResponsesCrawlerCodes::InvalidURL;
-    let http_code = code.as_http_code();
-    assert_eq!(
-      http_code,
-      HttpCode {
-        standard_code: 400,
-        standard_name: "Bad Request",
-        description: "Invalid URL encountered by crawler.",
-        internal_code: 786,
-        internal_name: "Invalid URL"
-      }
-    );
-  }
+    /// Test `as_tuple` method for `ResponsesCrawlerCodes`.
+    #[test]
+    fn test_crawler_codes_as_tuple() {
+        let code = ResponsesCrawlerCodes::InvalidURL;
+        let http_code = code.to_http_code();
+        assert_eq!(
+            http_code,
+            HttpCode {
+                standard_code: 400,
+                standard_name: "Bad Request",
+                description: "Invalid URL encountered by crawler.",
+                internal_code: 786,
+                internal_name: "Invalid URL"
+            }
+        );
+    }
 
-  /// Test `as_json` method for `ResponsesCrawlerCodes`.
-  #[test]
-  fn test_crawler_codes_as_json() {
-    let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
-    let json_result = code.as_json();
-    let expected = json!({
-        "standard http code": {
-            "code": 503,
-            "name": "Service Unavailable"
-        },
-        "internal http code": {
-            "code": 741,
-            "name": "Robots Temporarily Unavailable"
-        },
-        "description": "Robots temporarily unavailable."
-    });
+    /// Test `as_json` method for `ResponsesCrawlerCodes`.
+    #[test]
+    fn test_crawler_codes_as_json() {
+        let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
+        let json_result = code.as_json();
+        let expected = json!({
+            "standard http code": {
+                "code": 503,
+                "name": "Service Unavailable"
+            },
+            "internal http code": {
+                "code": 741,
+                "name": "Robots Temporarily Unavailable"
+            },
+            "description": "Robots temporarily unavailable."
+        });
 
-    assert_eq!(json_result, expected);
-  }
+        assert_eq!(json_result, expected);
+    }
 }
