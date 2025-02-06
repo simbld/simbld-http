@@ -14,11 +14,11 @@
 //! use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
 //!
 //! let exampleOk = ResponsesSuccessCodes::Ok;
-//! assert_eq!(exampleOk.to_u16(), 200);
-//!
-//! fn test_example_method_not_found_as_tuple() {
 //! let exampleMethodNotFound = ResponsesSuccessCodes::MethodNotFound;
-//! assert_eq!(exampleMethodNotFound.as_tuple(), (200, "OK", "The server does not recognize the request method or lacks the capability to fulfill it, and the response body contains the status of the request, indicating that the server does not recognize the request method or lacks the capability to fulfill it, and the response body may contain the status of the request, the server is unable to process the request due to an unsupported method", 254, "Method Not Found"));
+//!
+//! assert_eq!(exampleOk.to_u16(), 200);
+//! assert_eq!(exampleOk.as_tuple(), UnifiedTuple(200, "OK", "The request has succeeded, the information returned with the response is dependent on the method used in the request"));
+//! assert_eq!(exampleMethodNotFound.as_tuple(), UnifiedTuple(200, "OK", "The server does not recognize the request method or lacks the capability to fulfill it, and the response body contains the status of the request, indicating that the server does not recognize the request method or lacks the capability to fulfill it, and the response body may contain the status of the request, the server is unable to process the request due to an unsupported method", 254, "Method Not Found"));
 //! }
 //! ```
 //!

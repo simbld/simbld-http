@@ -21,12 +21,6 @@ pub struct HttpCode {
 }
 
 impl HttpCode {
-    pub(crate) fn get_description(&self) -> &str {
-        todo!()
-    }
-}
-
-impl HttpCode {
     /// Creates a new HttpCode.
     /// Example: HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted")
     pub fn new(

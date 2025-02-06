@@ -22,68 +22,75 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::helpers::unified_tuple_helper::UnifiedTuple;
-  use crate::helpers::{FromU16, ToU16};
-  use serde_json::json;
-  
-  #[test]
-  fn test_crawler_codes_to_u16() {
-    assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.to_u16(), 400);
-  }
+    use super::*;
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::helpers::{FromU16, ToU16};
+    use serde_json::json;
+    
+    #[test]
+    fn test_crawler_codes_to_u16() {
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.to_u16(), 700);
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.to_u16(), 710);
+        assert_eq!(ResponsesCrawlerCodes::InvalidURL.to_u16(), 786);
+        assert_eq!(ResponsesCrawlerCodes::ProgrammableRedirection.to_u16(), 3020);
+    }
+    
+    #[test]
+    fn test_crawler_codes_from_u16() {
+        assert_eq!(
+            ResponsesCrawlerCodes::from_u16(700),
+            Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
+        );
+        assert_eq!(
+            ResponsesCrawlerCodes::from_u16(710),
+            Some(ResponsesCrawlerCodes::ParsingErrorHeader)
+        );
+        assert_eq!(
+            ResponsesCrawlerCodes::from_u16(786),
+            Some(ResponsesCrawlerCodes::InvalidURL)
+        );
+        assert_eq!(ResponsesCrawlerCodes::from_u16(9999), None);
+    }
+    
+    
+    #[test]
+    fn test_as_tuple() {
+        let code = ResponsesCrawlerCodes::ParsingErrorMissingHTTPCode;
+        assert_eq!(
+            code.as_tuple(),
+            UnifiedTuple::FiveFields(
+                400,
+                "Bad Request",
+                "Parsing error: missing HTTP code.",
+                720,
+                "Parsing Error: Missing HTTP Code"
+            )
+        );
+        
+        
+        #[test]
+    fn test_as_json() {
+        let response_code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
+        let result = response_code.as_json();
+        let expected_json = json!({
+            "standard_http_code": {
+                "code": 503,
+                "name": "Service Unavailable"
+            },
+            "internal_http_code": {
+                "code": 741,
+                "name": "Robots Temporarily Unavailable"
+            },
+            "description": "Robots temporarily unavailable."
+        });
+        assert_eq!(result, expected_json);
+    }
 
-  #[test]
-  fn test_crawler_codes_from_u16() {
-    let status = ResponsesCrawlerCodes::from_u16(400);
-    assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader), "{}", None);
-  }
-
-  #[test]
-  fn test_as_tuple() {
-    // Example for a standard code: ThreeFields
-    let tuple_standard = ResponsesCrawlerCodes::ParsingErrorMissingHTTPCode.as_tuple();
-    assert_eq!(
-      tuple_standard,
-      UnifiedTuple::ThreeFields(400, "Bad Request", "Parsing error: missing HTTP code.")
-    );
-
-    // Example for a non-standard code: FiveFields
-    let tuple_custom = ResponsesCrawlerCodes::InvalidURL.as_tuple();
-    assert_eq!(
-      tuple_custom,
-      UnifiedTuple::FiveFields(
-        400,
-        "Bad Request",
-        "Invalid URL encountered by crawler.",
-        786,
-        "Invalid URL"
-      )
-    );
-  }
-
-  #[test]
-  fn test_as_json() {
-    let response_code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
-    let result = response_code.as_json();
-    let expected_json = json!({
-        "standard_http_code": {
-            "code": 503,
-            "name": "Service Unavailable"
-        },
-        "internal_http_code": {
-            "code": 741,
-            "name": "Robots Temporarily Unavailable"
-        },
-        "description": "Robots temporarily unavailable."
-    });
-    assert_eq!(result, expected_json);
-  }
-
-  #[test]
-  fn test_into_tuple() {
-    let (std_code, std_name): (u16, &'static str) =
-      ResponsesCrawlerCodes::ProgrammableRedirection.into();
-    assert_eq!(std_code, 302);
-    assert_eq!(std_name, "Found");
-  }
+    #[test]
+    fn test_into_tuple() {
+        let (std_code, std_name): (u16, &'static str) =
+            ResponsesCrawlerCodes::ProgrammableRedirection.into();
+        assert_eq!(std_code, 302);
+        assert_eq!(std_name, "Found");
+    }
 }
