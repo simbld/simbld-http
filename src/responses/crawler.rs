@@ -25,6 +25,7 @@ mod tests {
     use super::*;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::helpers::{FromU16, ToU16};
+    use crate::responses::{ResponsesCrawlerCodes, UnifiedTuple};
     use serde_json::json;
     
     #[test]
@@ -34,7 +35,7 @@ mod tests {
         assert_eq!(ResponsesCrawlerCodes::InvalidURL.to_u16(), 786);
         assert_eq!(ResponsesCrawlerCodes::ProgrammableRedirection.to_u16(), 3020);
     }
-    
+
     #[test]
     fn test_crawler_codes_from_u16() {
         assert_eq!(
@@ -45,30 +46,25 @@ mod tests {
             ResponsesCrawlerCodes::from_u16(710),
             Some(ResponsesCrawlerCodes::ParsingErrorHeader)
         );
-        assert_eq!(
-            ResponsesCrawlerCodes::from_u16(786),
-            Some(ResponsesCrawlerCodes::InvalidURL)
-        );
+        assert_eq!(ResponsesCrawlerCodes::from_u16(786), Some(ResponsesCrawlerCodes::InvalidURL));
         assert_eq!(ResponsesCrawlerCodes::from_u16(9999), None);
     }
-    
-    
+
     #[test]
-    fn test_as_tuple() {
+    fn test_parsing_error_missing_as_tuple() {
         let code = ResponsesCrawlerCodes::ParsingErrorMissingHTTPCode;
-        assert_eq!(
-            code.as_tuple(),
-            UnifiedTuple::FiveFields(
-                400,
-                "Bad Request",
-                "Parsing error: missing HTTP code.",
-                720,
-                "Parsing Error: Missing HTTP Code"
-            )
-        );
-        
-        
-        #[test]
+        let tuple = UnifiedTuple {
+            code: 400,
+            name: "Bad Request",
+            description: "Parsing error: missing HTTP code.",
+            internal_code: Some(720),
+            internal_name: Option::from("Parsing Error: Missing HTTP Code"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
+    }
+
+    #[test]
     fn test_as_json() {
         let response_code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
         let result = response_code.as_json();
