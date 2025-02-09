@@ -37,26 +37,28 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesSuccessCodes, UnifiedTuple};
+  use crate::helpers::unified_tuple_helper::UnifiedTuple;
+  use crate::responses::ResponsesSuccessCodes;
+  use serde_json::json;
   
   #[test]
-  fn test_success_codes_to_u16() {
-    let response = ResponsesSuccessCodes::Ok;
-    let code = response.to_u16();
-    assert_eq!(code, 200);
-  }
+    fn test_success_codes_to_u16() {
+        let response = ResponsesSuccessCodes::Ok;
+        let code = response.to_u16();
+        assert_eq!(code, 200);
+    }
 
-  #[test]
-  fn test_success_codes_from_u16() {
-    let status = ResponsesSuccessCodes::from_u16(201);
-    assert_eq!(status, Some(ResponsesSuccessCodes::Created));
-  }
+    #[test]
+    fn test_success_codes_from_u16() {
+        let status = ResponsesSuccessCodes::from_u16(201);
+        assert_eq!(status, Some(ResponsesSuccessCodes::Created));
+    }
 
-  #[test]
-  fn test_success_codes_as_tuple() {
-    let code = ResponsesSuccessCodes::Accepted;
-    let tuple = code.as_tuple();
-    assert_eq!(
+    #[test]
+    fn test_success_codes_as_tuple() {
+        let code = ResponsesSuccessCodes::Accepted;
+        let tuple = code.as_tuple();
+        assert_eq!(
       tuple,
       UnifiedTuple(
         202,
@@ -64,31 +66,31 @@ mod tests {
         "Request processed, but with no guarantee of results, and no indication of the final status of the request, which will be processed asynchronously, such as a request to create a new resource",
       )
     );
-  }
+    }
 
-  #[test]
-  fn test_success_codes_as_json() {
-    let code = ResponsesSuccessCodes::NoContent;
-    let json_result = code.as_json();
-    let expected_json = json!({
-        "standard http code": {
-            "code": 204,
-            "name": "No Content"
-        },
-        "internal http code": {
-            "code": 204,
-            "name": "NoContent"
-        },
-        "description": "Request processed successfully but no information to return, and the response body is empty, useful as a header for a DELETE request, indicating that the resource has been deleted"
-    });
-    assert_eq!(json_result, expected_json);
-  }
+    #[test]
+    fn test_success_codes_as_json() {
+        let code = ResponsesSuccessCodes::NoContent;
+        let json_result = code.as_json();
+        let expected_json = json!({
+            "standard http code": {
+                "code": 204,
+                "name": "No Content"
+            },
+            "internal http code": {
+                "code": 204,
+                "name": "NoContent"
+            },
+            "description": "Request processed successfully but no information to return, and the response body is empty, useful as a header for a DELETE request, indicating that the resource has been deleted"
+        });
+        assert_eq!(json_result, expected_json);
+    }
 
-  #[test]
-  fn test_success_codes_into_tuple() {
-    let code = ResponsesSuccessCodes::Created;
-    let (std_code, std_name): (u16, &'static str) = code.into();
-    assert_eq!(std_code, 201);
-    assert_eq!(std_name, "Created");
-  }
+    #[test]
+    fn test_success_codes_into_tuple() {
+        let code = ResponsesSuccessCodes::Created;
+        let (std_code, std_name): (u16, &'static str) = code.into();
+        assert_eq!(std_code, 201);
+        assert_eq!(std_name, "Created");
+    }
 }

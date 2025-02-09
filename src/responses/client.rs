@@ -66,55 +66,55 @@ mod tests {
   use crate::responses::ResponsesClientCodes;
   
   #[test]
-  fn test_to_u16() {
-    let response = ResponsesClientCodes::BadRequest;
-    assert_eq!(response.to_u16(), 400);
-  }
+    fn test_to_u16() {
+        let response = ResponsesClientCodes::BadRequest;
+        assert_eq!(response.to_u16(), 400);
+    }
 
-  #[test]
-  fn test_from_u16() {
-    let status = ResponsesClientCodes::from_u16(404);
-    assert_eq!(status, Some(ResponsesClientCodes::NotFound));
-  }
+    #[test]
+    fn test_from_u16() {
+        let status = ResponsesClientCodes::from_u16(404);
+        assert_eq!(status, Some(ResponsesClientCodes::NotFound));
+    }
 
-  #[test]
-  fn test_invalid_code_from_u16() {
-    let status = ResponsesClientCodes::from_u16(999);
-    assert_eq!(status, None);
-  }
+    #[test]
+    fn test_invalid_code_from_u16() {
+        let status = ResponsesClientCodes::from_u16(999);
+        assert_eq!(status, None);
+    }
 
-  #[test]
-  fn test_as_tuple() {
-    let code = ResponsesClientCodes::Forbidden;
-    let http_code = code.to_http_code();
-    let tuple = http_code.as_tuple();
-    assert_eq!(
-      tuple,
-      (
-        &403,
-        &"Forbidden",
-        &"The client does not have access rights to the content.",
-        &403,
-        &"Forbidden"
-      )
-    );
-  }
+    #[test]
+    fn test_as_tuple() {
+        let code = ResponsesClientCodes::Forbidden;
+        let http_code = code.to_http_code();
+        let tuple = http_code.as_tuple();
+        assert_eq!(
+            tuple,
+            (
+                &403,
+                &"Forbidden",
+                &"The client does not have access rights to the content.",
+                &403,
+                &"Forbidden"
+            )
+        );
+    }
 
-  #[test]
-  fn test_as_json() {
-    let code = ResponsesClientCodes::ImATeapot;
-    let json_result = code.as_json();
-    let expected_json = serde_json::json!({
-        "standard http code": {
-            "code": 418,
-            "name": "I'm a teapot"
-        },
-        "internal http code": {
-            "code": 418,
-            "name": "I'm a teapot"
-        },
-        "description": "The waiter refuses to brew coffee with a teapot, RFC 2324."
-    });
-    assert_eq!(json_result, expected_json);
-  }
+    #[test]
+    fn test_as_json() {
+        let code = ResponsesClientCodes::ImATeapot;
+        let json_result = code.as_json();
+        let expected_json = serde_json::json!({
+            "standard http code": {
+                "code": 418,
+                "name": "I'm a teapot"
+            },
+            "internal http code": {
+                "code": 418,
+                "name": "I'm a teapot"
+            },
+            "description": "The waiter refuses to brew coffee with a teapot, RFC 2324."
+        });
+        assert_eq!(json_result, expected_json);
+    }
 }

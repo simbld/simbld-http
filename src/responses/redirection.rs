@@ -51,28 +51,30 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesRedirectionCodes, UnifiedTuple};
+  use crate::helpers::unified_tuple_helper::UnifiedTuple;
+  use crate::responses::ResponsesRedirectionCodes;
+  use serde_json::json;
   
   #[test]
-  fn test_redirection_codes_to_u16() {
-    let response = ResponsesRedirectionCodes::MultipleChoices;
-    let code = response.to_u16();
-    assert_eq!(code, 300);
-  }
+    fn test_redirection_codes_to_u16() {
+        let response = ResponsesRedirectionCodes::MultipleChoices;
+        let code = response.to_u16();
+        assert_eq!(code, 300);
+    }
 
-  #[test]
-  fn test_redirection_codes_from_u16() {
-    let status = ResponsesRedirectionCodes::from_u16(301);
-    assert_eq!(status, Some(ResponsesRedirectionCodes::MovedPermanently));
-  }
+    #[test]
+    fn test_redirection_codes_from_u16() {
+        let status = ResponsesRedirectionCodes::from_u16(301);
+        assert_eq!(status, Some(ResponsesRedirectionCodes::MovedPermanently));
+    }
 
-  #[test]
-  fn test_redirection_codes_as_tuple() {
-    let code = ResponsesRedirectionCodes::Found;
-    let tuple = code.as_tuple();
-    assert_eq!(
+    #[test]
+    fn test_redirection_codes_as_tuple() {
+        let code = ResponsesRedirectionCodes::Found;
+        let tuple = code.as_tuple();
+        assert_eq!(
       tuple,
-      UnifiedTuple::FiveFields(
+      UnifiedTuple(
         302,
         "Found",
         "The resource is temporarily available at a different URI. The client should continue using the original URI for future requests. This status code is often used for URL redirection",
@@ -80,31 +82,31 @@ mod tests {
         "Found"
       )
     );
-  }
+    }
 
-  #[test]
-  fn test_redirection_codes_as_json() {
-    let code = ResponsesRedirectionCodes::SeeOther;
-    let json_result = code.as_json();
-    let expected_json = json!({
-        "standard http code": {
-            "code": 303,
-            "name": "See Other"
-        },
-        "internal http code": {
-            "code": 303,
-            "name": "See Other"
-        },
-        "description": "The response to the request can be found under another URI, and the client should use GET to retrieve it. This status code is used to direct the client to retrieve the resource from a different URI"
-    });
-    assert_eq!(json_result, expected_json);
-  }
+    #[test]
+    fn test_redirection_codes_as_json() {
+        let code = ResponsesRedirectionCodes::SeeOther;
+        let json_result = code.as_json();
+        let expected_json = json!({
+            "standard http code": {
+                "code": 303,
+                "name": "See Other"
+            },
+            "internal http code": {
+                "code": 303,
+                "name": "See Other"
+            },
+            "description": "The response to the request can be found under another URI, and the client should use GET to retrieve it. This status code is used to direct the client to retrieve the resource from a different URI"
+        });
+        assert_eq!(json_result, expected_json);
+    }
 
-  #[test]
-  fn test_redirection_codes_into_tuple() {
-    let code = ResponsesRedirectionCodes::TemporaryRedirect;
-    let (std_code, std_name): (u16, &'static str) = code.into();
-    assert_eq!(std_code, 307);
-    assert_eq!(std_name, "Temporary Redirect");
-  }
+    #[test]
+    fn test_redirection_codes_into_tuple() {
+        let code = ResponsesRedirectionCodes::TemporaryRedirect;
+        let (std_code, std_name): (u16, &'static str) = code.into();
+        assert_eq!(std_code, 307);
+        assert_eq!(std_name, "Temporary Redirect");
+    }
 }

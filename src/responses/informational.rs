@@ -18,26 +18,28 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesInformationalCodes, UnifiedTuple};
+  use crate::helpers::unified_tuple_helper::UnifiedTuple;
+  use crate::responses::ResponsesInformationalCodes;
+  use serde_json::json;
   
   #[test]
-  fn test_to_16_switching_protocols() {
-    let response = ResponsesInformationalCodes::SwitchingProtocols;
-    let code = response.to_u16();
-    assert_eq!(code, 101);
-  }
+    fn test_to_16_switching_protocols() {
+        let response = ResponsesInformationalCodes::SwitchingProtocols;
+        let code = response.to_u16();
+        assert_eq!(code, 101);
+    }
 
-  #[test]
-  fn test_processing_codes_from_u16() {
-    let status = ResponsesInformationalCodes::from_u16(102);
-    assert_eq!(status, Some(ResponsesInformationalCodes::Processing));
-  }
+    #[test]
+    fn test_processing_codes_from_u16() {
+        let status = ResponsesInformationalCodes::from_u16(102);
+        assert_eq!(status, Some(ResponsesInformationalCodes::Processing));
+    }
 
-  #[test]
-  fn test_response_is_stale_codes_as_tuple() {
-    let code = ResponsesInformationalCodes::ResponseIsStale;
-    let tuple = code.as_tuple();
-    assert_eq!(
+    #[test]
+    fn test_response_is_stale_codes_as_tuple() {
+        let code = ResponsesInformationalCodes::ResponseIsStale;
+        let tuple = code.as_tuple();
+        assert_eq!(
       tuple,
       UnifiedTuple::FiveFields(
         100,
@@ -47,31 +49,31 @@ mod tests {
         "Response Is Stale"
       )
     );
-  }
+    }
 
-  #[test]
-  fn test_revalidation_failed_codes_as_json() {
-    let code = ResponsesInformationalCodes::RevalidationFailed;
-    let json_result = code.as_json();
-    let expected_json = json!({
-      "standard http code": {
-        "code": 100,
-        "name": "Continue"
-      },
-      "internal http code": {
-        "code": 109,
-        "name": "Revalidation Failed"
-      },
-      "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired"
-    });
-    assert_eq!(json_result, expected_json);
-  }
+    #[test]
+    fn test_revalidation_failed_codes_as_json() {
+        let code = ResponsesInformationalCodes::RevalidationFailed;
+        let json_result = code.as_json();
+        let expected_json = json!({
+          "standard http code": {
+            "code": 100,
+            "name": "Continue"
+          },
+          "internal http code": {
+            "code": 109,
+            "name": "Revalidation Failed"
+          },
+          "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired"
+        });
+        assert_eq!(json_result, expected_json);
+    }
 
-  #[test]
-  fn test_continue_request_codes_into_tuple() {
-    let code = ResponsesInformationalCodes::ContinueRequest;
-    let (std_code, std_name): (u16, &'static str) = code.into();
-    assert_eq!(std_code, 100);
-    assert_eq!(std_name, "Continue");
-  }
+    #[test]
+    fn test_continue_request_codes_into_tuple() {
+        let code = ResponsesInformationalCodes::ContinueRequest;
+        let (std_code, std_name): (u16, &'static str) = code.into();
+        assert_eq!(std_code, 100);
+        assert_eq!(std_name, "Continue");
+    }
 }

@@ -34,26 +34,28 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesServerCodes, UnifiedTuple};
+  use crate::helpers::unified_tuple_helper::UnifiedTuple;
+  use crate::responses::ResponsesServerCodes;
+  use serde_json::json;
   
   #[test]
-  fn test_server_codes_to_u16() {
-    let response = ResponsesServerCodes::InternalServerError;
-    let code = response.to_u16();
-    assert_eq!(code, 500);
-  }
+    fn test_server_codes_to_u16() {
+        let response = ResponsesServerCodes::InternalServerError;
+        let code = response.to_u16();
+        assert_eq!(code, 500);
+    }
 
-  #[test]
-  fn test_server_codes_from_u16() {
-    let status = ResponsesServerCodes::from_u16(501);
-    assert_eq!(status, Some(ResponsesServerCodes::NotImplemented));
-  }
+    #[test]
+    fn test_server_codes_from_u16() {
+        let status = ResponsesServerCodes::from_u16(501);
+        assert_eq!(status, Some(ResponsesServerCodes::NotImplemented));
+    }
 
-  #[test]
-  fn test_server_codes_as_tuple() {
-    let code = ResponsesServerCodes::BadGateway;
-    let tuple = code.as_tuple();
-    assert_eq!(
+    #[test]
+    fn test_server_codes_as_tuple() {
+        let code = ResponsesServerCodes::BadGateway;
+        let tuple = code.as_tuple();
+        assert_eq!(
       tuple,
       UnifiedTuple::FiveFields(
         502,
@@ -63,31 +65,31 @@ mod tests {
         "Bad Gateway"
       )
     );
-  }
+    }
 
-  #[test]
-  fn test_server_codes_as_json() {
-    let code = ResponsesServerCodes::ServiceUnavailable;
-    let json_result = code.as_json();
-    let expected_json = json!({
-        "standard http code": {
-            "code": 503,
-            "name": "Service Unavailable"
-        },
-        "internal http code": {
-            "code": 503,
-            "name": "Service Unavailable"
-        },
-        "description": "The server is currently unable to handle the request due to temporary overloading or maintenance. This is usually a temporary state"
-    });
-    assert_eq!(json_result, expected_json);
-  }
+    #[test]
+    fn test_server_codes_as_json() {
+        let code = ResponsesServerCodes::ServiceUnavailable;
+        let json_result = code.as_json();
+        let expected_json = json!({
+            "standard http code": {
+                "code": 503,
+                "name": "Service Unavailable"
+            },
+            "internal http code": {
+                "code": 503,
+                "name": "Service Unavailable"
+            },
+            "description": "The server is currently unable to handle the request due to temporary overloading or maintenance. This is usually a temporary state"
+        });
+        assert_eq!(json_result, expected_json);
+    }
 
-  #[test]
-  fn test_server_codes_into_tuple() {
-    let code = ResponsesServerCodes::GatewayTimeout;
-    let (std_code, std_name): (u16, &'static str) = code.into();
-    assert_eq!(std_code, 504);
-    assert_eq!(std_name, "Gateway Timeout");
-  }
+    #[test]
+    fn test_server_codes_into_tuple() {
+        let code = ResponsesServerCodes::GatewayTimeout;
+        let (std_code, std_name): (u16, &'static str) = code.into();
+        assert_eq!(std_code, 504);
+        assert_eq!(std_name, "Gateway Timeout");
+    }
 }

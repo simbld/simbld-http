@@ -24,60 +24,62 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesServiceCodes, UnifiedTuple};
+  use crate::helpers::unified_tuple_helper::UnifiedTuple;
+  use crate::responses::ResponsesServiceCodes;
+  use serde_json::json;
   
   #[test]
-  fn test_service_codes_to_u16() {
-    let response = ResponsesServiceCodes::ReadingError;
-    let code = response.to_u16();
-    assert_eq!(code, 611);
-  }
+    fn test_service_codes_to_u16() {
+        let response = ResponsesServiceCodes::ReadingError;
+        let code = response.to_u16();
+        assert_eq!(code, 611);
+    }
 
-  #[test]
-  fn test_service_codes_from_u16() {
-    let status = ResponsesServiceCodes::from_u16(611);
-    assert_eq!(status, Some(ResponsesServiceCodes::ReadingError));
-  }
+    #[test]
+    fn test_service_codes_from_u16() {
+        let status = ResponsesServiceCodes::from_u16(611);
+        assert_eq!(status, Some(ResponsesServiceCodes::ReadingError));
+    }
 
-  #[test]
-  fn test_service_codes_as_tuple() {
-    let code = ResponsesServiceCodes::ConnectionError;
-    let tuple = code.as_tuple();
-    assert_eq!(
-      tuple,
-      UnifiedTuple::FiveFields(
-        500,
-        "Internal Server Error",
-        "A connection issue occurred, preventing successful communication with the server",
-        612,
-        "Connection Error"
-      )
-    );
-  }
+    #[test]
+    fn test_service_codes_as_tuple() {
+        let code = ResponsesServiceCodes::ConnectionError;
+        let tuple = code.as_tuple();
+        assert_eq!(
+            tuple,
+            UnifiedTuple::FiveFields(
+                500,
+                "Internal Server Error",
+                "A connection issue occurred, preventing successful communication with the server",
+                612,
+                "Connection Error"
+            )
+        );
+    }
 
-  #[test]
-  fn test_service_codes_as_json() {
-    let code = ResponsesServiceCodes::ReadingTimeExpired;
-    let json_result = code.as_json();
-    let expected_json = json!({
-        "standard http code": {
-            "code": 500,
-            "name": "Internal Server Error"
-        },
-        "internal http code": {
-            "code": 613,
-            "name": "Reading Time Expired"
-        },
-        "description": "The reading operation exceeded the allowed time limit, resulting in a timeout"
-    });
-    assert_eq!(json_result, expected_json);
-  }
+    #[test]
+    fn test_service_codes_as_json() {
+        let code = ResponsesServiceCodes::ReadingTimeExpired;
+        let json_result = code.as_json();
+        let expected_json = json!({
+            "standard http code": {
+                "code": 500,
+                "name": "Internal Server Error"
+            },
+            "internal http code": {
+                "code": 613,
+                "name": "Reading Time Expired"
+            },
+            "description": "The reading operation exceeded the allowed time limit, resulting in a timeout"
+        });
+        assert_eq!(json_result, expected_json);
+    }
 
-  #[test]
-  fn test_service_codes_into_tuple() {
-    let code = ResponsesServiceCodes::SSLHandshakeFailed;
-    let (std_code, std_name): (u16, &'static str) = code.into();
-    assert_eq!(std_code, 500);
-    assert_eq!(std_name, "Internal Server Error");
-  }
+    #[test]
+    fn test_service_codes_into_tuple() {
+        let code = ResponsesServiceCodes::SSLHandshakeFailed;
+        let (std_code, std_name): (u16, &'static str) = code.into();
+        assert_eq!(std_code, 500);
+        assert_eq!(std_name, "Internal Server Error");
+    }
 }

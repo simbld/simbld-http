@@ -89,60 +89,62 @@ generate_responses_functions! {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::responses::{ResponsesLocalApiCodes, UnifiedTuple};
+  use crate::helpers::unified_tuple_helper::UnifiedTuple;
+  use crate::responses::ResponsesLocalApiCodes;
+  use serde_json::json;
   
   #[test]
-  fn test_local_api_codes_to_u16() {
-    let response = ResponsesLocalApiCodes::InvalidCardNumber;
-    let code = response.to_u16();
-    assert_eq!(code, 913);
-  }
+    fn test_local_api_codes_to_u16() {
+        let response = ResponsesLocalApiCodes::InvalidCardNumber;
+        let code = response.to_u16();
+        assert_eq!(code, 913);
+    }
 
-  #[test]
-  fn test_local_api_codes_from_u16() {
-    let status = ResponsesLocalApiCodes::from_u16(914);
-    assert_eq!(status, Some(ResponsesLocalApiCodes::InvalidCVV));
-  }
+    #[test]
+    fn test_local_api_codes_from_u16() {
+        let status = ResponsesLocalApiCodes::from_u16(914);
+        assert_eq!(status, Some(ResponsesLocalApiCodes::InvalidCVV));
+    }
 
-  #[test]
-  fn test_local_api_codes_as_tuple() {
-    let code = ResponsesLocalApiCodes::InvalidEmail;
-    let tuple = code.as_tuple();
-    assert_eq!(
-      tuple,
-      UnifiedTuple::FiveFields(
-        400,
-        "Bad Request",
-        "Email address provided is invalid.",
-        929,
-        "Invalid Email"
-      )
-    );
-  }
+    #[test]
+    fn test_local_api_codes_as_tuple() {
+        let code = ResponsesLocalApiCodes::InvalidEmail;
+        let tuple = code.as_tuple();
+        assert_eq!(
+            tuple,
+            UnifiedTuple(
+                400,
+                "Bad Request",
+                "Email address provided is invalid.",
+                929,
+                "Invalid Email"
+            )
+        );
+    }
 
-  #[test]
-  fn test_local_api_codes_as_json() {
-    let code = ResponsesLocalApiCodes::InvalidPhoneNumber;
-    let json_result = code.as_json();
-    let expected_json = json!({
-        "standard http code": {
-            "code": 400,
-            "name": "Bad Request"
-        },
-        "internal http code": {
-            "code": 928,
-            "name": "Invalid Phone Number"
-        },
-        "description": "Phone number provided is invalid."
-    });
-    assert_eq!(json_result, expected_json);
-  }
+    #[test]
+    fn test_local_api_codes_as_json() {
+        let code = ResponsesLocalApiCodes::InvalidPhoneNumber;
+        let json_result = code.as_json();
+        let expected_json = json!({
+            "standard http code": {
+                "code": 400,
+                "name": "Bad Request"
+            },
+            "internal http code": {
+                "code": 928,
+                "name": "Invalid Phone Number"
+            },
+            "description": "Phone number provided is invalid."
+        });
+        assert_eq!(json_result, expected_json);
+    }
 
-  #[test]
-  fn test_local_api_codes_into_tuple() {
-    let code = ResponsesLocalApiCodes::InvalidPassword;
-    let (std_code, std_name): (u16, &'static str) = code.into();
-    assert_eq!(std_code, 400);
-    assert_eq!(std_name, "Bad Request");
-  }
+    #[test]
+    fn test_local_api_codes_into_tuple() {
+        let code = ResponsesLocalApiCodes::InvalidPassword;
+        let (std_code, std_name): (u16, &'static str) = code.into();
+        assert_eq!(std_code, 400);
+        assert_eq!(std_name, "Bad Request");
+    }
 }

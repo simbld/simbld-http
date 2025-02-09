@@ -24,8 +24,7 @@ generate_responses_functions! {
 mod tests {
     use super::*;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
-    use crate::helpers::{FromU16, ToU16};
-    use crate::responses::{ResponsesCrawlerCodes, UnifiedTuple};
+    use crate::responses::ResponsesCrawlerCodes;
     use serde_json::json;
     
     #[test]
