@@ -64,11 +64,14 @@ generate_responses_functions! {
 mod tests {
   use super::*;
   use crate::responses::ResponsesClientCodes;
+  use serde_json::json;
   
   #[test]
     fn test_to_u16() {
-        let response = ResponsesClientCodes::BadRequest;
-        assert_eq!(response.to_u16(), 400);
+        assert_eq!(ResponsesClientCodes::BadRequest.to_u16(), 400);
+        assert_eq!(ResponsesClientCodes::Unauthorized.to_u16(), 401);
+        assert_eq!(ResponsesClientCodes::PaymentRequired.to_u16(), 402);
+        assert_eq!(ResponsesClientCodes::Forbidden.to_u16(), 403);
     }
 
     #[test]
@@ -104,7 +107,7 @@ mod tests {
     fn test_as_json() {
         let code = ResponsesClientCodes::ImATeapot;
         let json_result = code.as_json();
-        let expected_json = serde_json::json!({
+        let expected_json = json!({
             "standard http code": {
                 "code": 418,
                 "name": "I'm a teapot"

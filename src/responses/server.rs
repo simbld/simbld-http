@@ -40,9 +40,10 @@ mod tests {
   
   #[test]
     fn test_server_codes_to_u16() {
-        let response = ResponsesServerCodes::InternalServerError;
-        let code = response.to_u16();
-        assert_eq!(code, 500);
+        assert_eq!(ResponsesServerCodes::InternalServerErrorto_u16(), 500);
+        assert_eq!(ResponsesServerCodes::NotImplemented.to_u16(), 501);
+        assert_eq!(ResponsesServerCodes::BadGateway.to_u16(), 502);
+        assert_eq!(ResponsesServerCodes::ServiceUnavailable.to_u16(), 503);
     }
 
     #[test]

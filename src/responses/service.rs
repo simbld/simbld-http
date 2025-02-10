@@ -23,16 +23,17 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::helpers::unified_tuple_helper::UnifiedTuple;
-  use crate::responses::ResponsesServiceCodes;
-  use serde_json::json;
-  
-  #[test]
+    use super::*;
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesServiceCodes;
+    use serde_json::json;
+    
+    #[test]
     fn test_service_codes_to_u16() {
-        let response = ResponsesServiceCodes::ReadingError;
-        let code = response.to_u16();
-        assert_eq!(code, 611);
+        assert_eq!(ResponsesServiceCodes::ReadingError.to_u16(), 611);
+        assert_eq!(ResponsesServiceCodes::ConnectionError.to_u16(), 612);
+        assert_eq!(ResponsesServiceCodes::ReadingTimeExpired.to_u16(), 613);
+        assert_eq!(ResponsesServiceCodes::SSLHandshakeFailed.to_u16(), 614);
     }
 
     #[test]

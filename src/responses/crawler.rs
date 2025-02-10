@@ -1,4 +1,5 @@
 use crate::generate_responses_functions;
+
 generate_responses_functions! {
 "",
     ResponsesCrawlerCodes,

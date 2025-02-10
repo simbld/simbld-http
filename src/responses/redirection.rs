@@ -57,9 +57,10 @@ mod tests {
   
   #[test]
     fn test_redirection_codes_to_u16() {
-        let response = ResponsesRedirectionCodes::MultipleChoices;
-        let code = response.to_u16();
-        assert_eq!(code, 300);
+        assert_eq!(ResponsesRedirectionCodes::MultipleChoices.to_u16(), 300);
+        assert_eq!(ResponsesRedirectionCodes::MovedPermanently.to_u16(), 301);
+        assert_eq!(ResponsesRedirectionCodes::SeeOther.to_u16(), 303);
+        assert_eq!(ResponsesRedirectionCodes::TemporaryRedirect.to_u16(), 307);
     }
 
     #[test]

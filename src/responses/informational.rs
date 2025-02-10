@@ -24,9 +24,10 @@ mod tests {
   
   #[test]
     fn test_to_16_switching_protocols() {
-        let response = ResponsesInformationalCodes::SwitchingProtocols;
-        let code = response.to_u16();
-        assert_eq!(code, 101);
+        assert_eq!(ResponsesInformationalCodes::ContinueRequest.to_u16(), 100);
+        assert_eq!(ResponsesInformationalCodes::SwitchingProtocols.to_u16(), 101);
+        assert_eq!(ResponsesInformationalCodes::Processing.to_u16(), 102);
+        assert_eq!(ResponsesInformationalCodes::EarlyHints.to_u16(), 103);
     }
 
     #[test]

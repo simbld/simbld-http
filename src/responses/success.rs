@@ -43,9 +43,10 @@ mod tests {
   
   #[test]
     fn test_success_codes_to_u16() {
-        let response = ResponsesSuccessCodes::Ok;
-        let code = response.to_u16();
-        assert_eq!(code, 200);
+        assert_eq!(ResponsesSuccessCodes::Ok.to_u16(), 200);
+        assert_eq!(ResponsesSuccessCodes::Created.to_u16(), 201);
+        assert_eq!(ResponsesSuccessCodes::Accepted.to_u16(), 202);
+        assert_eq!(ResponsesSuccessCodes::NonAuthoritativeInformation.to_u16(), 203);
     }
 
     #[test]
