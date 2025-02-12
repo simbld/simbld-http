@@ -1,11 +1,11 @@
 use crate::responses::ResponsesTypes;
 
 pub trait GetDescription {
-    fn get_str(&self, field: &str) -> Option<&'static str>;
+    fn get_description_field(&self, field: &str) -> Option<&'static str>;
 }
 
 impl GetDescription for ResponsesTypes {
-    fn get_str(&self, field: &str) -> Option<&'static str> {
+    fn get_description_field(&self, field: &str) -> Option<&'static str> {
         match field {
             "Description" => Some(match self {
                 ResponsesTypes::Informational(status_code) => status_code.description(),
