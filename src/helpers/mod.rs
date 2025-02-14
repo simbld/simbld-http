@@ -3,7 +3,7 @@
 pub mod auth_middleware;
 pub mod from_u16_helper;
 pub mod generate_responses_functions;
-pub mod get_str_helper;
+pub mod get_description_field_helper;
 pub mod http_code_helper;
 pub mod http_interceptor_helper;
 pub mod response_helpers;

@@ -20,6 +20,7 @@ pub mod service;
 pub mod success;
 
 // Public exports for response codes
+use crate::helpers::get_description_field_helper::GetDescription;
 pub use actix_responder::CustomResponse;
 pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
@@ -129,28 +130,28 @@ impl ResponsesTypes {
     pub fn description(&self) -> &'static str {
         match self {
             ResponsesTypes::Informational(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
             ResponsesTypes::Success(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
             ResponsesTypes::Redirection(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
             ResponsesTypes::ClientError(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
             ResponsesTypes::ServerError(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
             ResponsesTypes::ServiceError(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
             ResponsesTypes::CrawlerError(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
             ResponsesTypes::LocalApiError(code_enum) => {
-                code_enum.get_str("Description").unwrap_or("No description")
+                code_enum.get_description_field("Description").unwrap_or("No description")
             },
         }
     }
@@ -158,28 +159,28 @@ impl ResponsesTypes {
     pub fn get_response_description(&self) -> (u16, &'static str) {
         match self {
             ResponsesTypes::Informational(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
             ResponsesTypes::Success(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
             ResponsesTypes::Redirection(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
             ResponsesTypes::ClientError(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
             ResponsesTypes::ServerError(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
             ResponsesTypes::ServiceError(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
             ResponsesTypes::CrawlerError(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
             ResponsesTypes::LocalApiError(code) => {
-                (code.to_u16(), code.get_str("Description").unwrap_or(""))
+                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
             },
         }
     }

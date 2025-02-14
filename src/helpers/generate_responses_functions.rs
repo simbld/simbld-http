@@ -38,7 +38,7 @@ macro_rules! generate_responses_functions {
         $first_variant:ident => ($std_code_first:expr, $std_name_first:expr, $desc_first:expr, $int_code_first:expr, $int_std_name_first:expr)
         $(, $variant:ident => ($std_code:expr, $std_name:expr, $desc:expr, $int_code:expr, $int_name:expr) )* $(,)?
     ) => {
-        #[derive(Debug, PartialEq, Copy, Clone)]
+        #[derive(Debug, Clone, Copy, strum_macros::EnumProperty, strum_macros::EnumIter)]
         #[doc = $doc_family]
         #[doc = concat!(
             "\n\nEnum representing HTTP response status codes and descriptions for `",
@@ -65,7 +65,8 @@ macro_rules! generate_responses_functions {
             stringify!($int_std_name_first),
             "));\n```"
         )]
-        pub enum $enum_name {
+        #[derive(PartialEq)]
+pub enum $enum_name {
             $first_variant,
             $(
                 $variant,
@@ -106,12 +107,13 @@ macro_rules! generate_responses_functions {
             /// Attempts to construct an enum variant from a given `u16` code.
             pub fn from_u16(code: u16) -> Option<Self> {
                 match code {
-                    $std_code_first | $int_code_first => Some(Self::$first_variant),
-                    $(
-                        $std_code | $int_code => Some(Self::$variant),
-                    )*
-                    _ => None,
-                }
+        code if code == $int_code_first => Some(Self::$first_variant),
+        $(
+            code if code == $int_code => Some(Self::$variant),
+        )*
+        _ => None,
+    }
+
             }
 
             /// Returns a unified tuple representation.

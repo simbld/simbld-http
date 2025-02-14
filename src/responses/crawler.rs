@@ -23,7 +23,6 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesCrawlerCodes;
     use serde_json::json;
@@ -89,4 +88,17 @@ mod tests {
         assert_eq!(std_code, 302);
         assert_eq!(std_name, "Found");
     }
+}
+
+#[test]
+fn test_duplicate_standard_codes() {
+    // Ces deux codes ont le même code HTTP standard (400) mais des codes internes différents
+    assert_eq!(
+        ResponsesCrawlerCodes::from_u16(700),
+        Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
+    );
+    assert_eq!(
+        ResponsesCrawlerCodes::from_u16(710),
+        Some(ResponsesCrawlerCodes::ParsingErrorHeader)
+    );
 }

@@ -1,4 +1,4 @@
-use crate::helpers::get_str_helper::GetDescription;
+use crate::helpers::get_description_field_helper::GetDescription;
 /// The code provides functions for handling HTTP response codes, including retrieving descriptions, converting to JSON/XML, filtering by range, and adding metadata.
 use crate::helpers::to_u16_helper::ToU16;
 use crate::responses::ResponsesTypes;
@@ -7,18 +7,18 @@ use crate::responses::{
     ResponsesLocalApiCodes, ResponsesRedirectionCodes, ResponsesServerCodes, ResponsesServiceCodes,
     ResponsesSuccessCodes,
 };
+use crate::utils::populate_metadata::populate_metadata;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::time::Duration;
 use std::time::SystemTime;
-use strum::EnumProperty;
 use strum::IntoEnumIterator;
 
 /// Takes an input of type `ResponsesTypes`, extracts the associated response code and description,
 /// and returns a tuple containing the code as a `u16` and the description as a static string reference (`&'static str`).
 pub fn get_response_description(response: ResponsesTypes) -> (u16, &'static str) {
     let code = response.to_u16();
-    let description = response.get_str("Description").unwrap_or("No description");
+    let description = response.get_description_field("Description").unwrap_or("No description");
     (code, description)
 }
 
@@ -41,7 +41,7 @@ pub fn get_advance_response_description(response: ResponsesTypes) -> (u16, &'sta
 
     // Provide a fallback description if not present
     let code = response.to_u16();
-    let description = response.get_str("Description").unwrap_or("No description");
+    let description = response.get_description_field("Description").unwrap_or("No description");
 
     (code, description)
 }
@@ -61,7 +61,8 @@ pub fn get_advance_description_by_code(code: u16) -> Option<&'static str> {
     log::info!("Fetching description for code: {}", code);
 
     let fetched_description = get_response_by_code(code).map(|response_type| {
-        let description = response_type.get_str("Description").unwrap_or("No description");
+        let description = GetDescription::get_description_field(&response_type, "Description")
+            .unwrap_or("No description");
         log::debug!("Code {} corresponds to description: {}", code, description);
         description
     });
@@ -87,7 +88,7 @@ pub fn transform_to_json_short(response: ResponsesTypes) -> String {
 pub fn transform_to_json(response: ResponsesTypes) -> String {
     let code = response.to_u16();
     let description = response.description();
-    serde_json::json!({
+    json!({
         "code": code,
         "description": description
     })
@@ -206,31 +207,71 @@ pub fn transform_to_xml_with_metadata(response: ResponsesTypes) -> String {
 pub fn filter_codes_by_range(start: u16, end: u16) -> Vec<(u16, &'static str)> {
     let mut filtered_codes = Vec::new();
 
-    add_filtered_codes(start, end, ResponsesInformationalCodes::iter(), &mut filtered_codes);
-    add_filtered_codes(start, end, ResponsesSuccessCodes::iter(), &mut filtered_codes);
-    add_filtered_codes(start, end, ResponsesRedirectionCodes::iter(), &mut filtered_codes);
-    add_filtered_codes(start, end, ResponsesClientCodes::iter(), &mut filtered_codes);
-    add_filtered_codes(start, end, ResponsesServerCodes::iter(), &mut filtered_codes);
-    add_filtered_codes(start, end, ResponsesServiceCodes::iter(), &mut filtered_codes);
-    add_filtered_codes(start, end, ResponsesCrawlerCodes::iter(), &mut filtered_codes);
-    add_filtered_codes(start, end, ResponsesLocalApiCodes::iter(), &mut filtered_codes);
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesInformationalCodes::iter().map(ResponsesTypes::Informational),
+        &mut filtered_codes,
+    );
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesSuccessCodes::iter().map(ResponsesTypes::Success),
+        &mut filtered_codes,
+    );
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesRedirectionCodes::iter().map(ResponsesTypes::Redirection),
+        &mut filtered_codes,
+    );
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesClientCodes::iter().map(ResponsesTypes::ClientError),
+        &mut filtered_codes,
+    );
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesServerCodes::iter().map(ResponsesTypes::ServerError),
+        &mut filtered_codes,
+    );
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesServiceCodes::iter().map(ResponsesTypes::ServiceError),
+        &mut filtered_codes,
+    );
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesCrawlerCodes::iter().map(ResponsesTypes::CrawlerError),
+        &mut filtered_codes,
+    );
+    add_filtered_codes(
+        start,
+        end,
+        ResponsesLocalApiCodes::iter().map(ResponsesTypes::LocalApiError),
+        &mut filtered_codes,
+    );
 
     filtered_codes
 }
 
-fn add_filtered_codes<T, U>(
+fn add_filtered_codes<I>(
     start: u16,
     end: u16,
-    iter: T,
+    codes_iter: I,
     filtered_codes: &mut Vec<(u16, &'static str)>,
 ) where
-    T: Iterator<Item = U>,
-    U: Into<u16> + EnumProperty + Copy,
+    I: Iterator<Item = ResponsesTypes>,
 {
-    for code_enum in iter {
-        let code: u16 = code_enum.into();
+    for response_type in codes_iter {
+        let code: u16 = response_type.to_u16();
         if code >= start && code <= end {
-            let description = code_enum.get_str("Description").unwrap_or("No description");
+            let description =
+                response_type.get_description_field("Description").unwrap_or("No description");
             filtered_codes.push((code, description));
         }
     }
@@ -242,67 +283,54 @@ pub fn filter_codes_by_range_with_metadata(
     end: u16,
     request_metadata: Option<HashMap<&str, &str>>,
 ) -> Vec<(u16, &'static str, HashMap<String, String>)> {
-    let iterators: Vec<Box<dyn Iterator<Item = (u16, &'static str)>>> =
-        vec![
-            Box::new(ResponsesInformationalCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-            Box::new(ResponsesSuccessCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-            Box::new(ResponsesRedirectionCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-            Box::new(ResponsesClientCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-            Box::new(ResponsesServerCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-            Box::new(ResponsesServiceCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-            Box::new(ResponsesCrawlerCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-            Box::new(ResponsesLocalApiCodes::iter().map(|code| {
-                (code.into(), code.get_str("Description").unwrap_or("No description"))
-            })),
-        ];
+    let iterators: Vec<Box<dyn Iterator<Item = (u16, &'static str, HashMap<String, String>)>>> = vec![
+        Box::new(ResponsesInformationalCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::Informational(code);
 
-    let mut results = vec![];
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+        Box::new(ResponsesSuccessCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::Success(code);
 
-    for codes in iterators {
-        for code_enum in codes {
-            let code: u16 = code_enum.0;
-            if (start..=end).contains(&code) {
-                let description = code_enum.1;
-                let mut metadata = HashMap::new();
-                metadata.insert("description".to_string(), description.to_string());
-                metadata.insert("is_error".to_string(), (code >= 400).to_string());
-                metadata.insert(
-                    "status_family".to_string(),
-                    match code {
-                        100..=199 => "Informational",
-                        200..=299 => "Success",
-                        300..=399 => "Redirection",
-                        400..=499 => "Client Error",
-                        500..=599 => "Server Error",
-                        600..=699 => "Service Error",
-                        700..=799 => "Crawler Error",
-                        900..=999 => "Local API Error",
-                        _ => "Unknown",
-                    }
-                    .to_string(),
-                );
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+        Box::new(ResponsesRedirectionCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::Redirection(code);
 
-                if let Some(req_meta) = &request_metadata {
-                    for (key, value) in req_meta {
-                        metadata.insert((*key).to_string(), (*value).to_string());
-                    }
-                }
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+        Box::new(ResponsesClientCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::ClientError(code);
 
-                results.push((code, description, metadata));
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+        Box::new(ResponsesServerCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::ServerError(code);
+
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+        Box::new(ResponsesServiceCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::ServiceError(code);
+
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+        Box::new(ResponsesCrawlerCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::CrawlerError(code);
+
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+        Box::new(ResponsesLocalApiCodes::iter().map(|code| {
+            let rtype = ResponsesTypes::LocalApiError(code);
+
+            create_tuple_with_metadata(rtype, &request_metadata)
+        })),
+    ];
+
+    let mut results = Vec::new();
+    for iterator in iterators {
+        for (code_u16, desc, meta) in iterator {
+            if code_u16 >= start && code_u16 <= end {
+                results.push((code_u16, desc, meta));
             }
         }
     }
@@ -313,38 +341,30 @@ pub fn filter_codes_by_range_with_metadata(
 /// Lists response codes and descriptions for a given family in a concise way.
 pub fn list_codes_and_descriptions_short(family: &str) -> Vec<(u16, &'static str)> {
     let iterator: Box<dyn Iterator<Item = (u16, &'static str)>> = match family {
-        "Informational" => Box::new(
-            ResponsesInformationalCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
-        "Success" => Box::new(
-            ResponsesSuccessCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
-        "Redirection" => Box::new(
-            ResponsesRedirectionCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
-        "ClientError" => Box::new(
-            ResponsesClientCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
-        "ServerError" => Box::new(
-            ResponsesServerCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
-        "Service" => Box::new(
-            ResponsesServiceCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
-        "Crawler" => Box::new(
-            ResponsesCrawlerCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
-        "LocalApi" => Box::new(
-            ResponsesLocalApiCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("Unknown description"))),
-        ),
+        "Informational" => Box::new(ResponsesInformationalCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
+        "Success" => Box::new(ResponsesSuccessCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
+        "Redirection" => Box::new(ResponsesRedirectionCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
+        "ClientError" => Box::new(ResponsesClientCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
+        "ServerError" => Box::new(ResponsesServerCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
+        "Service" => Box::new(ResponsesServiceCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
+        "Crawler" => Box::new(ResponsesCrawlerCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
+        "LocalApi" => Box::new(ResponsesLocalApiCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
+        })),
         _ => return vec![],
     };
 
@@ -357,69 +377,37 @@ pub fn list_codes_and_descriptions_with_metadata(
     request_metadata: Option<HashMap<&str, &str>>,
 ) -> Vec<(u16, &'static str, HashMap<String, String>)> {
     let iterator: Box<dyn Iterator<Item = (u16, &'static str)>> = match family {
-        "Informational" => Box::new(
-            ResponsesInformationalCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
-        "Success" => Box::new(
-            ResponsesSuccessCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
-        "Redirection" => Box::new(
-            ResponsesRedirectionCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
-        "ClientError" => Box::new(
-            ResponsesClientCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
-        "ServerError" => Box::new(
-            ResponsesServerCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
-        "ServiceError" => Box::new(
-            ResponsesServiceCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
-        "CrawlerError" => Box::new(
-            ResponsesCrawlerCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
-        "LocalApiError" => Box::new(
-            ResponsesLocalApiCodes::iter()
-                .map(|c| (c.to_u16(), c.get_str("Description").unwrap_or("No description"))),
-        ),
+        "Informational" => Box::new(ResponsesInformationalCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
+        "Success" => Box::new(ResponsesSuccessCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
+        "Redirection" => Box::new(ResponsesRedirectionCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
+        "ClientError" => Box::new(ResponsesClientCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
+        "ServerError" => Box::new(ResponsesServerCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
+        "ServiceError" => Box::new(ResponsesServiceCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
+        "CrawlerError" => Box::new(ResponsesCrawlerCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
+        "LocalApiError" => Box::new(ResponsesLocalApiCodes::iter().map(|c| {
+            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+        })),
         _ => return vec![],
     };
 
     iterator
         .map(|(code, description)| {
-            let mut metadata = HashMap::new();
-            metadata.insert("description".to_string(), description.to_string());
-            metadata.insert("is_error".to_string(), (code >= 400).to_string());
-            metadata.insert(
-                "status_family".to_string(),
-                match code {
-                    100..=199 => "Informational",
-                    200..=299 => "Success",
-                    300..=399 => "Redirection",
-                    400..=499 => "Client Error",
-                    500..=599 => "Server Error",
-                    600..=699 => "Service Error",
-                    700..=799 => "Crawler Error",
-                    900..=999 => "Local API Error",
-                    _ => "Unknown",
-                }
-                .to_string(),
-            );
-
-            if let Some(req_meta) = &request_metadata {
-                for (key, value) in req_meta {
-                    metadata.insert((*key).to_string(), (*value).to_string());
-                }
-            }
-
-            (code, description, metadata)
+            let metadata = populate_metadata(code, description, request_metadata.as_ref());
+            (code, description, metadata);
         })
         .collect()
 }
@@ -459,10 +447,10 @@ pub fn create_response_with_types(
         map.insert("description".to_string(), json!(description));
     }
     if let Some(d) = data {
-        let data_value: serde_json::Value = serde_json::from_str(d).unwrap();
+        let data_value: Value = serde_json::from_str(d).unwrap();
         map.extend(data_value.as_object().unwrap().clone());
     }
-    serde_json::Value::Object(map).to_string()
+    Value::Object(map).to_string()
 }
 
 /// Fetches a full response with CORS headers and metadata.
@@ -711,19 +699,19 @@ mod tests {
         let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
         let enriched_response = get_enriched_response_with_metadata(
             response,
-            Some("http://example.com"),
+            Some("https://example.com"),
             Duration::from_millis(150),
         );
         assert!(enriched_response.contains("\"code\":200"));
         assert!(
-            enriched_response.contains("\"Access-Control-Allow-Origin\":\"http://example.com\"")
+            enriched_response.contains("\"Access-Control-Allow-Origin\":\"https://example.com\"")
         );
     }
 
     #[test]
     fn test_is_origin_allowed() {
-        let allowed_origins = vec!["http://example.com", "http://localhost"];
-        assert!(is_origin_allowed("http://example.com", &allowed_origins));
-        assert!(!is_origin_allowed("http://unauthorized.com", &allowed_origins));
+        let allowed_origins = vec!["https://example.com", "https://localhost"];
+        assert!(is_origin_allowed("https://example.com", &allowed_origins));
+        assert!(!is_origin_allowed("https://unauthorized.com", &allowed_origins));
     }
 }
