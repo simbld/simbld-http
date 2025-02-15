@@ -338,39 +338,59 @@ pub fn filter_codes_by_range_with_metadata(
     results
 }
 
-/// Lists response codes and descriptions for a given family in a concise way.
+/// Construit le triple (code_u16, description, metadata) pour une entrée donnée.
+fn create_tuple_with_metadata(
+    rtype: ResponsesTypes,
+    request_metadata: &Option<HashMap<&str, &str>>,
+) -> (u16, &'static str, HashMap<String, String>) {
+    let metadata = request_metadata.clone().map_or_else(HashMap::new, |meta| {
+        meta.into_iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+    });
+
+    (rtype.to_u16(), rtype.description(), metadata)
+}
+
+/// Build the triple (code_u16, description, metadata) for a given entry.
 pub fn list_codes_and_descriptions_short(family: &str) -> Vec<(u16, &'static str)> {
+    #[allow(clippy::type_complexity)]
     let iterator: Box<dyn Iterator<Item = (u16, &'static str)>> = match family {
-        "Informational" => Box::new(ResponsesInformationalCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        "Success" => Box::new(ResponsesSuccessCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        "Redirection" => Box::new(ResponsesRedirectionCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        "ClientError" => Box::new(ResponsesClientCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        "ServerError" => Box::new(ResponsesServerCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        "Service" => Box::new(ResponsesServiceCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        "Crawler" => Box::new(ResponsesCrawlerCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        "LocalApi" => Box::new(ResponsesLocalApiCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("Unknown description"))
-        })),
-        _ => return vec![],
+        "Informational" => Box::new(
+            ResponsesInformationalCodes::iter()
+                .map(|c: ResponsesInformationalCodes| (c.to_u16(), c.description())),
+        ),
+        "Success" => Box::new(
+            ResponsesSuccessCodes::iter()
+                .map(|c: ResponsesSuccessCodes| (c.to_u16(), c.description())),
+        ),
+        "Redirection" => Box::new(
+            ResponsesRedirectionCodes::iter()
+                .map(|c: ResponsesRedirectionCodes| (c.to_u16(), c.description())),
+        ),
+        "ClientError" => Box::new(
+            ResponsesClientCodes::iter()
+                .map(|c: ResponsesClientCodes| (c.to_u16(), c.description())),
+        ),
+        "ServerError" => Box::new(
+            ResponsesServerCodes::iter()
+                .map(|c: ResponsesServerCodes| (c.to_u16(), c.description())),
+        ),
+        "Service" => Box::new(
+            ResponsesServiceCodes::iter()
+                .map(|c: ResponsesServiceCodes| (c.to_u16(), c.description())),
+        ),
+        "Crawler" => Box::new(
+            ResponsesCrawlerCodes::iter()
+                .map(|c: ResponsesCrawlerCodes| (c.to_u16(), c.description())),
+        ),
+        "LocalApi" => Box::new(
+            ResponsesLocalApiCodes::iter()
+                .map(|c: ResponsesLocalApiCodes| (c.to_u16(), c.description())),
+        ),
+        _ => Box::new(std::iter::empty()),
     };
 
     iterator.collect()
 }
-
 /// Lists response codes and descriptions for a given family with extended metadata.
 pub fn list_codes_and_descriptions_with_metadata(
     family: &str,
