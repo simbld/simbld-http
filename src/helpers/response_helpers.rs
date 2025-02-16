@@ -427,7 +427,7 @@ pub fn list_codes_and_descriptions_with_metadata(
     iterator
         .map(|(code, description)| {
             let metadata = populate_metadata(code, description, request_metadata.as_ref());
-            (code, description, metadata);
+            (code, description, metadata)
         })
         .collect()
 }
