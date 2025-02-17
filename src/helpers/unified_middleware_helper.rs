@@ -1,12 +1,18 @@
-use actix_service::Service;
-use actix_web::dev::{ServiceRequest, ServiceResponse, Transform};
-use actix_web::HttpResponse;
+use std::{
+    collections::HashMap,
+    rc::Rc,
+    sync::{Arc, Mutex},
+    task::{Context, Poll},
+    time::{Duration, Instant},
+};
+
+use actix_service::{Service, Transform};
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    http::StatusCode,
+};
+use actix_web::{Error as ActixError, HttpResponse, ResponseError};
 use futures_util::future::{ok, LocalBoxFuture, Ready};
-use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use std::task::{Context, Poll};
-use std::time::{Duration, Instant};
 use thiserror::Error;
 
 /// The code defines a unified middleware in Rust for managing CORS, advanced logs, and rate limiting in Actix Web.
@@ -19,7 +25,7 @@ use thiserror::Error;
 /// * `window_duration`: The `window_duration` property in the `UnifiedMiddleware` struct represents the duration of the time window for rate limiting. Requests from a client IP address are counted within this time window to enforce rate limits. It is used to determine the period over which the maximum number of requests allowed (`max_requests`)
 /// * `intercept_dependencies`: The `intercept_dependencies` property in the `UnifiedMiddleware` struct is a function that takes a `ServiceRequest` as input and returns a boolean value. It is used to determine whether a request should be intercepted and processed by the middleware. The function can be used to define custom logic for intercepting requests based on specific criteria.
 
-/// Unified middleware structure for managing CORS, advanced logging, and rate limiting.
+// Middleware struct holding settings and state
 pub struct UnifiedMiddleware {
     pub allowed_origins: Vec<String>,
     pub rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
@@ -28,53 +34,46 @@ pub struct UnifiedMiddleware {
     pub intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
 }
 
-/// Custom error type for middleware errors.
+// Enum for custom middleware errors
 #[derive(Debug, Error)]
 pub enum UnifiedError {
-    // Middleware-specific errors
     #[error("An internal error occurred in the middleware.")]
     InternalMiddlewareError,
     #[error("Invalid request.")]
     InvalidRequest,
     #[error("Unauthorized access.")]
     Unauthorized,
-
-    // IO and JSON-related errors
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
 }
 
-/// Implementation of the `ResponseError` trait for UnifiedError.
-impl actix_web::ResponseError for UnifiedError {
-    /// Generates HTTP responses based on the error type.
-    fn error_response(&self) -> HttpResponse {
+// Implementation of ResponseError, linking UnifiedError to standard HTTP responses
+impl ResponseError for UnifiedError {
+    fn status_code(&self) -> StatusCode {
         match self {
-            UnifiedError::InternalMiddlewareError => HttpResponse::InternalServerError()
-                .body("An internal error occurred in the middleware."),
-            UnifiedError::InvalidRequest => HttpResponse::BadRequest().body("Invalid request."),
-            UnifiedError::Unauthorized => HttpResponse::Unauthorized().body("Unauthorized."),
-            UnifiedError::Io(_) => {
-                HttpResponse::InternalServerError().body("An I/O error occurred.")
-            },
-            UnifiedError::Json(_) => {
-                HttpResponse::BadRequest().body("A JSON parsing error occurred.")
-            },
+            UnifiedError::InternalMiddlewareError => StatusCode::INTERNAL_SERVER_ERROR,
+            UnifiedError::InvalidRequest => StatusCode::BAD_REQUEST,
+            UnifiedError::Unauthorized => StatusCode::UNAUTHORIZED,
+            UnifiedError::Io(_) | UnifiedError::Json(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
+    }
+
+    fn error_response(&self) -> HttpResponse {
+        HttpResponse::build(self.status_code()).body(self.to_string())
     }
 }
 
-/// Methods for the UnifiedMiddleware structure.
+// Middleware constructor
 impl UnifiedMiddleware {
-    /// Creates a new UnifiedMiddleware instance.
     pub fn new(
         allowed_origins: Vec<String>,
         max_requests: usize,
         window_duration: Duration,
         intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
     ) -> Self {
-        Self {
+        UnifiedMiddleware {
             allowed_origins,
             rate_limiters: Arc::new(Mutex::new(HashMap::new())),
             max_requests,
@@ -84,45 +83,31 @@ impl UnifiedMiddleware {
     }
 }
 
-/// Custom implementation of the Debug trait for UnifiedMiddleware to hide complex details.
-impl std::fmt::Debug for UnifiedMiddleware {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("UnifiedMiddleware")
-            .field("allowed_origins", &self.allowed_origins)
-            .field("rate_limiters", &"Arc<Mutex<...>>") // Hide content for brevity
-            .field("max_requests", &self.max_requests)
-            .field("window_duration", &self.window_duration)
-            .field("intercept_dependencies", &"<function>")
-            .finish()
-    }
-}
-
-/// Implementation of the Transform trait for UnifiedMiddleware.
+// Middleware transformation implementation
 impl<S, B> Transform<S, ServiceRequest> for UnifiedMiddleware
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = UnifiedError> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = ActixError> + 'static,
     B: 'static,
 {
     type Response = ServiceResponse<B>;
-    type Error = UnifiedError;
+    type Error = ActixError; // UnifiedError now wrapped as ActixError
     type Transform = UnifiedMiddlewareService<S>;
     type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
-    /// Creates a new middleware transformation for the given service.
     fn new_transform(&self, service: S) -> Self::Future {
         ok(UnifiedMiddlewareService {
             service: Rc::new(service),
             allowed_origins: self.allowed_origins.clone(),
-            rate_limiters: Arc::clone(&self.rate_limiters),
+            rate_limiters: self.rate_limiters.clone(),
             max_requests: self.max_requests,
             window_duration: self.window_duration,
-            intercept_dependencies: Rc::clone(&self.intercept_dependencies),
+            intercept_dependencies: self.intercept_dependencies.clone(),
         })
     }
 }
 
-/// Service wrapper integrating the logic of UnifiedMiddleware.
+// Middleware service implementation
 pub struct UnifiedMiddlewareService<S> {
     service: Rc<S>,
     allowed_origins: Vec<String>,
@@ -132,99 +117,93 @@ pub struct UnifiedMiddlewareService<S> {
     intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
 }
 
-/// Implementation of the `Service` trait for UnifiedMiddlewareService.
 impl<S, B> Service<ServiceRequest> for UnifiedMiddlewareService<S>
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = UnifiedError> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = ActixError> + 'static,
     B: 'static,
 {
     type Response = ServiceResponse<B>;
-    type Error = UnifiedError;
+    type Error = ActixError; // UnifiedError wrapped as ActixError
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    /// Checks if the main service is ready to process requests.
-    fn poll_ready(&self, ctx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        self.service.poll_ready(ctx)
+    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(cx)
     }
 
-    /// Processes a request using the middleware.
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        // Logical request interception
+        let origin = req.connection_info().host().to_owned();
+
+        // Check if the origin is allowed
+        if !self.allowed_origins.contains(&origin) {
+            return Box::pin(async { Err(UnifiedError::Unauthorized.into()) });
+        }
+
+        // Intercept requests based on custom logic
         if !(self.intercept_dependencies)(&req) {
-            return Box::pin(async { Err(UnifiedError::InternalMiddlewareError.into()) });
-        }
-
-        // Rate limiting logic
-        let remote_addr = req
-            .peer_addr()
-            .map(|addr| addr.ip().to_string())
-            .unwrap_or_else(|| "unknown".to_string());
-        let now = Instant::now();
-        let mut rate_limiters = self.rate_limiters.lock().unwrap();
-        let entry = rate_limiters.entry(remote_addr).or_insert((0, now));
-
-        // Reset time window if exceeded
-        if now.duration_since(entry.1) > self.window_duration {
-            *entry = (1, now);
-        } else {
-            entry.0 += 1;
-        }
-
-        if entry.0 > self.max_requests as u64 {
             return Box::pin(async { Err(UnifiedError::InvalidRequest.into()) });
         }
 
-        // Delegate the request to the next service in the chain
-        let service = self.service.clone();
-        Box::pin(async move { service.call(req).await.map_err(UnifiedError::from) })
+        // Rate limiting logic
+        let remote_addr =
+            req.peer_addr().map(|addr| addr.ip().to_string()).unwrap_or_else(|| "unknown".into());
+
+        let now = Instant::now();
+        let mut limiters = self.rate_limiters.lock().unwrap();
+        let entry = limiters.entry(remote_addr).or_insert((0, now));
+
+        if now.duration_since(entry.1) > self.window_duration {
+            entry.0 = 1;
+            entry.1 = now;
+        } else {
+            entry.0 += 1;
+            if entry.0 > self.max_requests as u64 {
+                return Box::pin(async { Err(UnifiedError::InvalidRequest.into()) });
+            }
+        }
+
+        // Proceed to the next service in the pipeline
+        let fut = self.service.call(req);
+        Box::pin(async move { fut.await.map_err(|e| e.into()) })
     }
 }
 
 #[cfg(test)]
-/// Test module for UnifiedMiddleware.
 mod tests {
-  use super::*;
-  use actix_web::{test, web, App, HttpResponse};
-  
-  #[actix_web::test]
+    use super::*;
+    use actix_web::{test, web, App};
+    
+    #[actix_web::test]
     async fn test_rate_limiting() {
-        // Middleware with a rate limit of 2 requests per 60 seconds
         let middleware = UnifiedMiddleware::new(
-            vec!["https://allowed-origin.com".to_string()],
+            vec!["example.com".into()],
             2,
-            Duration::from_secs(60),
-            Rc::new(|_req| true),
+            Duration::from_secs(10),
+            Rc::new(|req| req.path().starts_with("/api")),
         );
 
         let app = test::init_service(
             App::new()
                 .wrap(middleware)
-                .route("/test", web::get().to(|| async { HttpResponse::Ok().finish() })),
+                .route("/", web::get().to(|| async { HttpResponse::Ok().body("OK") })),
         )
         .await;
 
-        // First request
-        let req1 = test::TestRequest::get()
-            .uri("/test")
-            .insert_header(("Origin", "https://allowed-origin.com"))
-            .to_request();
-        let resp = test::call_service(&app, req1).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+        // First request should pass
+        let request =
+            test::TestRequest::with_uri("/").insert_header(("Host", "example.com")).to_request(); // New request
+        let response = test::call_service(&app, request).await;
+        assert_eq!(response.status(), StatusCode::OK);
 
-        // Second request
-        let req2 = test::TestRequest::get()
-            .uri("/test")
-            .insert_header(("Origin", "https://allowed-origin.com"))
-            .to_request();
-        let resp = test::call_service(&app, req2).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+        // Second request should pass within the limit
+        let request =
+            test::TestRequest::with_uri("/").insert_header(("Host", "example.com")).to_request(); // New request
+        let response = test::call_service(&app, request).await;
+        assert_eq!(response.status(), StatusCode::OK);
 
-        // Third request (exceeds the limit)
-        let req3 = test::TestRequest::get()
-            .uri("/test")
-            .insert_header(("Origin", "https://allowed-origin.com"))
-            .to_request();
-        let resp = test::call_service(&app, req3).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::TOO_MANY_REQUESTS);
+        // Third request should be blocked due to rate limiting
+        let request =
+            test::TestRequest::with_uri("/").insert_header(("Host", "example.com")).to_request(); // New request
+        let response = test::call_service(&app, request).await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
     }
 }
