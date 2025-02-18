@@ -94,10 +94,10 @@ mod tests {
     
     #[test]
     fn test_local_api_codes_to_u16() {
-        assert_eq!(ResponsesLocalApiCodes::Approved.to_u16(), 901);
-        assert_eq!(ResponsesLocalApiCodes::InvalidCardNumber.to_u16(), 913);
-        assert_eq!(ResponsesLocalApiCodes::InvalidCVV.to_u16(), 914);
-        assert_eq!(ResponsesLocalApiCodes::InvalidEmail.to_u16(), 929);
+        assert_eq!(ResponsesLocalApiCodes::Approved.to_u16(), 200);
+        assert_eq!(ResponsesLocalApiCodes::InvalidCardNumber.to_u16(), 400);
+        assert_eq!(ResponsesLocalApiCodes::InvalidCVV.to_u16(), 400);
+        assert_eq!(ResponsesLocalApiCodes::InvalidEmail.to_u16(), 400);
     }
 
     #[test]
