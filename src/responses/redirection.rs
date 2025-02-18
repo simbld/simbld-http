@@ -50,12 +50,11 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::helpers::unified_tuple_helper::UnifiedTuple;
-  use crate::responses::ResponsesRedirectionCodes;
-  use serde_json::json;
-  
-  #[test]
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesRedirectionCodes;
+    use serde_json::json;
+    
+    #[test]
     fn test_redirection_codes_to_u16() {
         assert_eq!(ResponsesRedirectionCodes::MultipleChoices.to_u16(), 300);
         assert_eq!(ResponsesRedirectionCodes::MovedPermanently.to_u16(), 301);
@@ -65,49 +64,74 @@ mod tests {
 
     #[test]
     fn test_redirection_codes_from_u16() {
-        let status = ResponsesRedirectionCodes::from_u16(301);
-        assert_eq!(status, Some(ResponsesRedirectionCodes::MovedPermanently));
+        assert_eq!(
+            ResponsesRedirectionCodes::from_u16(301),
+            Some(ResponsesRedirectionCodes::MovedPermanently)
+        );
+        assert_eq!(
+            ResponsesRedirectionCodes::from_u16(303),
+            Some(ResponsesRedirectionCodes::SeeOther)
+        );
+        assert_eq!(
+            ResponsesRedirectionCodes::from_u16(321),
+            Some(ResponsesRedirectionCodes::MovedPermanentlyRedirected)
+        );
+        assert_eq!(ResponsesRedirectionCodes::from_u16(9999), None);
     }
 
     #[test]
-    fn test_redirection_codes_as_tuple() {
-        let code = ResponsesRedirectionCodes::Found;
-        let tuple = code.as_tuple();
-        assert_eq!(
-      tuple,
-      UnifiedTuple(
-        302,
-        "Found",
-        "The resource is temporarily available at a different URI. The client should continue using the original URI for future requests. This status code is often used for URL redirection",
-        302,
-        "Found"
-      )
-    );
+    fn test_server_is_unwilling_to_process_the_request_codes_as_tuple() {
+        let code = ResponsesRedirectionCodes::ServerIsUnwillingToProcessTheRequest;
+        let tuple = UnifiedTuple {
+            code: 300,
+            name: "Multiple Choices",
+            description: "The server refuses to process the request, often due to policy restrictions. This status code is used to inform the client that the server is unwilling to process the request",
+            internal_code: Some(335),
+            internal_name: Some("Server Is Unwilling To Process The Request")
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
     }
 
     #[test]
     fn test_redirection_codes_as_json() {
-        let code = ResponsesRedirectionCodes::SeeOther;
-        let json_result = code.as_json();
+        let response_code = ResponsesRedirectionCodes::UserNameOkPasswordNeeded;
+        let json_result = response_code.as_json();
         let expected_json = json!({
-            "standard http code": {
-                "code": 303,
-                "name": "See Other"
+            "standard_http_code": {
+                "code": 300,
+                "name": "Multiple Choices"
             },
-            "internal http code": {
-                "code": 303,
-                "name": "See Other"
+            "internal_http_code": {
+                "code": 331,
+                "name": "User Name Ok Password Needed"
             },
-            "description": "The response to the request can be found under another URI, and the client should use GET to retrieve it. This status code is used to direct the client to retrieve the resource from a different URI"
+            "description": "The username is valid, but the client must provide a password to proceed. This status code is used for authentication purposes"
         });
-        assert_eq!(json_result, expected_json);
+        assert_eq!(
+            serde_json::to_string(&json_result).unwrap(),
+            serde_json::to_string(&expected_json).unwrap()
+        );
     }
 
     #[test]
-    fn test_redirection_codes_into_tuple() {
-        let code = ResponsesRedirectionCodes::TemporaryRedirect;
-        let (std_code, std_name): (u16, &'static str) = code.into();
+    fn test_temporary_redirect_codes_into_tuple() {
+        let (std_code, std_name): (u16, &'static str) =
+            ResponsesRedirectionCodes::TemporaryRedirect.into();
         assert_eq!(std_code, 307);
         assert_eq!(std_name, "Temporary Redirect");
+    }
+
+    #[test]
+    fn test_multiples_choices_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(
+            ResponsesRedirectionCodes::from_u16(355),
+            Some(ResponsesRedirectionCodes::TheParameterDoesNotExist)
+        );
+        assert_eq!(
+            ResponsesRedirectionCodes::from_u16(356),
+            Some(ResponsesRedirectionCodes::DataBLOBShouldNotBeNullForPostMethod)
+        );
     }
 }
