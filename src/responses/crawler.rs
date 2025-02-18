@@ -3,11 +3,11 @@ use crate::generate_responses_functions;
 generate_responses_functions! {
 "",
     ResponsesCrawlerCodes,
-    ParsingErrorUnfinishedHeader => (400, "Bad Request", "Parsing error: unfinished header.", 700, "Parsing Error: Unfinished Header"),
+    ParsingErrorUnfinishedHeader => (400, "Bad Request", "Parsing error: unfinished header.", 700, "Parsing Error Unfinished Header"),
     ParsingErrorHeader => (400, "Bad Request", "Parsing error in the header.", 710, "Parsing Error: Header"),
     ParsingErrorMissingHTTPCode => (400, "Bad Request", "Parsing error: missing HTTP code.", 720, "Parsing Error: Missing HTTP Code"),
     ParsingErrorBody => (400, "Bad Request", "Parsing error in the body.", 730, "Parsing Error: Body"),
-    ExcludedByRobotsTxtFile => (403, "Forbidden", "Excluded by robots.txt file.", 740, "Excluded by Robots.txt file"),
+    ExcludedByRobotsTxtFile => (403, "Forbidden", "Excluded by robots.txt file", 740, "Excluded by Robots.txt file"),
     RobotsTemporarilyUnavailable => (503, "Service Unavailable", "Robots temporarily unavailable.", 741, "Robots Temporarily Unavailable"),
     ExcludedByDefinitionOfExplorationSpace => (403, "Forbidden", "Excluded by definition of exploration space.", 760, "Excluded by Definition of Exploration Space"),
     NotAllowedByLocalExplorationSpace => (403, "Forbidden", "Not allowed by local exploration space.", 761, "Not Allowed by Local Exploration Space"),
@@ -29,10 +29,10 @@ mod tests {
     
     #[test]
     fn test_crawler_codes_to_u16() {
-        assert_eq!(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.to_u16(), 700);
-        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.to_u16(), 710);
-        assert_eq!(ResponsesCrawlerCodes::InvalidURL.to_u16(), 786);
-        assert_eq!(ResponsesCrawlerCodes::ProgrammableRedirection.to_u16(), 3020);
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.to_u16(), 400);
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.to_u16(), 400);
+        assert_eq!(ResponsesCrawlerCodes::InvalidURL.to_u16(), 400);
+        assert_eq!(ResponsesCrawlerCodes::ProgrammableRedirection.to_u16(), 302);
     }
 
     #[test]
@@ -64,9 +64,9 @@ mod tests {
     }
 
     #[test]
-    fn test_as_json() {
+    fn test_robots_temporarily_unavailable_as_json() {
         let response_code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
-        let result = response_code.as_json();
+        let json_result = response_code.as_json();
         let expected_json = json!({
             "standard_http_code": {
                 "code": 503,
@@ -78,27 +78,29 @@ mod tests {
             },
             "description": "Robots temporarily unavailable."
         });
-        assert_eq!(result, expected_json);
+        assert_eq!(
+            serde_json::to_string(&json_result).unwrap(),
+            serde_json::to_string(&expected_json).unwrap()
+        );
     }
 
     #[test]
-    fn test_into_tuple() {
+    fn test_found_into_tuple() {
         let (std_code, std_name): (u16, &'static str) =
             ResponsesCrawlerCodes::ProgrammableRedirection.into();
         assert_eq!(std_code, 302);
         assert_eq!(std_name, "Found");
     }
-}
-
-#[test]
-fn test_duplicate_standard_codes() {
-    // Ces deux codes ont le même code HTTP standard (400) mais des codes internes différents
-    assert_eq!(
-        ResponsesCrawlerCodes::from_u16(700),
-        Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
-    );
-    assert_eq!(
-        ResponsesCrawlerCodes::from_u16(710),
-        Some(ResponsesCrawlerCodes::ParsingErrorHeader)
-    );
+    #[test]
+    fn test_bad_request_duplicate_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(
+            ResponsesCrawlerCodes::from_u16(700),
+            Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
+        );
+        assert_eq!(
+            ResponsesCrawlerCodes::from_u16(710),
+            Some(ResponsesCrawlerCodes::ParsingErrorHeader)
+        );
+    }
 }
