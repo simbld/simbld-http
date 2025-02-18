@@ -43,6 +43,8 @@ generate_responses_functions! {
   LoginTimeout => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 440, "LoginTimeout"),
   OverDataQuota => (413, "Payload Too Large", "The request or resource is too large for the server to handle", 441, "OverDataQuota"),
   NoResponse => (400, "Bad Request", "The server closed the connection without sending a response", 444, "NoResponse"),
+  TooManyForwardedIPAddresses => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 445, "TooManyForwardedIPAddresses"),
+  InternetSecurityError => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 446, "InternetSecurityError"),
   RetryWith => (428, "Precondition Required", "The user has sent too many requests in a given amount of time (rate limiting).", 449, "RetryWith"),
   BlockedByWindowsParentalControls => (403, "Forbidden", "A Microsoft extension. This error is given when Windows Parental Controls are turned on and are blocking access to the given webpage.", 450, "BlockedByWindowsParentalControls"),
   UnavailableForLegalReasons => (451, "Unavailable For Legal Reasons", "A server operator has received a legal demand to deny access to a resource or to a set of resources that includes the requested resource.", 451, "UnavailableForLegalReasons"),
@@ -50,8 +52,6 @@ generate_responses_functions! {
   MethodNotValidInThisState => (405, "Method Not Allowed", "The HTTP method is not supported for the target resource", 453, "MethodNotValidInThisState"),
   UnrecoverableError => (400, "Bad Request", "The server has encountered a situation it doesn't know how to handle.", 456, "UnrecoverableError"),
   ClientClosedConnexionPrematurely => (400, "Bad Request", "The client closed the connection before the server could send a response.", 499, "ClientClosedConnexionPrematurely"),
-  TooManyForwardedIPAddresses => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 445, "TooManyForwardedIPAddresses"),
-  InternetSecurityError => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 446, "InternetSecurityError"),
   RequestHeaderTooLarge => (431, "Request Header Fields Too Large", "The server is unwilling to process the request because the header fields are too long. The request can be returned after reducing the size of the headers.", 494, "RequestHeaderTooLarge"),
   CertError => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 495, "CertError"),
   NoCert => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 496, "NoCert"),
@@ -62,11 +62,11 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::responses::ResponsesClientCodes;
-  use serde_json::json;
-  
-  #[test]
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesClientCodes;
+    use serde_json::json;
+    
+    #[test]
     fn test_to_u16() {
         assert_eq!(ResponsesClientCodes::BadRequest.to_u16(), 400);
         assert_eq!(ResponsesClientCodes::Unauthorized.to_u16(), 401);
@@ -75,49 +75,77 @@ mod tests {
     }
 
     #[test]
-    fn test_from_u16() {
-        let status = ResponsesClientCodes::from_u16(404);
-        assert_eq!(status, Some(ResponsesClientCodes::NotFound));
+    fn test_client_codes_from_u16() {
+        assert_eq!(ResponsesClientCodes::from_u16(400), Some(ResponsesClientCodes::BadRequest));
+        assert_eq!(ResponsesClientCodes::from_u16(401), Some(ResponsesClientCodes::Unauthorized));
+        assert_eq!(ResponsesClientCodes::from_u16(441), Some(ResponsesClientCodes::OverDataQuota));
+        assert_eq!(ResponsesClientCodes::from_u16(9999), None);
     }
 
     #[test]
-    fn test_invalid_code_from_u16() {
-        let status = ResponsesClientCodes::from_u16(999);
-        assert_eq!(status, None);
-    }
-
-    #[test]
-    fn test_as_tuple() {
-        let code = ResponsesClientCodes::Forbidden;
-        let http_code = code.to_http_code();
-        let tuple = http_code.as_tuple();
+    fn test_client_codes_from_internal_code() {
         assert_eq!(
-            tuple,
-            (
-                &403,
-                &"Forbidden",
-                &"The client does not have access rights to the content.",
-                &403,
-                &"Forbidden"
-            )
+            ResponsesClientCodes::from_internal_code(400),
+            Some(ResponsesClientCodes::BadRequest)
+        );
+        assert_eq!(
+            ResponsesClientCodes::from_internal_code(401),
+            Some(ResponsesClientCodes::Unauthorized)
+        );
+        assert_eq!(
+            ResponsesClientCodes::from_internal_code(441),
+            Some(ResponsesClientCodes::OverDataQuota)
+        );
+        assert_eq!(ResponsesClientCodes::from_internal_code(9999), None);
+    }
+
+    #[test]
+    fn test_client_closed_request_as_tuple() {
+        let code = ResponsesClientCodes::ClientClosedRequest;
+        let tuple = UnifiedTuple {
+            code: 400,
+            name: "Bad Request",
+            description:
+                "The client closed the connection before the server could send a response.",
+            internal_code: Some(499),
+            internal_name: Option::from("ClientClosedRequest"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
+    }
+
+    #[test]
+    fn test_too_many_forward_ip_adresses_as_json() {
+        let response_code = ResponsesClientCodes::TooManyForwardedIPAddresses;
+        let json_result = response_code.as_json();
+        let expected_json = json!({
+            "standard_http_code": {
+                "code": 400,
+                "name": "Bad Request"
+            },
+            "internal_http_code": {
+                "code": 445,
+                "name": "TooManyForwardedIPAddresses"
+            },
+            "description": "The request was rejected due to an origin server/client IP issue"
+        });
+        assert_eq!(
+            serde_json::to_string(&json_result).unwrap(),
+            serde_json::to_string(&expected_json).unwrap()
         );
     }
 
     #[test]
-    fn test_as_json() {
-        let code = ResponsesClientCodes::ImATeapot;
-        let json_result = code.as_json();
-        let expected_json = json!({
-            "standard http code": {
-                "code": 418,
-                "name": "I'm a teapot"
-            },
-            "internal http code": {
-                "code": 418,
-                "name": "I'm a teapot"
-            },
-            "description": "The waiter refuses to brew coffee with a teapot, RFC 2324."
-        });
-        assert_eq!(json_result, expected_json);
+    fn test_method_failure_into_tuple() {
+        let (std_code, std_name): (u16, &'static str) = ResponsesClientCodes::MethodFailure.into();
+        assert_eq!(std_code, 405);
+        assert_eq!(std_name, "Method Not Allowed");
+    }
+
+    #[test]
+    fn test_bad_request_duplicate_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(ResponsesClientCodes::from_u16(444), Some(ResponsesClientCodes::NoResponse));
+        assert_eq!(ResponsesClientCodes::from_u16(438), Some(ResponsesClientCodes::NoCertificate));
     }
 }
