@@ -17,12 +17,11 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::helpers::unified_tuple_helper::UnifiedTuple;
-  use crate::responses::ResponsesInformationalCodes;
-  use serde_json::json;
-  
-  #[test]
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesInformationalCodes;
+    use serde_json::json;
+    
+    #[test]
     fn test_to_16_switching_protocols() {
         assert_eq!(ResponsesInformationalCodes::ContinueRequest.to_u16(), 100);
         assert_eq!(ResponsesInformationalCodes::SwitchingProtocols.to_u16(), 101);
@@ -32,49 +31,73 @@ mod tests {
 
     #[test]
     fn test_processing_codes_from_u16() {
-        let status = ResponsesInformationalCodes::from_u16(102);
-        assert_eq!(status, Some(ResponsesInformationalCodes::Processing));
+        assert_eq!(
+            ResponsesInformationalCodes::from_u16(102),
+            Some(ResponsesInformationalCodes::Processing)
+        );
+        assert_eq!(
+            ResponsesInformationalCodes::from_u16(103),
+            Some(ResponsesInformationalCodes::EarlyHints)
+        );
+        assert_eq!(
+            ResponsesInformationalCodes::from_u16(104),
+            Some(ResponsesInformationalCodes::ConnectionResetByPeer)
+        );
+        assert_eq!(ResponsesInformationalCodes::from_u16(9999), None);
     }
 
     #[test]
     fn test_response_is_stale_codes_as_tuple() {
         let code = ResponsesInformationalCodes::ResponseIsStale;
-        let tuple = code.as_tuple();
-        assert_eq!(
-      tuple,
-      UnifiedTuple::FiveFields(
-        100,
-        "Continue",
-        "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired",
-        108,
-        "Response Is Stale"
-      )
-    );
+        let tuple = UnifiedTuple {
+            code: 100,
+            name: "Continue",
+            description: "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired",
+            internal_code: Some(108),
+            internal_name: Option::from("Response Is Stale"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
     }
 
     #[test]
     fn test_revalidation_failed_codes_as_json() {
-        let code = ResponsesInformationalCodes::RevalidationFailed;
-        let json_result = code.as_json();
+        let response_code = ResponsesInformationalCodes::RevalidationFailed;
+        let json_result = response_code.as_json();
         let expected_json = json!({
-          "standard http code": {
+          "standard_http_code": {
             "code": 100,
             "name": "Continue"
           },
-          "internal http code": {
+          "internal_http_code": {
             "code": 109,
             "name": "Revalidation Failed"
           },
           "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired"
         });
-        assert_eq!(json_result, expected_json);
+        assert_eq!(
+            serde_json::to_string(&json_result).unwrap(),
+            serde_json::to_string(&expected_json).unwrap()
+        );
     }
 
     #[test]
     fn test_continue_request_codes_into_tuple() {
-        let code = ResponsesInformationalCodes::ContinueRequest;
-        let (std_code, std_name): (u16, &'static str) = code.into();
+        let (std_code, std_name): (u16, &'static str) =
+            ResponsesInformationalCodes::ContinueRequest.into();
         assert_eq!(std_code, 100);
         assert_eq!(std_name, "Continue");
+    }
+
+    #[test]
+    fn test_continue_duplicate_standard_codes() {
+        assert_eq!(
+            ResponsesInformationalCodes::from_u16(108),
+            Some(ResponsesInformationalCodes::ResponseIsStale)
+        );
+        assert_eq!(
+            ResponsesInformationalCodes::from_u16(109),
+            Some(ResponsesInformationalCodes::RevalidationFailed)
+        );
     }
 }
