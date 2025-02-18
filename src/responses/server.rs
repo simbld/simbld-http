@@ -33,14 +33,13 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::helpers::unified_tuple_helper::UnifiedTuple;
-  use crate::responses::ResponsesServerCodes;
-  use serde_json::json;
-  
-  #[test]
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesServerCodes;
+    use serde_json::json;
+    
+    #[test]
     fn test_server_codes_to_u16() {
-        assert_eq!(ResponsesServerCodes::InternalServerErrorto_u16(), 500);
+        assert_eq!(ResponsesServerCodes::InternalServerError.to_u16(), 500);
         assert_eq!(ResponsesServerCodes::NotImplemented.to_u16(), 501);
         assert_eq!(ResponsesServerCodes::BadGateway.to_u16(), 502);
         assert_eq!(ResponsesServerCodes::ServiceUnavailable.to_u16(), 503);
@@ -48,49 +47,67 @@ mod tests {
 
     #[test]
     fn test_server_codes_from_u16() {
-        let status = ResponsesServerCodes::from_u16(501);
-        assert_eq!(status, Some(ResponsesServerCodes::NotImplemented));
-    }
-
-    #[test]
-    fn test_server_codes_as_tuple() {
-        let code = ResponsesServerCodes::BadGateway;
-        let tuple = code.as_tuple();
+        assert_eq!(ResponsesServerCodes::from_u16(501), Some(ResponsesServerCodes::NotImplemented));
+        assert_eq!(ResponsesServerCodes::from_u16(502), Some(ResponsesServerCodes::BadGateway));
         assert_eq!(
-      tuple,
-      UnifiedTuple::FiveFields(
-        502,
-        "Bad Gateway",
-        "The server, while acting as a gateway or proxy, received an invalid response from an upstream server. This could be due to the upstream server being down or misconfigured",
-        502,
-        "Bad Gateway"
-      )
-    );
+            ResponsesServerCodes::from_u16(503),
+            Some(ResponsesServerCodes::ServiceUnavailable)
+        );
+        assert_eq!(ResponsesServerCodes::from_u16(9999), None);
     }
 
     #[test]
-    fn test_server_codes_as_json() {
-        let code = ResponsesServerCodes::ServiceUnavailable;
-        let json_result = code.as_json();
+    fn test_no_site_detected_codes_as_tuple() {
+        let code = ResponsesServerCodes::NoSiteDetected;
+        let tuple = UnifiedTuple {
+            code: 500,
+            name: "Internal Server Error",
+            description: "This error is specific to certain hosting environments. For AWS, it indicates an HTTP Authentication failure, whereas for Pantheon, it means there is a problem with the site configuration, no site detected / AWS or Pantheon config error.",
+            internal_code: Some(561),
+            internal_name: Option::from("No Site Detected"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
+    }
+
+    #[test]
+    fn test_web_server_is_down_codes_as_json() {
+        let response_code = ResponsesServerCodes::WebServerIsDown;
+        let json_result = response_code.as_json();
         let expected_json = json!({
-            "standard http code": {
-                "code": 503,
-                "name": "Service Unavailable"
+            "standard_http_code": {
+                "code": 502,
+                "name": "Bad Gateway"
             },
-            "internal http code": {
-                "code": 503,
-                "name": "Service Unavailable"
+            "internal_http_code": {
+                "code": 521,
+                "name": "Web Server Is Down"
             },
-            "description": "The server is currently unable to handle the request due to temporary overloading or maintenance. This is usually a temporary state"
+            "description": "Cloudflare, unofficial is currently unreachable, likely due to downtime or maintenance. This prevents the server from processing the request, and the client should try again later"
         });
-        assert_eq!(json_result, expected_json);
+        assert_eq!(
+            serde_json::to_string(&json_result).unwrap(),
+            serde_json::to_string(&expected_json).unwrap()
+        );
     }
 
     #[test]
     fn test_server_codes_into_tuple() {
-        let code = ResponsesServerCodes::GatewayTimeout;
-        let (std_code, std_name): (u16, &'static str) = code.into();
+        let (std_code, std_name): (u16, &'static str) = ResponsesServerCodes::GatewayTimeout.into();
         assert_eq!(std_code, 504);
         assert_eq!(std_name, "Gateway Timeout");
+    }
+
+    #[test]
+    fn test_bad_gateway_duplicate_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(
+            ResponsesServerCodes::from_u16(521),
+            Some(ResponsesServerCodes::WebServerIsDown)
+        );
+        assert_eq!(
+            ResponsesServerCodes::from_u16(523),
+            Some(ResponsesServerCodes::OriginIsUnreachable)
+        );
     }
 }
