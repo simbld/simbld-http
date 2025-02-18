@@ -88,64 +88,85 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::helpers::unified_tuple_helper::UnifiedTuple;
-  use crate::responses::ResponsesLocalApiCodes;
-  use serde_json::json;
-  
-  #[test]
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesLocalApiCodes;
+    use serde_json::json;
+    
+    #[test]
     fn test_local_api_codes_to_u16() {
         assert_eq!(ResponsesLocalApiCodes::Approved.to_u16(), 901);
-        assert_eq!(ResponsesLocalApiCodes::InvalidCardNumber, 913);
+        assert_eq!(ResponsesLocalApiCodes::InvalidCardNumber.to_u16(), 913);
         assert_eq!(ResponsesLocalApiCodes::InvalidCVV.to_u16(), 914);
         assert_eq!(ResponsesLocalApiCodes::InvalidEmail.to_u16(), 929);
     }
 
     #[test]
     fn test_local_api_codes_from_u16() {
-        let status = ResponsesLocalApiCodes::from_u16(914);
-        assert_eq!(status, Some(ResponsesLocalApiCodes::InvalidCVV));
+        assert_eq!(ResponsesLocalApiCodes::from_u16(914), Some(ResponsesLocalApiCodes::InvalidCVV));
+        assert_eq!(
+            ResponsesLocalApiCodes::from_u16(929),
+            Some(ResponsesLocalApiCodes::InvalidEmail)
+        );
+        assert_eq!(
+            ResponsesLocalApiCodes::from_u16(957),
+            Some(ResponsesLocalApiCodes::InvalidGoogle)
+        );
+        assert_eq!(ResponsesLocalApiCodes::from_u16(9999), None);
     }
 
     #[test]
     fn test_local_api_codes_as_tuple() {
-        let code = ResponsesLocalApiCodes::InvalidEmail;
-        let tuple = code.as_tuple();
-        assert_eq!(
-            tuple,
-            UnifiedTuple(
-                400,
-                "Bad Request",
-                "Email address provided is invalid.",
-                929,
-                "Invalid Email"
-            )
-        );
+        let code = ResponsesLocalApiCodes::InvalidPassword;
+        let tuple = UnifiedTuple {
+            code: 400,
+            name: "Bad Request",
+            description: "Password provided is invalid.",
+            internal_code: Some(935),
+            internal_name: Option::from("Invalid Password"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
     }
 
     #[test]
     fn test_local_api_codes_as_json() {
-        let code = ResponsesLocalApiCodes::InvalidPhoneNumber;
-        let json_result = code.as_json();
+        let response_code = ResponsesLocalApiCodes::InvalidPhoneNumber;
+        let json_result = response_code.as_json();
         let expected_json = json!({
-            "standard http code": {
+            "standard_http_code": {
                 "code": 400,
                 "name": "Bad Request"
             },
-            "internal http code": {
+            "internal_http_code": {
                 "code": 928,
                 "name": "Invalid Phone Number"
             },
             "description": "Phone number provided is invalid."
         });
-        assert_eq!(json_result, expected_json);
+        assert_eq!(
+            serde_json::to_string(&json_result).unwrap(),
+            serde_json::to_string(&expected_json).unwrap()
+        );
     }
 
     #[test]
-    fn test_local_api_codes_into_tuple() {
-        let code = ResponsesLocalApiCodes::InvalidPassword;
-        let (std_code, std_name): (u16, &'static str) = code.into();
+    fn test_operation_not_supported_codes_into_tuple() {
+        let (std_code, std_name): (u16, &'static str) =
+            ResponsesLocalApiCodes::OperationNotSupported.into();
         assert_eq!(std_code, 400);
         assert_eq!(std_name, "Bad Request");
+    }
+
+    #[test]
+    fn test_bad_request_duplicate_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(
+            ResponsesLocalApiCodes::from_u16(949),
+            Some(ResponsesLocalApiCodes::InvalidWebsite)
+        );
+        assert_eq!(
+            ResponsesLocalApiCodes::from_u16(910),
+            Some(ResponsesLocalApiCodes::IncorrectPIN)
+        );
     }
 }
