@@ -5,8 +5,9 @@
 /// - Redirection (3xx)
 /// - Client (4xx)
 /// - Server (5xx)
-/// - Local API and custom codes
-/// - Service and Crawler-specific responses
+/// - Local API codes (9xx)
+/// - Service responses (6xx)
+/// - Crawler-specific responses (7xx)
 
 #[macro_use]
 pub mod actix_responder;
@@ -21,6 +22,7 @@ pub mod success;
 
 // Public exports for response codes
 use crate::helpers::get_description_field_helper::GetDescription;
+use crate::helpers::response_helpers;
 pub use actix_responder::CustomResponse;
 pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
@@ -29,14 +31,11 @@ pub use local::ResponsesLocalApiCodes;
 pub use redirection::ResponsesRedirectionCodes;
 pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
-use std::io::Read;
-use strum::EnumProperty;
-use strum::IntoEnumIterator;
 use strum_macros::EnumProperty;
 pub use success::ResponsesSuccessCodes;
 
 // Public exports for response types
-use crate::helpers::{from_u16_helper::FromU16, http_code_helper::HttpCode, to_u16_helper::ToU16};
+use crate::helpers::http_code_helper::HttpCode;
 
 /// Enum representing the main categories of HTTP response codes.
 /// Combines multiple categories into a unified type for simplified handling.
@@ -184,11 +183,21 @@ impl ResponsesTypes {
             },
         }
     }
+
+    pub fn as_normalized_json(&self) -> serde_json::Value {
+        if let Some(normalized) = response_helpers::get_response_by_type(self) {
+            normalized.as_json()
+        } else {
+            self.as_json()
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ResponsesCrawlerCodes::ExcludedByRobotsTxtFile;
+    use serde_json::json;
     
     #[test]
     fn test_to_u16() {
@@ -202,48 +211,34 @@ mod tests {
     #[test]
     fn test_as_tuple() {
         // Case where the internal and standard codes are identical
-        let tuple_result =
-            ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
-                .as_tuple();
+        let tuple_result = ResponsesTypes::Success(ResponsesSuccessCodes::Ok).as_tuple();
+        assert_eq!(tuple_result.standard_code, 200);
+        assert_eq!(tuple_result.standard_name, "OK");
+        assert_eq!(tuple_result.description, "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response");
+        assert_eq!(tuple_result.internal_code, 200);
+        assert_eq!(tuple_result.internal_name, "OK");
 
-        assert_eq!(tuple_result.standard_code, 400);
-        assert_eq!(tuple_result.standard_name, "Parsing Error");
-        assert_eq!(tuple_result.description, "Parsing error: Unfinished header.");
-        assert_eq!(tuple_result.internal_code, 400); // Identique au standard
-        assert_eq!(tuple_result.internal_name, "Parsing Error");
         // Case where the internal and standard codes are different
-        let tuple_result_diff =
-            ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ExcludedByRobotsTxtFile).as_tuple();
-
+        let tuple_result_diff = ResponsesTypes::CrawlerError(ExcludedByRobotsTxtFile).as_tuple();
         assert_eq!(tuple_result_diff.standard_code, 403);
         assert_eq!(tuple_result_diff.standard_name, "Forbidden");
-        assert_eq!(tuple_result_diff.description, "Access denied by Robots.txt file.");
-        assert_eq!(tuple_result_diff.internal_code, 700); // Différent du standard
-        assert_eq!(tuple_result_diff.internal_name, "Excluded by Robots.txt");
+        assert_eq!(tuple_result_diff.description, "Excluded by robots.txt file.");
+        assert_eq!(tuple_result_diff.internal_code, 740);
+        assert_eq!(tuple_result_diff.internal_name, "Excluded by Robots.txt file");
     }
 
     #[test]
     fn test_as_json() {
-        // Case where the internal and standard codes are identical
-        let json_value =
-            ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
-                .as_json();
-        let expected_json = serde_json::json!({
-            "code": 400,
-            "name": "Parsing Error",
-            "description": "Parsing error: Unfinished header."
-        });
-        assert_eq!(json_value, expected_json);
-
-        // Case where the internal and standard codes are different
-        let json_value =
-            ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ExcludedByRobotsTxtFile).as_json();
-        let expected_json = serde_json::json!({
-            "std_code": 403,
-            "std_name": "Forbidden",
-            "description": "Access denied by Robots.txt file.",
-            "int_code": 700,
-            "int_name": "Excluded by Robots.txt"
+        let json_value = ResponsesTypes::CrawlerError(ExcludedByRobotsTxtFile).as_json();
+        let expected_json = json!({
+            "description": "Excluded by robots.txt file",
+            "internal_http_code": {
+                "code": 740,
+                "name": "Excluded by Robots.txt file"
+            },
+            "standard_http_code": {
+                "code": 403, "name": "Forbidden"
+            }
         });
         assert_eq!(json_value, expected_json);
     }
@@ -251,9 +246,36 @@ mod tests {
     #[test]
     fn test_from_u16() {
         assert_eq!(
-            ResponsesTypes::from_u16(400),
+            ResponsesTypes::from_u16(700),
             Some(ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader))
         );
         assert_eq!(ResponsesTypes::from_u16(999), None);
     }
+}
+
+#[test]
+fn test_as_normalized() {
+    let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
+
+    // recovery via get_response_by_type
+    let normalized = response_helpers::get_response_by_type(&client_error);
+
+    // Verification that standardization is possible
+    assert_eq!(normalized, Some(ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest)));
+
+    // Verification of an unknown code
+    let unknown_code = ResponsesTypes::from_u16(9999);
+    let normalized_unknown =
+        unknown_code.as_ref().and_then(|code| response_helpers::get_response_by_type(code));
+
+    assert_eq!(normalized_unknown, None);
+}
+
+#[test]
+fn test_get_advance_response_description() {
+    let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::SSLCertificateError);
+    let (code, description) = response_helpers::get_advance_response_description(client_error);
+
+    assert_eq!(code, 400);
+    assert_eq!(description, "An invalid or untrusted SSL certificate was encountered");
 }
