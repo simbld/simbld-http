@@ -27,6 +27,12 @@ pub fn get_response_description(response: ResponsesTypes) -> (u16, &'static str)
 /// - Simulates a CORS validation by checking the `ALLOWED_ORIGIN` environment variable.
 /// - Logs warnings or debug information based on the state of the environment variable.
 pub fn get_advance_response_description(response: ResponsesTypes) -> (u16, &'static str) {
+    if let Some(normalized_response) = get_response_by_type(&response) {
+        (normalized_response.to_u16(), normalized_response.description())
+    } else {
+        (response.to_u16(), response.description())
+    };
+
     let timestamp = SystemTime::now();
 
     // Simulate a middleware call here to record logs
@@ -48,6 +54,17 @@ pub fn get_advance_response_description(response: ResponsesTypes) -> (u16, &'sta
 
 /// Matches an HTTP code and returns the corresponding `ResponsesTypes` enum.
 pub fn get_response_by_code(code: u16) -> Option<ResponsesTypes> {
+    ResponsesTypes::from_u16(code)
+}
+
+/// Matches an HTTP response type and returns the corresponding `ResponsesTypes` enum.
+/// Arguments:
+/// * `rtype`: a reference to an instance of` responsibility '.
+///
+/// refers:
+/// * `Option <A responsibility>` corresponding to the code `U16 'of the` rtype`, or `non -` if no match.
+pub fn get_response_by_type(rtype: &ResponsesTypes) -> Option<ResponsesTypes> {
+    let code = rtype.to_u16();
     ResponsesTypes::from_u16(code)
 }
 
@@ -733,5 +750,15 @@ mod tests {
         let allowed_origins = vec!["https://example.com", "https://localhost"];
         assert!(is_origin_allowed("https://example.com", &allowed_origins));
         assert!(!is_origin_allowed("https://unauthorized.com", &allowed_origins));
+    }
+
+    #[test]
+    fn test_get_response_by_type() {
+        let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
+        let result = get_response_by_type(&client_error);
+        assert_eq!(result, Some(ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest)));
+
+        let unknown_response = ResponsesTypes::from_u16(9999);
+        assert_eq!(get_response_by_type(&unknown_response.unwrap_or(client_error)), None);
     }
 }
