@@ -31,22 +31,23 @@ pub use responses::ResponsesSuccessCodes;
 // Module for tests
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::helpers::http_code_helper::HttpCode;
-  use crate::responses::ResponsesCrawlerCodes;
-  
-  /// Test `to_u16` method for `ResponsesCrawlerCodes`.
+    use super::*;
+    use crate::helpers::http_code_helper::HttpCode;
+    use crate::responses::ResponsesCrawlerCodes;
+    
+    /// Test `to_u16` method for `ResponsesCrawlerCodes`.
     #[test]
     fn test_crawler_codes_to_u16() {
-        let code = ResponsesCrawlerCodes::ParsingErrorHeader;
-        assert_eq!(code.to_u16(), 400);
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.to_u16(), 400);
     }
 
     /// Test `from_u16` method for `ResponsesCrawlerCodes`.
     #[test]
     fn test_crawler_codes_from_u16() {
-        let status = ResponsesCrawlerCodes::from_u16(400);
-        assert_eq!(status, Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader));
+        assert_eq!(
+            ResponsesCrawlerCodes::from_u16(400),
+            Some(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
+        );
     }
 
     /// Test `as_tuple` method for `ResponsesCrawlerCodes`.
