@@ -107,14 +107,35 @@ pub enum $enum_name {
             /// Attempts to construct an enum variant from a given `u16` code.
             pub fn from_u16(code: u16) -> Option<Self> {
                 match code {
-        code if code == $int_code_first => Some(Self::$first_variant),
-        $(
-            code if code == $int_code => Some(Self::$variant),
-        )*
-        _ => None,
-    }
-
+                    code if code == $int_code_first => Some(Self::$first_variant),
+                    $(
+                        code if code == $int_code => Some(Self::$variant),
+                    )*
+                    _ => None,
+                }
             }
+
+            /// Attempts to construct an enum variant from a given internal `u16` code.
+             pub fn from_internal_code(code: u16) -> Option<Self> {
+                match code {
+                    code if code == $int_code_first => Some(Self::$first_variant),
+                    $(
+                        code if code == $int_code => Some(Self::$variant),
+                    )*
+                    _ => None,
+                }
+            }
+
+            /// Returns the internal code (u16) of the response.
+            pub fn internal_code(&self) -> u16 {
+                match self {
+                    Self::$first_variant => $int_code_first,
+                    $(
+                        Self::$variant => $int_code,
+                    )*
+                }
+            }
+
 
             /// Returns a unified tuple representation.
             /// (The unified tuple type is defined separately and uses optional internal fields:
