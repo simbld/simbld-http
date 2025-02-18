@@ -23,64 +23,86 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesServiceCodes;
     use serde_json::json;
     
     #[test]
     fn test_service_codes_to_u16() {
-        assert_eq!(ResponsesServiceCodes::ReadingError.to_u16(), 611);
-        assert_eq!(ResponsesServiceCodes::ConnectionError.to_u16(), 612);
-        assert_eq!(ResponsesServiceCodes::ReadingTimeExpired.to_u16(), 613);
-        assert_eq!(ResponsesServiceCodes::SSLHandshakeFailed.to_u16(), 614);
+        assert_eq!(ResponsesServiceCodes::ReadingError.to_u16(), 500);
+        assert_eq!(ResponsesServiceCodes::ConnectionError.to_u16(), 500);
+        assert_eq!(ResponsesServiceCodes::ReadingTimeExpired.to_u16(), 500);
+        assert_eq!(ResponsesServiceCodes::SSLHandshakeFailed.to_u16(), 500);
     }
 
     #[test]
     fn test_service_codes_from_u16() {
-        let status = ResponsesServiceCodes::from_u16(611);
-        assert_eq!(status, Some(ResponsesServiceCodes::ReadingError));
+        assert_eq!(ResponsesServiceCodes::from_u16(611), Some(ResponsesServiceCodes::ReadingError));
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(613),
+            Some(ResponsesServiceCodes::ReadingTimeExpired)
+        );
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(614),
+            Some(ResponsesServiceCodes::SSLHandshakeFailed)
+        );
+        assert_eq!(ResponsesServiceCodes::from_u16(9999), None);
     }
 
     #[test]
-    fn test_service_codes_as_tuple() {
+    fn test_connection_error_codes_as_tuple() {
         let code = ResponsesServiceCodes::ConnectionError;
-        let tuple = code.as_tuple();
-        assert_eq!(
-            tuple,
-            UnifiedTuple::FiveFields(
-                500,
-                "Internal Server Error",
+        let tuple = UnifiedTuple {
+            code: 500,
+            name: "Internal Server Error",
+            description:
                 "A connection issue occurred, preventing successful communication with the server",
-                612,
-                "Connection Error"
-            )
-        );
+            internal_code: Some(612),
+            internal_name: Option::from("Connection Error"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
     }
 
     #[test]
     fn test_service_codes_as_json() {
-        let code = ResponsesServiceCodes::ReadingTimeExpired;
-        let json_result = code.as_json();
+        let response_code = ResponsesServiceCodes::ReadingTimeExpired;
+        let json_result = response_code.as_json();
         let expected_json = json!({
-            "standard http code": {
+            "standard_http_code": {
                 "code": 500,
                 "name": "Internal Server Error"
             },
-            "internal http code": {
+            "internal_http_code": {
                 "code": 613,
                 "name": "Reading Time Expired"
             },
             "description": "The reading operation exceeded the allowed time limit, resulting in a timeout"
         });
-        assert_eq!(json_result, expected_json);
+        assert_eq!(
+            serde_json::to_string(&json_result).unwrap(),
+            serde_json::to_string(&expected_json).unwrap()
+        );
     }
 
     #[test]
     fn test_service_codes_into_tuple() {
-        let code = ResponsesServiceCodes::SSLHandshakeFailed;
-        let (std_code, std_name): (u16, &'static str) = code.into();
+        let (std_code, std_name): (u16, &'static str) =
+            ResponsesServiceCodes::SSLHandshakeFailed.into();
         assert_eq!(std_code, 500);
         assert_eq!(std_name, "Internal Server Error");
+    }
+
+    #[test]
+    fn test_internal_server_error_duplicate_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(695),
+            Some(ResponsesServiceCodes::IncompleteBlockHeader)
+        );
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(699),
+            Some(ResponsesServiceCodes::UnexpectedError)
+        );
     }
 }
