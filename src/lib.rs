@@ -60,7 +60,7 @@ mod tests {
             HttpCode {
                 standard_code: 400,
                 standard_name: "Bad Request",
-                description: "Invalid URL encountered by crawler.",
+                unified_description: "Invalid URL encountered by crawler.",
                 internal_code: 786,
                 internal_name: "Invalid URL"
             }
@@ -74,14 +74,14 @@ mod tests {
         let json_result = code.as_json();
         let expected = json!({
             "standard http code": {
-                "code": 503,
-                "name": "Service Unavailable"
+                "standard_code": 503,
+                "standard_name": "Service Unavailable"
             },
             "internal http code": {
-                "code": 741,
-                "name": "Robots Temporarily Unavailable"
+                "internal_code": 741,
+                "internal_name": "Robots Temporarily Unavailable"
             },
-            "description": "Robots temporarily unavailable."
+            "unified_description": "Robots temporarily unavailable."
         });
 
         assert_eq!(json_result, expected);
