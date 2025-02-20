@@ -53,9 +53,9 @@ mod tests {
     fn test_parsing_error_missing_as_tuple() {
         let code = ResponsesCrawlerCodes::ParsingErrorMissingHTTPCode;
         let tuple = UnifiedTuple {
-            code: 400,
-            name: "Bad Request",
-            description: "Parsing error: missing HTTP code.",
+            standard_code: 400,
+            standard_name: "Bad Request",
+            unified_description: "Parsing error: missing HTTP code.",
             internal_code: Some(720),
             internal_name: Option::from("Parsing Error: Missing HTTP Code"),
         };

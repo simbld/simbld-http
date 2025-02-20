@@ -118,9 +118,9 @@ mod tests {
     fn test_local_api_codes_as_tuple() {
         let code = ResponsesLocalApiCodes::InvalidPassword;
         let tuple = UnifiedTuple {
-            code: 400,
-            name: "Bad Request",
-            description: "Password provided is invalid.",
+            standard_code: 400,
+            standard_name: "Bad Request",
+            unified_description: "Password provided is invalid.",
             internal_code: Some(935),
             internal_name: Option::from("Invalid Password"),
         };

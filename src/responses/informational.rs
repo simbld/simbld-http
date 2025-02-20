@@ -50,9 +50,9 @@ mod tests {
     fn test_response_is_stale_codes_as_tuple() {
         let code = ResponsesInformationalCodes::ResponseIsStale;
         let tuple = UnifiedTuple {
-            code: 100,
-            name: "Continue",
-            description: "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired",
+            standard_code: 100,
+            standard_name: "Continue",
+            unified_description: "The response returned by the server is stale and should be revalidated, indicating that the cached response is outdated or expired",
             internal_code: Some(108),
             internal_name: Option::from("Response Is Stale"),
         };

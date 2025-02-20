@@ -103,9 +103,9 @@ mod tests {
     fn test_client_closed_request_as_tuple() {
         let code = ResponsesClientCodes::ClientClosedRequest;
         let tuple = UnifiedTuple {
-            code: 400,
-            name: "Bad Request",
-            description:
+            standard_code: 400,
+            standard_name: "Bad Request",
+            unified_description:
                 "The client closed the connection before the server could send a response.",
             internal_code: Some(499),
             internal_name: Option::from("ClientClosedRequest"),
@@ -120,14 +120,14 @@ mod tests {
         let json_result = response_code.as_json();
         let expected_json = json!({
             "standard_http_code": {
-                "code": 400,
-                "name": "Bad Request"
+                "standard_code": 400,
+                "standard_name": "Bad Request"
             },
             "internal_http_code": {
-                "code": 445,
-                "name": "TooManyForwardedIPAddresses"
+                "internal_code": 445,
+                "internal_name": "TooManyForwardedIPAddresses"
             },
-            "description": "The request was rejected due to an origin server/client IP issue"
+            "unified_description": "The request was rejected due to an origin server/client IP issue"
         });
         assert_eq!(
             serde_json::to_string(&json_result).unwrap(),

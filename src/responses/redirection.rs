@@ -83,9 +83,9 @@ mod tests {
     fn test_server_is_unwilling_to_process_the_request_codes_as_tuple() {
         let code = ResponsesRedirectionCodes::ServerIsUnwillingToProcessTheRequest;
         let tuple = UnifiedTuple {
-            code: 300,
-            name: "Multiple Choices",
-            description: "The server refuses to process the request, often due to policy restrictions. This status code is used to inform the client that the server is unwilling to process the request",
+            standard_code: 300,
+            standard_name: "Multiple Choices",
+            unified_description: "The server refuses to process the request, often due to policy restrictions. This status code is used to inform the client that the server is unwilling to process the request",
             internal_code: Some(335),
             internal_name: Some("Server Is Unwilling To Process The Request")
         };

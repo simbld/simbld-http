@@ -60,9 +60,9 @@ mod tests {
     fn test_no_site_detected_codes_as_tuple() {
         let code = ResponsesServerCodes::NoSiteDetected;
         let tuple = UnifiedTuple {
-            code: 500,
-            name: "Internal Server Error",
-            description: "This error is specific to certain hosting environments. For AWS, it indicates an HTTP Authentication failure, whereas for Pantheon, it means there is a problem with the site configuration, no site detected / AWS or Pantheon config error.",
+            standard_code: 500,
+            standard_name: "Internal Server Error",
+            unified_description: "This error is specific to certain hosting environments. For AWS, it indicates an HTTP Authentication failure, whereas for Pantheon, it means there is a problem with the site configuration, no site detected / AWS or Pantheon config error.",
             internal_code: Some(561),
             internal_name: Option::from("No Site Detected"),
         };
