@@ -63,9 +63,9 @@ mod tests {
     fn test_load_balancer_started_codes_as_tuple() {
         let code = ResponsesSuccessCodes::LoadBalancerStarted;
         let tuple = UnifiedTuple {
-            code: 200,
-            name: "OK",
-            description: "The server has started a load balancer, and the response body contains the status of the load balancer, indicating that the server has initiated a load balancer to distribute incoming requests across multiple servers, the server response is sent by a load balancer to notify the client that a new server load balancing process has started",
+            standard_code: 200,
+            standard_name: "OK",
+            unified_description: "The server has started a load balancer, and the response body contains the status of the load balancer, indicating that the server has initiated a load balancer to distribute incoming requests across multiple servers, the server response is sent by a load balancer to notify the client that a new server load balancing process has started",
             internal_code: Some(220),
             internal_name: Option::from("Load Balancer Started"),
         };
