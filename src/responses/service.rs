@@ -53,9 +53,9 @@ mod tests {
     fn test_connection_error_codes_as_tuple() {
         let code = ResponsesServiceCodes::ConnectionError;
         let tuple = UnifiedTuple {
-            code: 500,
-            name: "Internal Server Error",
-            description:
+            standard_code: 500,
+            standard_name: "Internal Server Error",
+            unified_description:
                 "A connection issue occurred, preventing successful communication with the server",
             internal_code: Some(612),
             internal_name: Option::from("Connection Error"),
