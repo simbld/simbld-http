@@ -1,4 +1,6 @@
 use crate::generate_responses_functions;
+use crate::helpers::to_u16_helper::ToU16;
+use serde::Serialize;
 
 generate_responses_functions! {
   "",
