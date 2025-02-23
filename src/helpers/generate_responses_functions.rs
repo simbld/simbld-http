@@ -1,35 +1,34 @@
-//! Macro to generate response-related functions and implementations for enums.
-//!
-//! The macro creates an enum using all provided variant definitions and generates
-//! methods to convert an enum variant into its corresponding `HttpCode` (which returns a unified tuple
-//! with optional internal fields) and a JSON representation.
-//!
-//! In the automatically generated documentation the example is built using the **first variant**
-//! provided.
-//!
-//! # Example
-//!
-//! ```rust
-//! use simbld_http::ResponsesSuccessCodes;
-//! use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
-//!
-//! let exampleOk = ResponsesSuccessCodes::Ok;
-//! let exampleMethodNotFound = ResponsesSuccessCodes::MethodNotFound;
-//!
-//! assert_eq!(exampleOk.to_u16(), 200);
-//! assert_eq!(exampleOk.as_tuple(), UnifiedTuple(200, "OK", "The request has succeeded, the information returned with the response is dependent on the method used in the request"));
-//! assert_eq!(exampleMethodNotFound.as_tuple(), UnifiedTuple(200, "OK", "The server does not recognize the request method or lacks the capability to fulfill it, and the response body contains the status of the request, indicating that the server does not recognize the request method or lacks the capability to fulfill it, and the response body may contain the status of the request, the server is unable to process the request due to an unsupported method", 254, "Method Not Found"));
-//! }
-//! ```
-//!
-//! # Arguments
-//!
-//! - `$doc_family`: A description string for the family of response codes.
-//! - `$enum_name`: The name of the enum to generate.
-//! - Then, one or more variant definitions in the form:
-//!   - `$variant => ($std_code, $std_std_name, $desc, $int_code, $int_name)`.
-//!
-//! The **first variant** provided will be used in the documentation example.
+/// Macro to generate response-related functions and implementations for enums.
+///
+/// The macro creates an enum using all provided variant definitions and generates
+/// methods to convert an enum variant into its corresponding `HttpCode` (which returns a unified tuple
+/// with optional internal fields) and a JSON representation.
+///
+/// In the automatically generated documentation, the example is built using the **first variant** provided.
+///
+/// # Example
+///
+/// ```rust
+/// use simbld_http::ResponsesSuccessCodes;
+/// use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
+///
+/// let example_ok = ResponsesSuccessCodes::Ok;
+/// let example_method_not_found = ResponsesSuccessCodes::MethodNotFound;
+///
+/// assert_eq!(example_ok.to_u16(), 200);
+/// assert_eq!(
+///     example_ok.as_tuple(),
+///     UnifiedTuple(200, "OK", "The request has succeeded, the information returned with the response is dependent on the method used in the request")
+/// );
+/// assert_eq!(
+///     example_method_not_found.as_tuple(),
+///     UnifiedTuple(
+///         254,
+///         "Method Not Found",
+///         "The server does not recognize the request method or lacks the capability to fulfill it"
+///     )
+/// );
+/// ```
 #[macro_export]
 macro_rules! generate_responses_functions {
     (
@@ -38,7 +37,9 @@ macro_rules! generate_responses_functions {
         $first_variant:ident => ($std_code_first:expr, $std_name_first:expr, $desc_first:expr, $int_code_first:expr, $int_std_name_first:expr)
         $(, $variant:ident => ($std_code:expr, $std_name:expr, $desc:expr, $int_code:expr, $int_name:expr) )* $(,)?
     ) => {
-        #[derive(Debug, Clone, Copy, strum_macros::EnumProperty, strum_macros::EnumIter)]
+        /// Enum representing HTTP response status codes and their descriptions.
+        #[derive(Debug, Clone, Copy, Serialize, strum_macros::EnumProperty, strum_macros::EnumIter, PartialEq)]
+        #[serde(tag = "type", content = "details")]
         #[doc = $doc_family]
         #[doc = concat!(
             "\n\nEnum representing HTTP response status codes and descriptions for `",
@@ -65,12 +66,9 @@ macro_rules! generate_responses_functions {
             stringify!($int_std_name_first),
             "));\n```"
         )]
-        #[derive(PartialEq)]
-pub enum $enum_name {
+        pub enum $enum_name {
             $first_variant,
-            $(
-                $variant,
-            )*
+            $($variant,)*
         }
 
         impl $enum_name {
@@ -87,9 +85,21 @@ pub enum $enum_name {
             /// Converts the enum variant into its corresponding `HttpCode`.
             pub fn to_http_code(&self) -> crate::helpers::http_code_helper::HttpCode {
                 match self {
-                    Self::$first_variant => crate::helpers::http_code_helper::HttpCode::new($std_code_first, $std_name_first, $desc_first, $int_code_first, $int_std_name_first),
+                    Self::$first_variant => crate::helpers::http_code_helper::HttpCode::new(
+                        $std_code_first,
+                        $std_name_first,
+                        $desc_first,
+                        $int_code_first,
+                        $int_std_name_first
+                    ),
                     $(
-                        Self::$variant => crate::helpers::http_code_helper::HttpCode::new($std_code, $std_name, $desc, $int_code, $int_name),
+                        Self::$variant => crate::helpers::http_code_helper::HttpCode::new(
+                            $std_code,
+                            $std_name,
+                            $desc,
+                            $int_code,
+                            $int_name
+                        ),
                     )*
                 }
             }
@@ -116,7 +126,7 @@ pub enum $enum_name {
             }
 
             /// Attempts to construct an enum variant from a given internal `u16` code.
-             pub fn from_internal_code(code: u16) -> Option<Self> {
+            pub fn from_internal_code(code: u16) -> Option<Self> {
                 match code {
                     code if code == $int_code_first => Some(Self::$first_variant),
                     $(
@@ -136,23 +146,14 @@ pub enum $enum_name {
                 }
             }
 
-
             /// Returns a unified tuple representation.
-            /// (The unified tuple type is defined separately and uses optional internal fields:
-            /// if the standard and internal codes are equal, the internal fields are `None`.)
             pub fn as_tuple(&self) -> crate::helpers::unified_tuple_helper::UnifiedTuple {
                 self.to_http_code().as_unified_tuple()
             }
 
             /// Returns a JSON representation of the response code.
             pub fn as_json(&self) -> serde_json::Value {
-                self.to_http_code().as_json()
-            }
-        }
-
-        impl crate::helpers::to_u16_helper::ToU16 for $enum_name {
-            fn to_u16(self) -> u16 {
-                Self::to_u16(&self)
+                serde_json::to_value(self.to_http_code()).unwrap()
             }
         }
 
@@ -166,6 +167,17 @@ pub enum $enum_name {
             fn from(value: $enum_name) -> Self {
                 let http_code = value.to_http_code();
                 (http_code.standard_code, http_code.standard_name)
+            }
+        }
+
+        impl ToU16 for $enum_name {
+            fn to_u16(&self) -> u16 {
+                match self {
+                    Self::$first_variant => $std_code_first,
+                    $(
+                        Self::$variant => $std_code,
+                    )*
+                }
             }
         }
     };
