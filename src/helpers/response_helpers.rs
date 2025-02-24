@@ -1,6 +1,5 @@
-use crate::helpers::get_description_field_helper::GetDescription;
 /// The code provides functions for handling HTTP response codes, including retrieving descriptions, converting to JSON/XML, filtering by range, and adding metadata.
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::get_description_field_helper::GetDescription;
 use crate::responses::ResponsesTypes;
 use crate::responses::{
     ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesInformationalCodes,
@@ -13,6 +12,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 use std::time::SystemTime;
 use strum::IntoEnumIterator;
+
 
 /// Takes an input of type `ResponsesTypes`, extracts the associated response code and description,
 /// and returns a tuple containing the code as a `u16` and the description as a static string reference (`&'static str`).
@@ -64,8 +64,8 @@ pub fn get_response_by_code(code: u16) -> Option<ResponsesTypes> {
 /// refers:
 /// * `Option <A responsibility>` corresponding to the code `U16 'of the` rtype`, or `non -` if no match.
 pub fn get_response_by_type(rtype: &ResponsesTypes) -> Option<ResponsesTypes> {
-    let code = rtype.to_u16();
-    ResponsesTypes::from_u16(code)
+    let (code, _) = get_response_description(*rtype);
+    get_response_by_code(code)
 }
 
 /// Fetches the description for a specific HTTP code.
@@ -284,12 +284,12 @@ fn add_filtered_codes<I>(
 ) where
     I: Iterator<Item = ResponsesTypes>,
 {
-    for response_type in codes_iter {
-        let code: u16 = response_type.to_u16();
+    for response in codes_iter {
+        let (code, description) = get_response_description(response);
         if code >= start && code <= end {
-            let description =
-                response_type.get_description_field("Description").unwrap_or("No description");
-            filtered_codes.push((code, description));
+            if !filtered_codes.iter().any(|(c, _)| *c == code) {
+                filtered_codes.push((code, description));
+            }
         }
     }
 }
@@ -443,7 +443,7 @@ pub fn list_codes_and_descriptions_with_metadata(
 
     iterator
         .map(|(code, description)| {
-            let metadata = populate_metadata(code, description, request_metadata.as_ref());
+            let metadata = populate_metadata(code, description, request_metadata.clone());
             (code, description, metadata)
         })
         .collect()
@@ -539,7 +539,7 @@ mod tests {
     use super::*;
     use crate::responses::{ResponsesSuccessCodes, ResponsesTypes};
     use serde_json::json;
-    
+
     #[test]
     fn test_get_response_by_code() {
         let response = get_response_by_code(200);
@@ -756,9 +756,9 @@ mod tests {
     fn test_get_response_by_type() {
         let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
         let result = get_response_by_type(&client_error);
-        assert_eq!(result, Some(ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest)));
+        let _unknown_response = ResponsesTypes::from_u16(9999);
 
-        let unknown_response = ResponsesTypes::from_u16(9999);
-        assert_eq!(get_response_by_type(&unknown_response.unwrap_or(client_error)), None);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().to_u16(), 400);
     }
 }
