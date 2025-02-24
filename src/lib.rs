@@ -35,7 +35,7 @@ mod tests {
     use crate::helpers::http_code_helper::HttpCode;
     use crate::responses::ResponsesCrawlerCodes;
     use crate::{json, ResponsesSuccessCodes};
-    
+
     /// Test `to_u16` method for `ResponsesCrawlerCodes`.
     #[test]
     fn test_crawler_codes_to_u16() {
@@ -62,8 +62,8 @@ mod tests {
                 standard_code: 400,
                 standard_name: "Bad Request",
                 unified_description: "Invalid URL encountered by crawler.",
-                internal_code: 786,
-                internal_name: "Invalid URL"
+                internal_code: Some(786),
+                internal_name: Some("Invalid URL")
             }
         );
     }
