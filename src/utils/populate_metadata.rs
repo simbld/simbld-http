@@ -20,14 +20,14 @@ use std::collections::HashMap;
 ///
 /// let code = 404;
 /// let description = "Not Found";
-/// let request_metadata = Some(HashMap::from([("method", "GET"), ("url", "http://example.com")]));
+/// let request_metadata = Some(HashMap::from([("method", "GET"), ("url", "https://example.com")]));
 /// let metadata = populate_metadata(code, description, request_metadata);
 /// println!("{:?}", metadata);
 /// ```
 pub fn populate_metadata(
     code: u16,
     description: &str,
-    request_metadata: Option<&HashMap<&str, &str>>,
+    request_metadata: Option<HashMap<&str, &str>>,
 ) -> HashMap<String, String> {
     let mut metadata = HashMap::new();
 
