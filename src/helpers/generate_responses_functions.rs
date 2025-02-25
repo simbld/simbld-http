@@ -1,33 +1,25 @@
-/// Macro to generate response-related functions and implementations for enums.
-///
-/// The macro creates an enum using all provided variant definitions and generates
-/// methods to convert an enum variant into its corresponding `HttpCode` (which returns a unified tuple
-/// with optional internal fields) and a JSON representation.
-///
-/// In the automatically generated documentation, the example is built using the **first variant** provided.
-///
-/// # Example
-///
+/// File: generate_responses_functions.rs
+/// This file defines a macro that generates response-related functions and implementations for enums.
+/// Example usage:
 /// ```rust
-/// use simbld_http::ResponsesSuccessCodes;
+/// use simbld_http::generate_responses_functions;
+/// use simbld_http::helpers::unified_tuple_helper;
+/// use simbld_http::ResponsesClientCodes::*;
+/// use simbld_http::helpers::to_u16_helper::ToU16;
 /// use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
+/// use serde::Serialize;
 ///
-/// let example_ok = ResponsesSuccessCodes::Ok;
-/// let example_method_not_found = ResponsesSuccessCodes::MethodNotFound;
-///
-/// assert_eq!(example_ok.to_u16(), 200);
-/// assert_eq!(
-///     example_ok.as_tuple(),
-///     UnifiedTuple(200, "OK", "The request has succeeded, the information returned with the response is dependent on the method used in the request")
-/// );
-/// assert_eq!(
-///     example_method_not_found.as_tuple(),
-///     UnifiedTuple(
-///         254,
-///         "Method Not Found",
-///         "The server does not recognize the request method or lacks the capability to fulfill it"
-///     )
-/// );
+/// generate_responses_functions! {
+///     "",
+///     ResponsesClientCodes,
+///     BadRequest => (400, "Bad Request", "Example of a bad request.", 444, "Bad Request"),
+///     MethodNotFound => (404, "Not Found", "Resource not found.", 404, "NotFound"),
+///     UnrecoverableError => (456, "Unrecoverable Error", "Unrecoverable error.", 456, "UnrecoverableError"),
+///     NoResponse => (444, "No Response", "No response from the server.", 444, "NoResponse"),
+/// }
+/// let ex = BadRequest;
+/// assert_eq!(ex.to_u16(), 400);
+/// assert_eq!(ex.as_tuple(), (400, "Bad Request", "Example of a bad request.", 400, "Bad Request"));
 /// ```
 #[macro_export]
 macro_rules! generate_responses_functions {
@@ -38,8 +30,7 @@ macro_rules! generate_responses_functions {
         $(, $variant:ident => ($std_code:expr, $std_name:expr, $desc:expr, $int_code:expr, $int_name:expr) )* $(,)?
     ) => {
         /// Enum representing HTTP response status codes and their descriptions.
-        #[derive(Debug, Clone, Copy, Serialize, strum_macros::EnumProperty, strum_macros::EnumIter, PartialEq)]
-        #[serde(tag = "type", content = "details")]
+        #[derive(Debug, Clone, Copy, PartialEq, EnumIter)]
         #[doc = $doc_family]
         #[doc = concat!(
             "\n\nEnum representing HTTP response status codes and descriptions for `",
@@ -47,8 +38,9 @@ macro_rules! generate_responses_functions {
             "`. This file defines the following methods:\n",
             "- `to_http_code`: Converts the enum variant to its corresponding `HttpCode`.\n",
             "- `to_u16`: Returns the standard code as `u16`.\n",
-            "- `from_u16`: Constructs an enum variant from a given `u16` code.\n",
-            "- `as_tuple`: Returns a unified tuple representation (internal fields are optional).\n",
+            "- `from_u16`: Constructs an enum variant from a given `u16` code (first matching standard, then internal).\n",
+            "- `from_internal_code`: Constructs an enum variant from a given internal `u16` code.\n",
+            "- `as_tuple`: Returns a unified tuple representation.\n",
             "- `as_json`: Returns a JSON representation.\n\n",
             "# Example\n```rust\nuse simbld_http::responses::",
             stringify!($enum_name),
@@ -69,6 +61,21 @@ macro_rules! generate_responses_functions {
         pub enum $enum_name {
             $first_variant,
             $($variant,)*
+        }
+
+        /// Custom Serialize implementation to include both "type" and "details" fields.
+        impl serde::Serialize for $enum_name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                use serde::ser::SerializeStruct;
+                let http_code = self.to_http_code();
+                let mut state = serializer.serialize_struct(stringify!($enum_name), 2)?;
+                state.serialize_field("type", $doc_family)?;
+                state.serialize_field("details", &http_code)?;
+                state.end()
+            }
         }
 
         impl $enum_name {
@@ -114,26 +121,30 @@ macro_rules! generate_responses_functions {
                 }
             }
 
-            /// Attempts to construct an enum variant from a given `u16` code.
+            /// Constructs an enum variant from a given u16 code.
+            /// It first checks standard codes, then internal codes.
             pub fn from_u16(code: u16) -> Option<Self> {
-                match code {
-                    code if code == $int_code_first => Some(Self::$first_variant),
-                    $(
-                        code if code == $int_code => Some(Self::$variant),
-                    )*
-                    _ => None,
-                }
+                if code == $std_code_first { return Some(Self::$first_variant); }
+                $(
+                    if code == $std_code { return Some(Self::$variant); }
+                )*
+                if code == $int_code_first { return Some(Self::$first_variant); }
+                $(
+                    if code == $int_code { return Some(Self::$variant); }
+                )*
+                None
             }
 
-            /// Attempts to construct an enum variant from a given internal `u16` code.
+            /// Attempts to create a standardized enumeration variant from the HTTP code `U16 '' which is internal to it.
+            /// returns "none" if no variant corresponds.
             pub fn from_internal_code(code: u16) -> Option<Self> {
-                match code {
-                    code if code == $int_code_first => Some(Self::$first_variant),
-                    $(
-                        code if code == $int_code => Some(Self::$variant),
-                    )*
-                    _ => None,
-                }
+              match code {
+                  $int_code_first => Some(Self::$first_variant),
+                  $(
+                      $int_code => Some(Self::$first_variant),
+                  )*
+                  _ => None,
+              }
             }
 
             /// Returns the internal code (u16) of the response.
@@ -153,16 +164,11 @@ macro_rules! generate_responses_functions {
 
             /// Returns a JSON representation of the response code.
             pub fn as_json(&self) -> serde_json::Value {
-                serde_json::to_value(self.to_http_code()).unwrap()
+                serde_json::to_value(self).unwrap()
             }
         }
 
-        impl crate::helpers::from_u16_helper::FromU16 for $enum_name {
-            fn from_u16(code: u16) -> Option<Self> {
-                Self::from_u16(code)
-            }
-        }
-
+        /// Implementation for converting the enum into a tuple `(u16, &'static str)`.
         impl From<$enum_name> for (u16, &'static str) {
             fn from(value: $enum_name) -> Self {
                 let http_code = value.to_http_code();
@@ -170,6 +176,7 @@ macro_rules! generate_responses_functions {
             }
         }
 
+        /// Implementation of the `ToU16` trait for the enum.
         impl ToU16 for $enum_name {
             fn to_u16(&self) -> u16 {
                 match self {
@@ -180,5 +187,100 @@ macro_rules! generate_responses_functions {
                 }
             }
         }
-    };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesClientCodes;
+
+    #[test]
+    fn test_description() {
+        let ex = ResponsesClientCodes::BadRequest;
+        assert_eq!(ex.description(), "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing)." );
+    }
+
+    #[test]
+    fn test_to_http_code() {
+        let ex = ResponsesClientCodes::PageExpired;
+        let expected = crate::helpers::http_code_helper::HttpCode::new(
+            401,
+            "Unauthorized",
+            "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.",
+            419,
+            "PageExpired");
+
+        assert_eq!(ex.to_http_code(), expected);
+    }
+
+    #[test]
+    fn test_to_u16() {
+        let ex = ResponsesClientCodes::BadRequest;
+        assert_eq!(ex.to_u16(), 400);
+    }
+
+    #[test]
+    fn test_from_internal_code() {
+        assert_eq!(
+            ResponsesClientCodes::from_internal_code(444),
+            Some(ResponsesClientCodes::BadRequest)
+        );
+        assert_eq!(
+            ResponsesClientCodes::from_internal_code(445),
+            Some(ResponsesClientCodes::BadRequest)
+        );
+        assert_eq!(ResponsesClientCodes::from_internal_code(492), None);
+    }
+
+    #[test]
+    fn test_as_tuple() {
+        let ex = ResponsesClientCodes::BadRequest;
+        let expected = UnifiedTuple {
+            standard_code: 400,
+            standard_name: "Bad Request",
+            unified_description:
+                "The server cannot or will not process the request due to something \
+                that is perceived to be a client error (e.g., malformed request \
+                syntax, invalid request message framing, or deceptive request \
+                routing).",
+            internal_code: None,
+            internal_name: None,
+        };
+
+        assert_eq!(ex.as_tuple(), expected);
+    }
+
+    #[test]
+    fn test_as_json() {
+        let ex = ResponsesClientCodes::BadRequest;
+        let expected = serde_json::json!({
+        "type": "Client errors",
+        "details": {
+            "standard_code": 400,
+            "standard_name": "Bad Request",
+            "unified_description": "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).",
+            "internal_code": null,
+            "internal_name": null
+          }
+        });
+
+        assert_eq!(ex.as_json(), expected);
+    }
+
+    #[test]
+    fn test_from_u16() {
+        assert_eq!(ResponsesClientCodes::from_u16(400), Some(ResponsesClientCodes::BadRequest));
+        assert_eq!(
+            ResponsesClientCodes::from_u16(456),
+            Some(ResponsesClientCodes::UnrecoverableError)
+        );
+        assert_eq!(ResponsesClientCodes::from_u16(500), None);
+    }
+
+    #[test]
+    fn test_internal_code() {
+        let ex = ResponsesClientCodes::NoResponse;
+        assert_eq!(ex.internal_code(), 444);
+    }
 }
