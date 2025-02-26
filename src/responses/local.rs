@@ -1,9 +1,9 @@
 use crate::generate_responses_functions;
 use crate::helpers::to_u16_helper::ToU16;
-use serde::Serialize;
+use strum_macros::EnumIter;
 
 generate_responses_functions! {
-"",
+"Local responses",
   ResponsesLocalApiCodes,
   ApprovedNoActionRequired => (200, "OK", "Operation approved, no action needed.", 900, "Approved No Action Required"),
   Approved => (200, "OK", "Operation successfully approved.", 901, "Approved"),
@@ -93,7 +93,7 @@ mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesLocalApiCodes;
     use serde_json::json;
-    
+
     #[test]
     fn test_local_api_codes_to_u16() {
         assert_eq!(ResponsesLocalApiCodes::Approved.to_u16(), 200);
@@ -139,11 +139,11 @@ mod tests {
                 "code": 400,
                 "name": "Bad Request"
             },
+            "description": "Phone number provided is invalid.",
             "internal_http_code": {
                 "code": 928,
                 "name": "Invalid Phone Number"
             },
-            "description": "Phone number provided is invalid."
         });
         assert_eq!(
             serde_json::to_string(&json_result).unwrap(),
