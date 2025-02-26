@@ -1,9 +1,9 @@
 use crate::generate_responses_functions;
 use crate::helpers::to_u16_helper::ToU16;
-use serde::Serialize;
+use strum_macros::EnumIter;
 
 generate_responses_functions! {
-  "",
+  "Redirection responses",
   ResponsesRedirectionCodes,
   MultipleChoices => (300, "Multiple Choices", "The request has more than one possible response. The user-agent or user should choose one of them. There is no standardized way of choosing one of the responses, but HTML links to the possibilities are recommended so the user can pick manually", 300, "Multiple Choices"),
   MovedPermanently => (301, "Moved Permanently", "The resource has been permanently moved to a new URI. Future requests should use the new URI. This status code is typically used for URL redirection", 301, "Moved Permanently"),
@@ -55,7 +55,7 @@ mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesRedirectionCodes;
     use serde_json::json;
-    
+
     #[test]
     fn test_redirection_codes_to_u16() {
         assert_eq!(ResponsesRedirectionCodes::MultipleChoices.to_u16(), 300);
