@@ -1,9 +1,9 @@
 use crate::generate_responses_functions;
 use crate::helpers::to_u16_helper::ToU16;
-use serde::Serialize;
+use strum_macros::EnumIter;
 
 generate_responses_functions! {
-  "",
+  "Successful responses",
   ResponsesSuccessCodes,
   Ok => (200, "OK", "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response", 200, "OK"),
   Created => (201, "Created", "Request processed successfully and document created, with a new resource created, and the URI of the new resource returned, if available", 201, "Created"),
@@ -41,7 +41,7 @@ mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesSuccessCodes;
     use serde_json::json;
-    
+
     #[test]
     fn test_success_codes_to_u16() {
         assert_eq!(ResponsesSuccessCodes::Ok.to_u16(), 200);
