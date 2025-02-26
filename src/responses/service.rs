@@ -1,9 +1,9 @@
 use crate::generate_responses_functions;
 use crate::helpers::to_u16_helper::ToU16;
-use serde::Serialize;
+use strum_macros::EnumIter;
 
 generate_responses_functions! {
-  "",
+  "Service responses",
   ResponsesServiceCodes,
   ReadingError => (500, "Internal Server Error", "An error occurred while reading the response or data from the server", 611, "Reading Error"),
   ConnectionError => (500, "Internal Server Error", "A connection issue occurred, preventing successful communication with the server", 612, "Connection Error"),
@@ -28,7 +28,7 @@ mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesServiceCodes;
     use serde_json::json;
-    
+
     #[test]
     fn test_service_codes_to_u16() {
         assert_eq!(ResponsesServiceCodes::ReadingError.to_u16(), 500);
