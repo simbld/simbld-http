@@ -1,9 +1,9 @@
 use crate::generate_responses_functions;
 use crate::helpers::to_u16_helper::ToU16;
-use serde::Serialize;
+use strum_macros::EnumIter;
 
 generate_responses_functions! {
-"",
+"Crawler responses",
     ResponsesCrawlerCodes,
     ParsingErrorUnfinishedHeader => (400, "Bad Request", "Parsing error: unfinished header.", 700, "Parsing Error Unfinished Header"),
     ParsingErrorHeader => (400, "Bad Request", "Parsing error in the header.", 710, "Parsing Error: Header"),
@@ -27,8 +27,7 @@ generate_responses_functions! {
 mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesCrawlerCodes;
-    use serde_json::json;
-    
+
     #[test]
     fn test_crawler_codes_to_u16() {
         assert_eq!(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.to_u16(), 400);
@@ -69,21 +68,21 @@ mod tests {
     fn test_robots_temporarily_unavailable_as_json() {
         let response_code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
         let json_result = response_code.as_json();
-        let expected_json = json!({
-            "standard_http_code": {
-                "code": 503,
-                "name": "Service Unavailable"
-            },
-            "internal_http_code": {
-                "code": 741,
-                "name": "Robots Temporarily Unavailable"
-            },
-            "description": "Robots temporarily unavailable."
+        let expected_json = serde_json::json!({
+            "type": "Crawler responses",
+            "details": {
+                "standard http code": {
+                    "code": 503,
+                    "name": "Service Unavailable"
+                },
+                "description": "Robots temporarily unavailable.",
+                "internal http code": {
+                    "code": 741,
+                    "name": "Robots Temporarily Unavailable"
+                }
+            }
         });
-        assert_eq!(
-            serde_json::to_string(&json_result).unwrap(),
-            serde_json::to_string(&expected_json).unwrap()
-        );
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]
