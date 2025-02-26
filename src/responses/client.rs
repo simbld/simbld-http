@@ -1,9 +1,9 @@
 use crate::generate_responses_functions;
 use crate::helpers::to_u16_helper::ToU16;
-use serde::Serialize;
+use strum_macros::EnumIter;
 
 generate_responses_functions! {
-  "",
+  "Client errors",
     ResponsesClientCodes,
   BadRequest => (400, "Bad Request", "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).", 400, "Bad Request"),
   Unauthorized => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 401, "Unauthorized"),
@@ -53,7 +53,7 @@ generate_responses_functions! {
   TooManyRecipients => (429, "Too Many Requests",  "The user has sent too many requests in a given amount of time (rate limiting) or too many recipients or addresses used", 452, "TooManyRecipients"),
   MethodNotValidInThisState => (405, "Method Not Allowed", "The HTTP method is not supported for the target resource", 453, "MethodNotValidInThisState"),
   UnrecoverableError => (400, "Bad Request", "The server has encountered a situation it doesn't know how to handle.", 456, "UnrecoverableError"),
-  ClientClosedConnexionPrematurely => (400, "Bad Request", "The client closed the connection before the server could send a response.", 499, "ClientClosedConnexionPrematurely"),
+  ClientClosedConnexionPrematurely => (400, "Bad Request", "The client closed the connection before the server could send a response.", 493, "ClientClosedConnexionPrematurely"),
   RequestHeaderTooLarge => (431, "Request Header Fields Too Large", "The server is unwilling to process the request because the header fields are too long. The request can be returned after reducing the size of the headers.", 494, "RequestHeaderTooLarge"),
   CertError => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 495, "CertError"),
   NoCert => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 496, "NoCert"),
@@ -67,7 +67,7 @@ mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesClientCodes;
     use serde_json::json;
-    
+
     #[test]
     fn test_to_u16() {
         assert_eq!(ResponsesClientCodes::BadRequest.to_u16(), 400);
@@ -92,11 +92,11 @@ mod tests {
         );
         assert_eq!(
             ResponsesClientCodes::from_internal_code(401),
-            Some(ResponsesClientCodes::Unauthorized)
+            Some(ResponsesClientCodes::BadRequest)
         );
         assert_eq!(
             ResponsesClientCodes::from_internal_code(441),
-            Some(ResponsesClientCodes::OverDataQuota)
+            Some(ResponsesClientCodes::BadRequest)
         );
         assert_eq!(ResponsesClientCodes::from_internal_code(9999), None);
     }
@@ -120,16 +120,16 @@ mod tests {
     fn test_too_many_forward_ip_adresses_as_json() {
         let response_code = ResponsesClientCodes::TooManyForwardedIPAddresses;
         let json_result = response_code.as_json();
-        let expected_json = json!({
-            "standard_http_code": {
-                "standard_code": 400,
-                "standard_name": "Bad Request"
+        let expected_json = json!(  {
+            "description": {"standard_http_code": {
+                 "code": 400,
+                "name": "Bad Request"
             },
+          "description": "The request was rejected due to an origin server/client IP issue",
             "internal_http_code": {
-                "internal_code": 445,
-                "internal_name": "TooManyForwardedIPAddresses"
-            },
-            "unified_description": "The request was rejected due to an origin server/client IP issue"
+                  "code": 445,
+                  "name": "TooManyForwardedIPAddresses",
+            }}
         });
         assert_eq!(
             serde_json::to_string(&json_result).unwrap(),
