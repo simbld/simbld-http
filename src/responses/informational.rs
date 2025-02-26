@@ -1,9 +1,9 @@
 use crate::generate_responses_functions;
 use crate::helpers::to_u16_helper::ToU16;
-use serde::Serialize;
+use strum_macros::EnumIter;
 
 generate_responses_functions! {
-"",
+"Informational responses",
   ResponsesInformationalCodes,
   ContinueRequest => (100, "Continue", "The server has received the initial part of the request, the headers, and asks the client to continue request, proceed to send the body of the request, a POST request", 100, "Continue Request"),
   SwitchingProtocols => (101, "Switching Protocols", "The server is complying with a request to switch protocols, used in WebSocket connections", 101, "Switching Protocols"),
@@ -22,7 +22,7 @@ mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesInformationalCodes;
     use serde_json::json;
-    
+
     #[test]
     fn test_to_16_switching_protocols() {
         assert_eq!(ResponsesInformationalCodes::ContinueRequest.to_u16(), 100);
@@ -67,16 +67,11 @@ mod tests {
         let response_code = ResponsesInformationalCodes::RevalidationFailed;
         let json_result = response_code.as_json();
         let expected_json = json!({
-          "standard_http_code": {
-            "code": 100,
-            "name": "Continue"
-          },
-          "internal_http_code": {
-            "code": 109,
-            "name": "Revalidation Failed"
-          },
-          "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired"
+            "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired",
+            "internal_http_code": { "code": 109, "name": "Revalidation Failed" },
+            "standard_http_code": { "code": 100, "name": "Continue" }
         });
+
         assert_eq!(
             serde_json::to_string(&json_result).unwrap(),
             serde_json::to_string(&expected_json).unwrap()
