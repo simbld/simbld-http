@@ -10,16 +10,34 @@
 /// use serde::Serialize;
 ///
 /// generate_responses_functions! {
-///     "",
+///     "Client errors",
 ///     ResponsesClientCodes,
 ///     BadRequest => (400, "Bad Request", "Example of a bad request.", 444, "Bad Request"),
 ///     MethodNotFound => (404, "Not Found", "Resource not found.", 404, "NotFound"),
 ///     UnrecoverableError => (456, "Unrecoverable Error", "Unrecoverable error.", 456, "UnrecoverableError"),
 ///     NoResponse => (444, "No Response", "No response from the server.", 444, "NoResponse"),
 /// }
-/// let ex = BadRequest;
-/// assert_eq!(ex.to_u16(), 400);
-/// assert_eq!(ex.as_tuple(), (400, "Bad Request", "Example of a bad request.", 400, "Bad Request"));
+/// assert_eq!(BadRequest.to_u16(), 400);
+/// assert_eq!(BadRequest.to_http_code().standard_name, "Bad Request");
+/// assert_eq!(BadRequest.description(), "Example of a bad request.");
+/// assert_eq!(BadRequest.internal_code(), 444);
+/// assert_eq!(BadRequest.as_tuple(), UnifiedTuple {
+///    standard_code: 400,
+///   standard_name: "Bad Request",
+///  unified_description: "Example of a bad request.",
+/// internal_code: Some(444),
+/// internal_name: Option::from("Bad Request"),
+/// });
+/// assert_eq!(BadRequest.as_json(), serde_json::json!({
+///     "type": "Client errors",
+///     "details": {
+///         "standard_code": 400,
+///         "standard_name": "Bad Request",
+///         "unified_description": "Example of a bad request.",
+///         "internal_code": 444,
+///         "internal_name": "Bad Request",
+///     },
+/// }));
 /// ```
 #[macro_export]
 macro_rules! generate_responses_functions {
@@ -64,16 +82,20 @@ macro_rules! generate_responses_functions {
         }
 
         /// Custom Serialize implementation to include both "type" and "details" fields.
-        impl serde::Serialize for $enum_name {
+       impl serde::Serialize for $enum_name {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: serde::Serializer,
             {
+                // Convert the enum variant into its unified HTTP code tuple.
+                // Example: let unified = self.to_http_code().as_unified_tuple();
+                let unified = self.to_http_code().as_unified_tuple();
                 use serde::ser::SerializeStruct;
-                let http_code = self.to_http_code();
                 let mut state = serializer.serialize_struct(stringify!($enum_name), 2)?;
+                // Serialize the "type" field using the provided doc_family.
                 state.serialize_field("type", $doc_family)?;
-                state.serialize_field("details", &http_code)?;
+                // Serialize the "details" field using the custom JSON structure from as_json().
+                state.serialize_field("details", &unified.as_json())?;
                 state.end()
             }
         }
@@ -253,19 +275,28 @@ mod tests {
 
     #[test]
     fn test_as_json() {
+        // Use the BadRequest variant from the client error responses.
         let ex = ResponsesClientCodes::BadRequest;
-        let expected = serde_json::json!({
-        "type": "Client errors",
-        "details": {
-            "standard_code": 400,
-            "standard_name": "Bad Request",
-            "unified_description": "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).",
-            "internal_code": null,
-            "internal_name": null
-          }
+        let ex_json = ex.as_json();
+
+        // Define the expected JSON with exact field names.
+        let expected_json = serde_json::json!({
+            "type": "Client errors",
+            "details": {
+                "standard http code": {
+                    "code": 400,
+                    "name": "Bad Request"
+                },
+                "description": "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).",
+                "internal http code": {
+                    "code": null,
+                    "name": null
+                }
+            }
         });
 
-        assert_eq!(ex.as_json(), expected);
+        // Assert that both JSON structures are identical.
+        assert_eq!(ex_json, expected_json);
     }
 
     #[test]
