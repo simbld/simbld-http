@@ -1,52 +1,35 @@
-use crate::helpers::json_serializable::JsonSerializable;
 /// This file defines the HttpCode struct which represents detailed HTTP code metadata.
 /// The as_unified_tuple method returns a UnifiedTuple struct with optional internal fields.
 /// If standard_code equals internal_code, the optional fields are None; otherwise they are Some(...).
 /// Example: HttpCode::new(202, "Accepted", "Success", 202, "Accepted") returns a UnifiedTuple with None for internal_code and internal_name.
-use crate::helpers::unified_tuple_helper::UnifiedTuple;
-use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
 
-#[derive(Debug, Clone, PartialEq)]
+
+#[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub struct HttpCode {
-    /// Standard HTTP code.
+    /// Standard HTTP status code.
     pub standard_code: u16,
-    /// Standard HTTP name.
+    /// Standard HTTP status message.
     pub standard_name: &'static str,
-    /// Description of the HTTP response.
+    /// Unified description of the HTTP response.
     pub unified_description: &'static str,
-    /// Internal HTTP code.
-    pub internal_code: u16,
-    /// Internal HTTP name.
-    pub internal_name: &'static str,
+    /// Optional internal HTTP status code.
+    pub internal_code: Option<u16>,
+    /// Optional internal HTTP status name.
+    pub internal_name: Option<&'static str>,
 }
 
-impl JsonSerializable for HttpCode {
-    fn as_json(&self) -> serde_json::Value {
-        // Appelle `serde_json::to_value` pour convertir ce type en JSON
-        serde_json::to_value(self).unwrap()
-    }
-}
-
-impl Serialize for HttpCode {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("HttpCode", 3)?;
-        state.serialize_field("standard_code", &self.standard_code)?;
-        state.serialize_field("standard_name", &self.standard_name)?;
-        state.serialize_field("unified_description", &self.unified_description)?;
-
-        if self.standard_code != self.internal_code {
-            state.serialize_field("internal_code", &self.internal_code)?;
-            state.serialize_field("internal_name", &self.internal_name)?;
-        }
-
-        state.end()
+impl HttpCode {
+    pub fn to_u16(&self) -> u16 {
+        self.standard_code
     }
 }
 
 impl HttpCode {
-    /// Creates a new HttpCode.
-    /// Example: HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted")
+    /// Creates a new HttpCode instance.
+    /// If `standard_code` equals `internal_code`, then internal fields are set to None.
+    /// Example:
+    /// let code = HttpCode::new(200, "OK", "Successful request", 200, "OK");
     pub fn new(
         standard_code: u16,
         standard_name: &'static str,
@@ -54,28 +37,29 @@ impl HttpCode {
         internal_code: u16,
         internal_name: &'static str,
     ) -> Self {
-        Self { standard_code, standard_name, unified_description, internal_code, internal_name }
+        let (int_code, int_name) = if standard_code == internal_code {
+            (None, None)
+        } else {
+            (Some(internal_code), Some(internal_name))
+        };
+        HttpCode {
+            standard_code,
+            standard_name,
+            unified_description,
+            internal_code: int_code,
+            internal_name: int_name,
+        }
     }
 
-    /// Returns a unified tuple representation.
-    /// If standard_code equals internal_code, internal fields are set to None.
-    pub fn as_unified_tuple(&self) -> UnifiedTuple {
-        if self.standard_code == self.internal_code {
-            UnifiedTuple {
-                standard_code: self.standard_code,
-                standard_name: self.standard_name,
-                unified_description: self.unified_description,
-                internal_code: None,
-                internal_name: None,
-            }
-        } else {
-            UnifiedTuple {
-                standard_code: self.standard_code,
-                standard_name: self.standard_name,
-                unified_description: self.unified_description,
-                internal_code: Some(self.internal_code),
-                internal_name: Some(self.internal_name),
-            }
+    /// Returns a unified tuple representation of the HttpCode.
+    /// Example: let tuple = code.as_unified_tuple();
+    pub fn as_unified_tuple(&self) -> crate::helpers::unified_tuple_helper::UnifiedTuple {
+        crate::helpers::unified_tuple_helper::UnifiedTuple {
+            standard_code: self.standard_code,
+            standard_name: self.standard_name,
+            unified_description: self.unified_description,
+            internal_code: self.internal_code,
+            internal_name: self.internal_name,
         }
     }
 }
@@ -83,41 +67,71 @@ impl HttpCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use serde_json::json;
-    
-    #[test]
-    fn test_serialize_http_code_without_internal_diff() {
-        // Exemple standard où le code et le nom internes sont identiques aux standards
-        let http_code = HttpCode::new(200, "OK", "Request completed", 200, "OK");
 
-        let json_value = serde_json::to_value(http_code).unwrap();
-        // Attente d'un résultat JSON simplifié
-        assert_eq!(
-            json_value,
-            json!({
-                "standard_code": 200,
-                "standard_name": "OK",
-                "unified_description": "Request completed"
-            })
-        );
+    #[test]
+    fn test_http_code_new() {
+        let http_code = HttpCode::new(200, "ContentDeleted", "File deleted", 215, "Accepted");
+        assert_eq!(http_code.standard_code, 200);
+        assert_eq!(http_code.standard_name, "ContentDeleted");
+        assert_eq!(http_code.unified_description, "File deleted");
+        assert_eq!(http_code.internal_code, Some(215));
+        assert_eq!(http_code.internal_name, Some("Accepted"));
     }
 
     #[test]
-    fn test_serialize_http_code_with_internal_diff() {
-        // Exemple où interne != standard
-        let http_code = HttpCode::new(403, "Forbidden", "Access Denied", 9998, "Custom Forbidden");
+    fn test_http_code_as_unified_tuple() {
+        let http_code = HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted");
+        let unified_tuple = http_code.as_unified_tuple();
+        let expected_tuple = UnifiedTuple {
+            standard_code: 202,
+            standard_name: "Accepted",
+            unified_description: "Request processed",
+            internal_code: None,
+            internal_name: None,
+        };
+        assert_eq!(unified_tuple, expected_tuple);
+    }
 
-        let json_value = serde_json::to_value(http_code).unwrap();
-        // Attente d'un résultat avec les champs internes ajoutés
-        assert_eq!(
-            json_value,
-            json!({
-                "standard_code": 403,
-                "standard_name": "Forbidden",
-                "unified_description": "Access Denied",
-                "internal_code": 9998,
-                "internal_name": "Custom Forbidden"
-            })
+    #[test]
+    fn test_http_code_as_unified_tuple_with_internal() {
+        let http_code = HttpCode::new(
+            202,
+            "Accepted",
+            "Request processed",
+            203,
+            "Non-Authoritative Information",
         );
+        let unified_tuple = http_code.as_unified_tuple();
+        let expected_tuple = UnifiedTuple {
+            standard_code: 202,
+            standard_name: "Accepted",
+            unified_description: "Request processed",
+            internal_code: Some(203),
+            internal_name: Some("Non-Authoritative Information"),
+        };
+        assert_eq!(unified_tuple, expected_tuple);
+    }
+
+    #[test]
+    fn test_http_code_to_u16() {
+        let http_code = HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted");
+        assert_eq!(http_code.to_u16(), 202);
+    }
+
+    #[test]
+    fn test_http_code_as_json() {
+        let http_code = HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted");
+        let unified_tuple = http_code.as_unified_tuple();
+        let json_result = serde_json::to_value(&unified_tuple).unwrap();
+        let expected_json = json!({
+            "standard_code": 202,
+            "standard_name": "Accepted",
+            "unified_description": "Request processed",
+            "internal_code": null,
+            "internal_name": null
+        });
+        assert_eq!(json_result, expected_json);
     }
 }
