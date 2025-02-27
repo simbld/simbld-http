@@ -16,11 +16,23 @@ pub struct CustomResponse {
     pub data: String,
 }
 
-/// Associated functions (constructor, etc.) for `CustomResponse`.
 impl CustomResponse {
-    /// Creates a new `CustomResponse` with owned Strings (no lifetimes constraints).
-    pub fn new(http_code: HttpCode, data: impl Into<String>) -> Self {
-        Self { http_code, data: data.into() }
+    /// Creates a new `CustomResponse` from an HTTP code (standard or internal)
+    /// and some relevant data.
+    ///
+    /// # Example
+    /// ```
+    /// use simbld_http::responses::CustomResponse;
+    /// use simbld_http::helpers::http_code_helper::HttpCode;
+    ///
+    /// let response = CustomResponse::new(200, "Success Message");
+    /// assert_eq!(response.http_code.standard_code, 200);
+    /// assert_eq!(response.data, "Success Message".to_string());
+    /// ```
+    pub fn new(http_code: u16, data: impl Into<String>) -> Self {
+        let resolved_http_code = HttpCode::new(http_code, "OK", "Success", http_code, "OK");
+
+        Self { http_code: resolved_http_code, data: data.into() }
     }
 }
 
@@ -36,7 +48,7 @@ impl Responder for CustomResponse {
         .json(json!({
             "status": self.http_code.standard_code,
             "name": self.http_code.standard_name,
-            "description": self.http_code.description,
+            "description": self.http_code.unified_description,
             "data": self.data,
         }))
     }
@@ -57,19 +69,19 @@ pub async fn custom_response_handler(
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use actix_web::{http::StatusCode, test, web, App};
-  
-  #[actix_web::test]
+    use super::*;
+    use actix_web::{http::StatusCode, test, web, App};
+
+    #[actix_web::test]
     async fn test_custom_response_responder() {
         // Step 1: Create a custom response
         let custom_response = CustomResponse {
             http_code: HttpCode {
                 standard_code: 200,
                 standard_name: "OK",
-                description: "Success",
-                internal_code: 0,
-                internal_name: "Internal OK",
+                unified_description: "Success",
+                internal_code: Some(200),
+                internal_name: Some("OK"),
             },
             data: "Test data".to_string(),
         };
