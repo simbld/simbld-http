@@ -31,7 +31,6 @@ pub use local::ResponsesLocalApiCodes;
 pub use redirection::ResponsesRedirectionCodes;
 pub use server::ResponsesServerCodes;
 pub use service::ResponsesServiceCodes;
-use strum_macros::EnumProperty;
 pub use success::ResponsesSuccessCodes;
 
 // Public exports for response types
@@ -41,7 +40,7 @@ use crate::helpers::http_code_helper::HttpCode;
 /// Combines multiple categories into a unified type for simplified handling.
 
 /// Enum representing all HTTP response families.
-#[derive(Debug, Clone, Copy, EnumProperty, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ResponsesTypes {
     Informational(ResponsesInformationalCodes),
     Success(ResponsesSuccessCodes),
@@ -130,60 +129,62 @@ impl ResponsesTypes {
         match self {
             ResponsesTypes::Informational(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
             ResponsesTypes::Success(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
             ResponsesTypes::Redirection(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
             ResponsesTypes::ClientError(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
             ResponsesTypes::ServerError(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
             ResponsesTypes::ServiceError(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
             ResponsesTypes::CrawlerError(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
             ResponsesTypes::LocalApiError(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
-            },
+            }
         }
     }
 
+    /// Returns the code and description associated with a response code.
     pub fn get_response_description(&self) -> (u16, &'static str) {
         match self {
             ResponsesTypes::Informational(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
             ResponsesTypes::Success(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
             ResponsesTypes::Redirection(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
             ResponsesTypes::ClientError(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
             ResponsesTypes::ServerError(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
             ResponsesTypes::ServiceError(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
             ResponsesTypes::CrawlerError(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
             ResponsesTypes::LocalApiError(code) => {
                 (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
-            },
+            }
         }
     }
 
+    /// Returns a normalized JSON representation of the response.
     pub fn as_normalized_json(&self) -> serde_json::Value {
         if let Some(normalized) = response_helpers::get_response_by_type(self) {
             normalized.as_json()
@@ -191,14 +192,19 @@ impl ResponsesTypes {
             self.as_json()
         }
     }
+
+    /// returns a destructured tuple (code, name, description).
+    pub fn to_tuple(&self) -> (u16, &'static str, &'static str) {
+        let http_code = self.as_tuple();
+        (http_code.standard_code, http_code.standard_name, http_code.unified_description)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ResponsesCrawlerCodes::ExcludedByRobotsTxtFile;
     use serde_json::json;
-    
+
     #[test]
     fn test_to_u16() {
         assert_eq!(
@@ -209,35 +215,44 @@ mod tests {
     }
 
     #[test]
-    fn test_as_tuple() {
+    fn test_as_identical_tuple() {
         // Case where the internal and standard codes are identical
         let tuple_result = ResponsesTypes::Success(ResponsesSuccessCodes::Ok).as_tuple();
         assert_eq!(tuple_result.standard_code, 200);
         assert_eq!(tuple_result.standard_name, "OK");
-        assert_eq!(tuple_result.description, "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response");
-        assert_eq!(tuple_result.internal_code, 200);
-        assert_eq!(tuple_result.internal_name, "OK");
+        assert_eq!(tuple_result.unified_description, "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response");
+        assert_eq!(tuple_result.internal_code, None);
+        assert_eq!(tuple_result.internal_name, None);
+    }
 
+    #[test]
+    fn test_as_different_tuple() {
         // Case where the internal and standard codes are different
-        let tuple_result_diff = ResponsesTypes::CrawlerError(ExcludedByRobotsTxtFile).as_tuple();
-        assert_eq!(tuple_result_diff.standard_code, 403);
-        assert_eq!(tuple_result_diff.standard_name, "Forbidden");
-        assert_eq!(tuple_result_diff.description, "Excluded by robots.txt file.");
-        assert_eq!(tuple_result_diff.internal_code, 740);
-        assert_eq!(tuple_result_diff.internal_name, "Excluded by Robots.txt file");
+        let tuple_result_diff =
+            ResponsesTypes::ServerError(ResponsesServerCodes::OriginIsUnreachable).as_tuple();
+        assert_eq!(tuple_result_diff.standard_code, 502);
+        assert_eq!(tuple_result_diff.standard_name, "Bad Gateway");
+        assert_eq!(tuple_result_diff.unified_description, "The origin server could not be contacted. This might be due to network issues or misconfiguration");
+        assert_eq!(tuple_result_diff.internal_code, Some(523));
+        assert_eq!(tuple_result_diff.internal_name, Some("Origin Is Unreachable"));
     }
 
     #[test]
     fn test_as_json() {
-        let json_value = ResponsesTypes::CrawlerError(ExcludedByRobotsTxtFile).as_json();
+        let json_value =
+            ResponsesTypes::ServerError(ResponsesServerCodes::OriginIsUnreachable).as_json();
         let expected_json = json!({
-            "description": "Excluded by robots.txt file",
-            "internal_http_code": {
-                "code": 740,
-                "name": "Excluded by Robots.txt file"
-            },
-            "standard_http_code": {
-                "code": 403, "name": "Forbidden"
+            "type": "Server errors",
+            "details": {
+                "standard_http_code": {
+                    "code": 502,
+                    "name": "Bad Gateway"
+                },
+                "description": "The origin server could not be contacted. This might be due to network issues or misconfiguration",
+                "internal_http_code": {
+                    "code": 523,
+                    "name": "Origin Is Unreachable"
+                }
             }
         });
         assert_eq!(json_value, expected_json);
@@ -251,31 +266,31 @@ mod tests {
         );
         assert_eq!(ResponsesTypes::from_u16(999), None);
     }
-}
 
-#[test]
-fn test_as_normalized() {
-    let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
+    #[test]
+    fn test_as_normalized() {
+        let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
 
-    // recovery via get_response_by_type
-    let normalized = response_helpers::get_response_by_type(&client_error);
+        // recovery via get_response_by_type
+        let normalized = response_helpers::get_response_by_type(&client_error);
 
-    // Verification that standardization is possible
-    assert_eq!(normalized, Some(ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest)));
+        // Verification that standardization is possible
+        assert_eq!(normalized, Some(ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest)));
 
-    // Verification of an unknown code
-    let unknown_code = ResponsesTypes::from_u16(9999);
-    let normalized_unknown =
-        unknown_code.as_ref().and_then(|code| response_helpers::get_response_by_type(code));
+        // Verification of an unknown code
+        let unknown_code = ResponsesTypes::from_u16(9999);
+        let normalized_unknown =
+            unknown_code.as_ref().and_then(|code| response_helpers::get_response_by_type(code));
 
-    assert_eq!(normalized_unknown, None);
-}
+        assert_eq!(normalized_unknown, None);
+    }
 
-#[test]
-fn test_get_advance_response_description() {
-    let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::SSLCertificateError);
-    let (code, description) = response_helpers::get_advance_response_description(client_error);
+    #[test]
+    fn test_get_advance_response_description() {
+        let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::SSLCertificateError);
+        let (code, description) = response_helpers::get_advance_response_description(client_error);
 
-    assert_eq!(code, 400);
-    assert_eq!(description, "An invalid or untrusted SSL certificate was encountered");
+        assert_eq!(code, 400);
+        assert_eq!(description, "An invalid or untrusted SSL certificate was encountered");
+    }
 }
