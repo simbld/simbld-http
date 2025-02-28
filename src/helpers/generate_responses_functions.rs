@@ -198,6 +198,14 @@ macro_rules! generate_responses_functions {
             }
         }
 
+        /// Implementation for converting the enum into a tuple '(u16, &'static str, &'static str)'.
+        impl From<$enum_name> for crate::helpers::three_fields_tuple::TreeFieldsTuple {
+    fn from(value: $enum_name) -> Self {
+        let http_code = value.to_http_code();
+        crate::helpers::tree_fields_tuple::TreeFieldsTuple::from_http_code(&http_code)
+    }
+}
+
         /// Implementation of the `ToU16` trait for the enum.
         impl ToU16 for $enum_name {
             fn to_u16(&self) -> u16 {
