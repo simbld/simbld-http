@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -19,9 +19,11 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesInformationalCodes;
     use serde_json::json;
+    use serde_json::to_value;
 
     #[test]
     fn test_to_16_switching_protocols() {
@@ -67,23 +69,34 @@ mod tests {
         let response_code = ResponsesInformationalCodes::RevalidationFailed;
         let json_result = response_code.as_json();
         let expected_json = json!({
-            "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired",
-            "internal_http_code": { "code": 109, "name": "Revalidation Failed" },
-            "standard_http_code": { "code": 100, "name": "Continue" }
-        });
+            "type": "Informational responses",
+            "details": {
+                "standard http code": {
+                    "code": 100,
+                    "name": "Continue"
+                },
+                "description": "The server attempted to validate a cached response but failed, indicating the cached response is invalid or expired",
+                "internal http code": {
+                    "code": 109,
+                    "name": "Revalidation Failed"
+                }
+        }});
 
-        assert_eq!(
-            serde_json::to_string(&json_result).unwrap(),
-            serde_json::to_string(&expected_json).unwrap()
-        );
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]
-    fn test_continue_request_codes_into_tuple() {
-        let (std_code, std_name): (u16, &'static str) =
-            ResponsesInformationalCodes::ContinueRequest.into();
-        assert_eq!(std_code, 100);
-        assert_eq!(std_name, "Continue");
+    fn test_continue_request_codes_into_two_fields_tuple() {
+        let response_code = ResponsesInformationalCodes::ContinueRequest;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+
+        let expected_json = json!({
+            "code": 100,
+            "name": "Continue"
+        });
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -38,9 +38,10 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesSuccessCodes;
-    use serde_json::json;
+    use serde_json::{json, to_value};
 
     #[test]
     fn test_success_codes_to_u16() {
@@ -80,27 +81,33 @@ mod tests {
         let response_code = ResponsesSuccessCodes::ContentTransferred;
         let json_result = response_code.as_json();
         let expected_json = json!({
-            "standard_http_code": {
-                "code": 200,
-                "name": "OK"
-            },
-            "internal_http_code": {
-                "code": 219,
-                "name": "Content Transferred"
-            },
-            "description": "The response contains the transferred content, and the response body contains the content that was transferred, such as a file or document, and the response body may contain the requested resource, the response indicates that the content has been transferred successfully to another instance, thus ending the current instance"
+            "type": "Successful responses",
+            "details": {
+                "standard http code": {
+                    "code": 200,
+                    "name": "OK"
+                },
+                "description": "The response contains the transferred content, and the response body contains the content that was transferred, such as a file or document, and the response body may contain the requested resource, the response indicates that the content has been transferred successfully to another instance, thus ending the current instance",
+                "internal http code": {
+                    "code": 219,
+                }
+            }
         });
-        assert_eq!(
-            serde_json::to_string(&json_result).unwrap(),
-            serde_json::to_string(&expected_json).unwrap()
-        );
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]
-    fn test_success_codes_into_tuple() {
-        let (std_code, std_name): (u16, &'static str) = ResponsesSuccessCodes::Created.into();
-        assert_eq!(std_code, 201);
-        assert_eq!(std_name, "Created");
+    fn test_success_codes_into_two_fields_tuple() {
+        let response_code = ResponsesSuccessCodes::ContentTransferred;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+        let expected_json = json!({
+            "code": 200,
+            "name": "OK"
+        });
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]

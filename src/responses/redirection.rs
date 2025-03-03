@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -52,9 +52,11 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesRedirectionCodes;
     use serde_json::json;
+    use serde_json::to_value;
 
     #[test]
     fn test_redirection_codes_to_u16() {
@@ -100,28 +102,35 @@ mod tests {
         let response_code = ResponsesRedirectionCodes::UserNameOkPasswordNeeded;
         let json_result = response_code.as_json();
         let expected_json = json!({
-            "standard_http_code": {
-                "code": 300,
-                "name": "Multiple Choices"
-            },
-            "internal_http_code": {
-                "code": 331,
-                "name": "User Name Ok Password Needed"
-            },
-            "description": "The username is valid, but the client must provide a password to proceed. This status code is used for authentication purposes"
+            "type": "Redirection responses",
+            "details": {
+                "standard http code": {
+                    "code": 300,
+                    "name": "Multiple Choices"
+                },
+                "description": "The username is valid, but the client must provide a password to proceed. This status code is used for authentication purposes",
+                "internal http code": {
+                    "code": 331,
+                    "name": "User Name Ok Password Needed"
+                }
+            }
         });
-        assert_eq!(
-            serde_json::to_string(&json_result).unwrap(),
-            serde_json::to_string(&expected_json).unwrap()
-        );
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]
-    fn test_temporary_redirect_codes_into_tuple() {
-        let (std_code, std_name): (u16, &'static str) =
-            ResponsesRedirectionCodes::TemporaryRedirect.into();
-        assert_eq!(std_code, 307);
-        assert_eq!(std_name, "Temporary Redirect");
+    fn test_temporary_redirect_codes_into_two_fields_tuple() {
+        let response_code = ResponsesRedirectionCodes::TemporaryRedirect;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+
+        let expected_json = json!({
+            "code": "307",
+            "name": "Temporary Redirect"
+        });
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -25,8 +25,10 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesCrawlerCodes;
+    use serde_json::{json, to_value};
 
     #[test]
     fn test_crawler_codes_to_u16() {
@@ -86,12 +88,19 @@ mod tests {
     }
 
     #[test]
-    fn test_found_into_tuple() {
-        let (std_code, std_name): (u16, &'static str) =
-            ResponsesCrawlerCodes::ProgrammableRedirection.into();
-        assert_eq!(std_code, 302);
-        assert_eq!(std_name, "Found");
+    fn test_found_into_two_fields_tuple() {
+        let response_code = ResponsesCrawlerCodes::RedirectedToAnotherURL;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+
+        let expected_json = json!({
+            "code": 302,
+            "name": "Found"
+        });
+
+        assert_eq!(json_result, expected_json);
     }
+
     #[test]
     fn test_bad_request_duplicate_standard_codes() {
         // These two codes have the same standard HTTP code (400) but different internal codes

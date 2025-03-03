@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -64,9 +64,10 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesClientCodes;
-    use serde_json::json;
+    use serde_json::{json, to_value};
 
     #[test]
     fn test_to_u16() {
@@ -120,28 +121,36 @@ mod tests {
     fn test_too_many_forward_ip_adresses_as_json() {
         let response_code = ResponsesClientCodes::TooManyForwardedIPAddresses;
         let json_result = response_code.as_json();
-        let expected_json = json!(  {
-            "description": {"standard_http_code": {
-                 "code": 400,
-                "name": "Bad Request"
-            },
-          "description": "The request was rejected due to an origin server/client IP issue",
-            "internal_http_code": {
-                  "code": 445,
-                  "name": "TooManyForwardedIPAddresses",
-            }}
+        let expected_json = json!({
+            "type": "Client errors",
+            "details": {
+                "standard http code": {
+                    "code": 400,
+                    "name": "Bad Request"
+                },
+                "description": "The request was rejected due to an origin server/client IP issue",
+                "internal http code": {
+                    "code": 445,
+                    "name": "TooManyForwardedIPAddresses"
+                }
+            }
         });
-        assert_eq!(
-            serde_json::to_string(&json_result).unwrap(),
-            serde_json::to_string(&expected_json).unwrap()
-        );
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]
-    fn test_method_failure_into_tuple() {
-        let (std_code, std_name): (u16, &'static str) = ResponsesClientCodes::MethodFailure.into();
-        assert_eq!(std_code, 405);
-        assert_eq!(std_name, "Method Not Allowed");
+    fn test_method_failure_into_two_fields_tuple() {
+        let response_code = ResponsesClientCodes::MethodFailure;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+
+        let expected_json = json!({
+            "code": 420,
+            "name": "MethodFailure"
+        });
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]

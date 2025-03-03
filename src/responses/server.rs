@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::helpers::to_u16_helper::ToU16;
+use crate::helpers::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -35,9 +35,11 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesServerCodes;
     use serde_json::json;
+    use serde_json::to_value;
 
     #[test]
     fn test_server_codes_to_u16() {
@@ -77,27 +79,35 @@ mod tests {
         let response_code = ResponsesServerCodes::WebServerIsDown;
         let json_result = response_code.as_json();
         let expected_json = json!({
-            "standard_http_code": {
-                "code": 502,
-                "name": "Bad Gateway"
-            },
-            "internal_http_code": {
-                "code": 521,
-                "name": "Web Server Is Down"
-            },
-            "description": "Cloudflare, unofficial is currently unreachable, likely due to downtime or maintenance. This prevents the server from processing the request, and the client should try again later"
+            "type": "Server errors",
+            "details": {
+                "standard http code": {
+                    "code": 502,
+                    "name": "Bad Gateway"
+                },
+                "description": "Cloudflare, unofficial is currently unreachable, likely due to downtime or maintenance. This prevents the server from processing the request, and the client should try again later",
+                "internal http code": {
+                    "code": 521,
+                    "name": "Web Server Is Down"
+                }
+            }
         });
-        assert_eq!(
-            serde_json::to_string(&json_result).unwrap(),
-            serde_json::to_string(&expected_json).unwrap()
-        );
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]
-    fn test_server_codes_into_tuple() {
-        let (std_code, std_name): (u16, &'static str) = ResponsesServerCodes::GatewayTimeout.into();
-        assert_eq!(std_code, 504);
-        assert_eq!(std_name, "Gateway Timeout");
+    fn test_server_codes_into_two_fields_tuple() {
+        let response_code = ResponsesServerCodes::ServiceUnavailable;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+
+        let expected_json = json!({
+            "code": 503,
+            "name": "Service Unavailable"
+        });
+
+        assert_eq!(json_result, expected_json);
     }
 
     #[test]
