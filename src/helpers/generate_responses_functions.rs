@@ -5,7 +5,7 @@
 /// use simbld_http::generate_responses_functions;
 /// use simbld_http::helpers::unified_tuple_helper;
 /// use simbld_http::ResponsesClientCodes::*;
-/// use simbld_http::helpers::to_u16_helper::ToU16;
+/// use simbld_http::helpers::to_u16_trait::ToU16;
 /// use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
 /// use serde::Serialize;
 ///
@@ -191,20 +191,20 @@ macro_rules! generate_responses_functions {
         }
 
         /// Implementation for converting the enum into a tuple `(u16, &'static str)`.
-        impl From<$enum_name> for (u16, &'static str) {
-            fn from(value: $enum_name) -> Self {
-                let http_code = value.to_http_code();
-                (http_code.standard_code, http_code.standard_name)
+        impl crate::helpers::tuple_traits::IntoTwoFieldsTuple for $enum_name {
+            fn into_two_fields_tuple(self) -> crate::helpers::two_fields_tuple_helper::TwoFieldsTuple {
+                let http_code = self.to_http_code();
+                http_code.into_two_fields_tuple()
             }
         }
 
         /// Implementation for converting the enum into a tuple '(u16, &'static str, &'static str)'.
-        impl From<$enum_name> for crate::helpers::three_fields_tuple::TreeFieldsTuple {
-    fn from(value: $enum_name) -> Self {
-        let http_code = value.to_http_code();
-        crate::helpers::tree_fields_tuple::TreeFieldsTuple::from_http_code(&http_code)
-    }
-}
+        impl crate::helpers::tuple_traits::IntoThreeFieldsTuple for $enum_name {
+            fn into_three_fields_tuple(self) -> crate::helpers::three_fields_tuple_helper::ThreeFieldsTuple {
+                let http_code = self.to_http_code();
+                http_code.into_three_fields_tuple()
+            }
+        }
 
         /// Implementation of the `ToU16` trait for the enum.
         impl ToU16 for $enum_name {
@@ -222,8 +222,11 @@ macro_rules! generate_responses_functions {
 
 #[cfg(test)]
 mod tests {
+    use crate::helpers::tuple_traits::{IntoThreeFieldsTuple, IntoTwoFieldsTuple};
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesClientCodes;
+    use crate::ResponsesSuccessCodes;
+    use serde_json::json;
 
     #[test]
     fn test_description() {
@@ -288,7 +291,7 @@ mod tests {
         let ex_json = ex.as_json();
 
         // Define the expected JSON with exact field names.
-        let expected_json = serde_json::json!({
+        let expected_json = json!({
             "type": "Client errors",
             "details": {
                 "standard http code": {
@@ -321,5 +324,34 @@ mod tests {
     fn test_internal_code() {
         let ex = ResponsesClientCodes::NoResponse;
         assert_eq!(ex.internal_code(), 444);
+    }
+
+    #[test]
+    fn test_into_two_fields_tuple() {
+        // Par exemple, pour un code client "BadRequest"
+        let response = ResponsesClientCodes::BadRequest;
+        let tuple = response.into_two_fields_tuple();
+        let json_result = serde_json::to_value(&tuple).unwrap();
+
+        let expected = json!({
+            "code": 400,
+            "name": "Bad Request"
+        });
+        assert_eq!(json_result, expected);
+    }
+
+    #[test]
+    fn test_into_three_fields_tuple() {
+        // Par exemple, pour une réponse "Ok" du SuccessCodes
+        let response = ResponsesSuccessCodes::Ok;
+        let tuple = response.into_three_fields_tuple();
+        let json_result = serde_json::to_value(&tuple).unwrap();
+
+        let expected = json!({
+            "code": 200,
+            "name": "OK",
+            "description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
+        });
+        assert_eq!(json_result, expected);
     }
 }
