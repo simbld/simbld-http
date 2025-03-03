@@ -34,7 +34,8 @@ pub use responses::ResponsesSuccessCodes;
 mod tests {
     use crate::helpers::http_code_helper::HttpCode;
     use crate::responses::ResponsesCrawlerCodes;
-    use crate::{json, ResponsesSuccessCodes};
+    use crate::ResponsesSuccessCodes;
+    use serde_json::json;
 
     /// Test `to_u16` method for `ResponsesCrawlerCodes`.
     #[test]
@@ -68,38 +69,47 @@ mod tests {
         );
     }
 
-    /// Test `as_json` method for `HttpCode` struct with standard code equals internal code.
+    /// Test `as_json` method for unified tuple format with standard code equals internal code.
     #[test]
     fn test_ok_codes_as_json() {
         let code = ResponsesSuccessCodes::Ok;
         let json_result = code.as_json();
 
         let expected = json!({
-            "standard_code": 200,
-            "standard_name": "OK",
-            "unified_description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
-        });
+            "type": "Success responses",
+            "details": {
+                "standard http code": {
+                    "code": 200,
+                    "name": "OK"
+                },
+            "description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response",
+                "internal http code": {
+                    "code": 0,
+                    "name": "",
+        }}});
 
         assert_eq!(json_result, expected);
     }
 
-    /// Test `as_json` method for `HttpCode` struct with standard code differs internal code.
+    /// Test `as_json` method for unified tuple format with standard code differs internal code.
     #[test]
     fn test_crawler_codes_as_json() {
         let code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
         let json_result = code.as_json();
 
         let expected = json!({
+            "type": "Crawler responses",
+            "details": {
             "standard http code": {
-                "standard_code": 503,
-                "standard_name": "Service Unavailable"
+                "code": 503,
+                "name": "Service Unavailable"
             },
-            "unified_description": "Robots temporarily unavailable.",
+            "description": "Robots temporarily unavailable.",
             "internal http code": {
-                "internal_code": 741,
-                "internal_name": "Robots Temporarily Unavailable"
+                "code": 741,
+                "name": "Robots Temporarily Unavailable"
             },
-        });
+        }});
 
         assert_eq!(json_result, expected);
     }
