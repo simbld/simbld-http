@@ -244,12 +244,12 @@ mod tests {
         let expected_json = json!({
             "type": "Server errors",
             "details": {
-                "standard_http_code": {
+                "standard http code": {
                     "code": 502,
                     "name": "Bad Gateway"
                 },
                 "description": "The origin server could not be contacted. This might be due to network issues or misconfiguration",
-                "internal_http_code": {
+                "internal http code": {
                     "code": 523,
                     "name": "Origin Is Unreachable"
                 }
