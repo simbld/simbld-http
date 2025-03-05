@@ -1,67 +1,104 @@
-/// The code defines a custom response struct and a handler function for Actix-Web that generates an HTTP response based on the custom response.
-///
-/// Arguments:
-///
-/// * `custom_response`: The `custom_response` parameter in the `custom_response_handler` function is of type `web::Data<CustomResponse>`. It represents a shared state containing an instance of the `CustomResponse` struct, which holds a response code of type `ResponsesTypes`. This parameter allows access to the `
-/// * `req`: The `req` parameter in the `custom_response_handler` function is of type `HttpRequest`. It represents the incoming HTTP request that the handler function is processing. The `HttpRequest` type provides access to various details of the incoming request such as headers, method, URI, and other request-related information.
-///
-/// Returns:
-///
-/// The `custom_response_handler` function returns an `actix_web::HttpResponse`. This function takes a `web::Data<CustomResponse>` and an `HttpRequest` as input parameters, retrieves the `CustomResponse` from the `web::Data`, clones it, and then calls the `respond_to` method on the cloned `CustomResponse` to generate an `HttpResponse` based on the response code
-use crate::responses::ResponsesTypes;
+use crate::helpers::http_code_helper::HttpCode;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use serde_json::json;
 
-#[derive(Clone)]
+/// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
+///
+/// Properties (explanation in English for clarity):
+/// * `code`: The HTTP status code (u16).
+/// * `name`: The name associated with the response (String).
+/// * `data`: Extra data payload included in the response (String).
+/// * `description`: A string describing the response further (String).
+
+#[derive(Clone, Debug)]
 pub struct CustomResponse {
-  pub code: ResponsesTypes,
+    pub http_code: HttpCode,
+    pub data: String,
 }
 
+impl CustomResponse {
+    /// Creates a new `CustomResponse` from an HTTP code (standard or internal)
+    /// and some relevant data.
+    ///
+    /// # Example
+    /// ```
+    /// use simbld_http::responses::CustomResponse;
+    /// use simbld_http::helpers::http_code_helper::HttpCode;
+    ///
+    /// let response = CustomResponse::new(200, "Success Message");
+    /// assert_eq!(response.http_code.standard_code, 200);
+    /// assert_eq!(response.data, "Success Message".to_string());
+    /// ```
+    pub fn new(http_code: u16, data: impl Into<String>) -> Self {
+        let resolved_http_code = HttpCode::new(http_code, "OK", "Success", http_code, "OK");
+
+        Self { http_code: resolved_http_code, data: data.into() }
+    }
+}
+
+/// We implement the `Responder` trait for `CustomResponse`,
+/// so that we can return `CustomResponse` directly in Actix handlers.
 impl Responder for CustomResponse {
-  type Body = actix_web::body::BoxBody;
+    type Body = actix_web::body::BoxBody;
 
-  fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
-    let (code, description) = self.code.get_response_description();
-    HttpResponse::build(actix_web::http::StatusCode::from_u16(code).unwrap()).body(description)
-  }
+    fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(self.http_code.standard_code).unwrap(),
+        )
+        .json(json!({
+            "status": self.http_code.standard_code,
+            "name": self.http_code.standard_name,
+            "description": self.http_code.unified_description,
+            "data": self.data,
+        }))
+    }
 }
 
-// Handler compatible with Actix-Web
+/// Handler compatible with Actix-Web.
+///
+/// * Takes a `web::Data<CustomResponse>` (shared state) and a `HttpRequest`
+/// * Clones the `CustomResponse`
+/// * Calls `.respond_to(&req)` to build the final `HttpResponse`.
 pub async fn custom_response_handler(
-  custom_response: web::Data<CustomResponse>,
-  req: HttpRequest,
+    custom_response: web::Data<CustomResponse>,
+    req: HttpRequest,
 ) -> HttpResponse {
-  let response = custom_response.get_ref().clone(); // Clone CustomResponse
-  response.respond_to(&req)
+    let response = custom_response.get_ref().clone(); // Clone the struct
+    response.respond_to(&req)
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::responses::ResponsesSuccessCodes;
-  use actix_web::{http::StatusCode, test, App};
+    use super::*;
+    use actix_web::{http::StatusCode, test, web, App};
 
-  #[actix_web::test]
-  async fn test_custom_response_responder() {
-    // Step 1: Create a custom response
-    let custom_response = CustomResponse {
-      code: ResponsesTypes::Success(ResponsesSuccessCodes::Ok),
-    };
+    #[actix_web::test]
+    async fn test_custom_response_responder() {
+        // Step 1: Create a custom response
+        let custom_response = CustomResponse {
+            http_code: HttpCode {
+                standard_code: 200,
+                standard_name: "OK",
+                unified_description: "Success",
+                internal_code: Some(200),
+                internal_name: Some("OK"),
+            },
+            data: "Test data".to_string(),
+        };
 
-    // Step 2: Initialize an Actix-Web application with a handler
-    let app = test::init_service(
-      App::new()
-        .app_data(web::Data::new(custom_response))
-        .default_service(web::route().to(custom_response_handler)),
-    )
-    .await;
+        // Step 2: Initialize an Actix-Web application with a handler
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(custom_response))
+                .default_service(web::route().to(custom_response_handler)),
+        )
+        .await;
 
-    // Step 3: Simulate an HTTP request
-    let req = test::TestRequest::default().to_request();
+        // Step 3: Simulate an HTTP request
+        let req = test::TestRequest::default().to_request();
+        let resp = test::call_service(&app, req).await;
 
-    // Step 4: Call the service with the request
-    let resp = test::call_service(&app, req).await;
-
-    // Step 5: Check the response
-    assert_eq!(resp.status(), StatusCode::OK);
-  }
+        // Step 4: Assert the response
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
 }

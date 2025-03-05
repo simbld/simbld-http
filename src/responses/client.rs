@@ -1,531 +1,162 @@
-/// The code defines an enum representing HTTP response status codes with corresponding descriptions and provides helper functions to retrieve code-description pairs.
-use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
-use num_enum::{IntoPrimitive, TryFromPrimitive};
-use strum::EnumProperty;
-use strum_macros::{Display, EnumIter, EnumProperty};
+use crate::generate_responses_functions;
+use crate::helpers::to_u16_trait::ToU16;
+use strum_macros::EnumIter;
 
-#[derive(
-  Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone, PartialEq,
-)]
-#[repr(u16)]
-
-pub enum ResponsesClientCodes {
-  #[strum(props(
-    Description = "The server cannot process the request due to malformed syntax or invalid parameters in the client request"
-  ))]
-  BadRequest = 400,
-  #[strum(props(
-    Description = "The client must authenticate itself to get the requested resource, typically a 401 Unauthorized response"
-  ))]
-  Unauthorized = 401,
-  #[strum(props(
-    Description = "Payment is required to access the requested resource, though this is not widely used in practice"
-  ))]
-  PaymentRequired = 402,
-  #[strum(props(
-    Description = "The server understands the request but refuses to authorize it, indicating insufficient permissions"
-  ))]
-  Forbidden = 403,
-  #[strum(props(
-    Description = "The server cannot find the requested resource, indicating a non-existent or inaccessible URI"
-  ))]
-  NotFound = 404,
-  #[strum(props(
-    Description = "The HTTP method used in the request is not supported for the target resource"
-  ))]
-  MethodNotAllowed = 405,
-  #[strum(props(
-    Description = "The requested resource cannot be provided in a format acceptable according to the request's Accept headers"
-  ))]
-  NotAcceptable = 406,
-  #[strum(props(
-    Description = "The client must authenticate with a proxy server before accessing the resource"
-  ))]
-  ProxyAuthenticationRequired = 407,
-  #[strum(props(
-    Description = "The server timed out while waiting for the request from the client. This status code is used to inform the client that the server timed out."
-  ))]
-  RequestTimeout = 408,
-  #[strum(props(
-    Description = "The request could not be completed due to a conflict with the current state of the target resource"
-  ))]
-  Conflict = 409,
-  #[strum(props(
-    Description = "The requested resource is no longer available and has been permanently removed from the server and will not be available again"
-  ))]
-  Gone = 410,
-  #[strum(props(Description = "The request does not include the required Content-Length header"))]
-  LengthRequired = 411,
-  #[strum(props(
-    Description = "One or more conditions in the request headers are not met by the server"
-  ))]
-  PreconditionFailed = 412,
-  #[strum(props(
-    Description = "The size of the request payload exceeds the server's capacity or configuration limits"
-  ))]
-  PayloadTooLarge = 413,
-  #[strum(props(
-    Description = "The URI of the request is too long for the server to process. This status code is used to inform the client that the request URI is too long"
-  ))]
-  RequestUriTooLong = 414,
-  #[strum(props(
-    Description = "The media type of the request payload is not supported by the server or target resource"
-  ))]
-  UnsupportedMediaType = 415,
-  #[strum(props(
-    Description = "The client requested a range that is not satisfiable for the target resource"
-  ))]
-  RequestedRangeUnsatisfiable = 416,
-  #[strum(props(
-    Description = "The server cannot meet the requirements specified in the Expect header field of the request"
-  ))]
-  ExpectationFailed = 417,
-  #[strum(props(
-    Description = "A playful response indicating the server is a teapot and cannot brew coffee (RFC 2324)"
-  ))]
-  ImATeapot = 418,
-  #[strum(props(
-    Description = "Issued by Laravel when a CSRF token is missing or expired, unofficial"
-  ))]
-  PageExpired = 419,
-  #[strum(props(
-    Description = "The method specified in the request is known by the server but cannot be processed due to a failure in the server's implementation, Issued by Spring when a method has failed. Now deprecated and reserved for backward compatibility, unofficial"
-  ))]
-  MethodFailure = 420,
-  #[strum(props(
-    Description = "Used by Twitter to indicate that the client has sent too many requests in a given amount of time, unofficial"
-  ))]
-  MisdirectedRequest = 421,
-  #[strum(props(
-    Description = "The request is well-formed but cannot be processed due to semantic errors, commonly used in APIs, use in WebDav RFC 4918"
-  ))]
-  UnprocessableEntity = 422,
-  #[strum(props(
-    Description = "The resource is locked and cannot be accessed or modified, typically used in WebDav RFC 4918"
-  ))]
-  LockedTemporarilyUnavailable = 423,
-  #[strum(props(
-    Description = "The request failed because it depended on another operation that failed, often used in WebDav RFC 4918"
-  ))]
-  FailedDependency = 424,
-  #[strum(props(
-    Description = "The server is unwilling to process the request because it might be replayed"
-  ))]
-  TooEarly = 425, // Only for Firefox
-  #[strum(props(
-    Description = "The client must upgrade to a different protocol to continue with the request"
-  ))]
-  UpgradeRequired = 426,
-  #[strum(props(
-    Description = "The server requires the request to include specific preconditions to proceed"
-  ))]
-  PreconditionRequired = 428,
-  #[strum(props(
-    Description = "The resource is rate-limited and the client has sent too many requests in the allotted time"
-  ))]
-  TooManyRequests = 429,
-  #[strum(props(
-    Description = "Issued by Shopify to indicate a rate-limit effect. This is used instead of 429, unofficial"
-  ))]
-  RequestHeaderFieldsTooLarge = 430,
-  #[strum(props(
-    Description = "Authentication is required to access the requested resource, typically in web applications"
-  ))]
-  LoginRequired = 432,
-  #[strum(props(
-    Description = "The request was rejected due to an issue with the origin server or client IP"
-  ))]
-  OriginError = 433,
-  #[strum(props(
-    Description = "The request was rejected due to an issue with the destination server or target configuration"
-  ))]
-  DestinationError = 434,
-  #[strum(props(
-    Description = "The size of the requested resource or payload exceeds the allowable limit for the server"
-  ))]
-  TooLarge = 435,
-  #[strum(props(
-    Description = "An error occurred due to an invalid or untrusted SSL certificate"
-  ))]
-  SSLCertificateError = 436,
-  #[strum(props(
-    Description = "The server requires a valid SSL certificate for the connection to proceed securely"
-  ))]
-  SSLCertificateRequired = 437,
-  #[strum(props(
-    Description = "The client did not provide an SSL certificate required for secure communication"
-  ))]
-  NoCertificate = 438,
-  #[strum(props(
-    Description = "The client session timed out and must log in again, iis, unofficial"
-  ))]
-  LoginTimeout = 440,
-  #[strum(props(
-    Description = "The client has exceeded the allocated data quota for the requested operation"
-  ))]
-  OverDataQuota = 441,
-  #[strum(props(
-    Description = "The server closed the connection without sending any response, often used in scenarios where the server chooses to silently drop the request, nginx, unofficial"
-  ))]
-  NoResponse = 444,
-  #[strum(props(
-    Description = "The user has not provided the required information, iis, unofficial"
-  ))]
-  RetryWith = 449,
-  #[strum(props(
-    Description = "Issued by Microsoft when Windows Parental Controls are turned on and a resource is blocked, unofficial"
-  ))]
-  BlockedByWindowsParentalControls = 450,
-  #[strum(props(
-    Description = "The server is denying access to the resource due to legal reasons, such as censorship or compliance with local laws"
-  ))]
-  UnavailableForLegalReasons = 451,
-  #[strum(props(
-    Description = "The server is unable to process the request because it contains too many recipients"
-  ))]
-  TooManyRecipients = 452,
-  #[strum(props(
-    Description = "The method specified in the request is not valid for the current state of the resource or server"
-  ))]
-  MethodNotValidInThisState = 455,
-  #[strum(props(
-    Description = "The server encountered a critical error that prevents it from continuing to process the request"
-  ))]
-  UnrecoverableError = 456,
-  #[strum(props(
-    Description = "The client closed the connection before the server was able to send a response, often due to a timeout or network interruption"
-  ))]
-  ClientClosedConnexionPrematurely = 460,
-  #[strum(props(
-    Description = "The server rejected the request due to an excessive number of forwarded IP addresses in the request headers, potentially indicating a misconfiguration or a security concern"
-  ))]
-  TooManyForwardedIPAddresses = 463,
-  #[strum(props(
-    Description = "An internet security policy violation or configuration issue occurred, often related to SSL/TLS settings, certificates, or protocol mismatches"
-  ))]
-  InternetSecurityError = 467,
-  #[strum(props(
-    Description = "The server is temporarily unavailable, usually due to maintenance or overload"
-  ))]
-  TemporaryUnavailable = 480,
-  #[strum(props(
-    Description = "The server is unable to process the request because the headers are too large, often due to a misconfiguration or an attack, nginx, unofficial"
-  ))]
-  RequestHeaderTooLarge = 494,
-  #[strum(props(
-    Description = "The SSL certificate presented by the client is invalid or cannot be verified by the server, preventing a secure connection from being established, nginx, unofficial"
-  ))]
-  CertError = 495,
-  #[strum(props(
-    Description = "A required client certificate wasn't provided, preventing the server from establishing a secure connection, nginx, unofficial"
-  ))]
-  NoCert = 496,
-  #[strum(props(
-    Description = "The client sent an unencrypted HTTP request to a server that requires HTTPS, and the server is redirecting the client to the HTTPS version of the resource, nginx, unofficial"
-  ))]
-  HTTPToHTTPS = 497,
-  #[strum(props(
-    Description = "The provided token is invalid, expired, or malformed, and cannot be used for authentication or authorization, Issued by ArcGIS for Server, unofficial"
-  ))]
-  InvalidToken = 498,
-  #[strum(props(
-    Description = "The client closed the connection before the server could provide a response, often due to client timeout or network interruption, nginx, unofficial"
-  ))]
-  ClientClosedRequest = 499,
-}
-
-impl ToU16 for ResponsesClientCodes {
-  fn to_u16(self) -> u16 {
-    self.into() // Conversion`Into<u16>`
-  }
-}
-
-impl FromU16 for ResponsesClientCodes {
-  fn from_u16(code: u16) -> Option<Self> {
-    Self::try_from(code).ok() // Conversion`TryFrom<u16>`
-  }
-}
-
-impl Into<(u16, &'static str)> for ResponsesClientCodes {
-  fn into(self) -> (u16, &'static str) {
-    let code: u16 = self.to_u16();
-    let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
-  }
-}
-
-pub fn bad_request() -> (u16, &'static str) {
-  (400, "The server cannot process the request due to malformed syntax or invalid parameters in the client request")
-}
-
-pub fn unauthorized() -> (u16, &'static str) {
-  (401, "The client must authenticate itself to get the requested resource, typically a 401 Unauthorized response")
-}
-
-pub fn payment_required() -> (u16, &'static str) {
-  (402, "Payment is required to access the requested resource, though this is not widely used in practice")
-}
-
-pub fn forbidden() -> (u16, &'static str) {
-  (403, "The server understands the request but refuses to authorize it, indicating insufficient permissions")
-}
-
-pub fn not_found() -> (u16, &'static str) {
-  (
-    404,
-    "The server cannot find the requested resource, indicating a non-existent or inaccessible URI",
-  )
-}
-
-pub fn method_not_allowed() -> (u16, &'static str) {
-  (405, "The HTTP method used in the request is not supported for the target resource")
-}
-
-pub fn not_acceptable() -> (u16, &'static str) {
-  (406, "The requested resource cannot be provided in a format acceptable according to the request's Accept headers")
-}
-
-pub fn proxy_authentication_required() -> (u16, &'static str) {
-  (407, "The client must authenticate with a proxy server before accessing the resource")
-}
-
-pub fn request_timeout() -> (u16, &'static str) {
-  (408, "The server timed out while waiting for the request from the client. This status code is used to inform the client that the server timed out.")
-}
-
-pub fn conflict() -> (u16, &'static str) {
-  (409, "The request could not be completed due to a conflict with the current state of the target resource")
-}
-
-pub fn gone() -> (u16, &'static str) {
-  (410, "The requested resource is no longer available and has been permanently removed from the server and will not be available again")
-}
-
-pub fn length_required() -> (u16, &'static str) {
-  (411, "The request does not include the required Content-Length header")
-}
-
-pub fn precondition_failed() -> (u16, &'static str) {
-  (412, "One or more conditions in the request headers are not met by the server")
-}
-
-pub fn payload_too_large() -> (u16, &'static str) {
-  (413, "The size of the request payload exceeds the server's capacity or configuration limits")
-}
-
-pub fn request_uri_too_long() -> (u16, &'static str) {
-  (414, "The URI of the request is too long for the server to process. This status code is used to inform the client that the request URI is too long")
-}
-
-pub fn unsupported_media_type() -> (u16, &'static str) {
-  (415, "The media type of the request payload is not supported by the server or target resource")
-}
-
-pub fn requested_range_unsatisfiable() -> (u16, &'static str) {
-  (416, "The client requested a range that is not satisfiable for the target resource")
-}
-
-pub fn expectation_failed() -> (u16, &'static str) {
-  (
-    417,
-    "The server cannot meet the requirements specified in the Expect header field of the request",
-  )
-}
-
-pub fn im_a_teapot() -> (u16, &'static str) {
-  (418, "A playful response indicating the server is a teapot and cannot brew coffee (RFC 2324)")
-}
-
-pub fn page_expired() -> (u16, &'static str) {
-  (419, "Issued by Laravel when a CSRF token is missing or expired, unofficial")
-}
-
-pub fn method_failure() -> (u16, &'static str) {
-  (420, "The method specified in the request is known by the server but cannot be processed due to a failure in the server's implementation, Issued by Spring when a method has failed. Now deprecated and reserved for backward compatibility, unofficial")
-}
-
-pub fn misdirected_request() -> (u16, &'static str) {
-  (421, "Used by Twitter to indicate that the client has sent too many requests in a given amount of time, unofficial")
-}
-
-pub fn unprocessable_entity() -> (u16, &'static str) {
-  (422, "The request is well-formed but cannot be processed due to semantic errors, commonly used in APIs, use in WebDav RFC 4918")
-}
-
-pub fn locked_temporarily_unavailable() -> (u16, &'static str) {
-  (
-    423,
-    "The resource is locked and cannot be accessed or modified, typically used in WebDav RFC 4918",
-  )
-}
-
-pub fn failed_dependency() -> (u16, &'static str) {
-  (424, "The request failed because it depended on another operation that failed, often used in WebDav RFC 4918")
-}
-
-pub fn too_early() -> (u16, &'static str) {
-  (425, "The server is unwilling to process the request because it might be replayed")
-}
-
-pub fn upgrade_required() -> (u16, &'static str) {
-  (426, "The client must upgrade to a different protocol to continue with the request")
-}
-
-pub fn precondition_required() -> (u16, &'static str) {
-  (428, "The server requires the request to include specific preconditions to proceed")
-}
-
-pub fn too_many_requests() -> (u16, &'static str) {
-  (
-    429,
-    "The resource is rate-limited and the client has sent too many requests in the allotted time",
-  )
-}
-
-pub fn request_header_fields_too_large() -> (u16, &'static str) {
-  (
-    430,
-    "Issued by Shopify to indicate a rate-limit effect. This is used instead of 429, unofficial",
-  )
-}
-
-pub fn login_required() -> (u16, &'static str) {
-  (
-    432,
-    "Authentication is required to access the requested resource, typically in web applications",
-  )
-}
-
-pub fn origin_error() -> (u16, &'static str) {
-  (433, "The request was rejected due to an issue with the origin server or client IP")
-}
-
-pub fn destination_error() -> (u16, &'static str) {
-  (
-    434,
-    "The request was rejected due to an issue with the destination server or target configuration",
-  )
-}
-
-pub fn too_large() -> (u16, &'static str) {
-  (435, "The size of the requested resource or payload exceeds the allowable limit for the server")
-}
-
-pub fn ssl_certificate_error() -> (u16, &'static str) {
-  (436, "An error occurred due to an invalid or untrusted SSL certificate")
-}
-
-pub fn ssl_certificate_required() -> (u16, &'static str) {
-  (437, "The server requires a valid SSL certificate for the connection to proceed securely")
-}
-
-pub fn no_certificate() -> (u16, &'static str) {
-  (438, "The client did not provide an SSL certificate required for secure communication")
-}
-
-pub fn login_timeout() -> (u16, &'static str) {
-  (440, "The client session timed out and must log in again, iis, unofficial")
-}
-
-pub fn over_data_quota() -> (u16, &'static str) {
-  (441, "The client has exceeded the allocated data quota for the requested operation")
-}
-
-pub fn no_response() -> (u16, &'static str) {
-  (444, "The server closed the connection without sending any response, often used in scenarios where the server chooses to silently drop the request, nginx, unofficial")
-}
-
-pub fn retry_with() -> (u16, &'static str) {
-  (449, "The user has not provided the required information, iis, unofficial")
-}
-
-pub fn blocked_by_windows_parental_controls() -> (u16, &'static str) {
-  (450, "Issued by Microsoft when Windows Parental Controls are turned on and a resource is blocked, unofficial")
-}
-
-pub fn unavailable_for_legal_reasons() -> (u16, &'static str) {
-  (451, "The server is denying access to the resource due to legal reasons, such as censorship or compliance with local laws")
-}
-
-pub fn too_many_recipients() -> (u16, &'static str) {
-  (452, "The server is unable to process the request because it contains too many recipients")
-}
-
-pub fn method_not_valid_in_this_state() -> (u16, &'static str) {
-  (455, "The method specified in the request is not valid for the current state of the resource or server")
-}
-
-pub fn unrecoverable_error() -> (u16, &'static str) {
-  (456, "The server encountered a critical error that prevents it from continuing to process the request")
-}
-
-pub fn client_closed_connexion_prematurely() -> (u16, &'static str) {
-  (460, "The client closed the connection before the server was able to send a response, often due to a timeout or network interruption")
-}
-
-pub fn too_many_forwarded_ip_addresses() -> (u16, &'static str) {
-  (463, "The server rejected the request due to an excessive number of forwarded IP addresses in the request headers, potentially indicating a misconfiguration or a security concern")
-}
-
-pub fn internet_security_error() -> (u16, &'static str) {
-  (467, "An internet security policy violation or configuration issue occurred, often related to SSL/TLS settings, certificates, or protocol mismatches")
-}
-
-pub fn temporary_unavailable() -> (u16, &'static str) {
-  (480, "The server is temporarily unavailable, usually due to maintenance or overload")
-}
-
-pub fn request_header_too_large() -> (u16, &'static str) {
-  (494, "The server is unable to process the request because the headers are too large, often due to a misconfiguration or an attack, nginx, unofficial")
-}
-
-pub fn cert_error() -> (u16, &'static str) {
-  (495, "The SSL certificate presented by the client is invalid or cannot be verified by the server, preventing a secure connection from being established, nginx, unofficial")
-}
-
-pub fn no_cert() -> (u16, &'static str) {
-  (496, "A required client certificate wasn't provided, preventing the server from establishing a secure connection, nginx, unofficial")
-}
-
-pub fn http_to_https() -> (u16, &'static str) {
-  (497, "The client sent an unencrypted HTTP request to a server that requires HTTPS, and the server is redirecting the client to the HTTPS version of the resource, nginx, unofficial")
-}
-
-pub fn invalid_token() -> (u16, &'static str) {
-  (498, "The provided token is invalid, expired, or malformed, and cannot be used for authentication or authorization, Issued by ArcGIS for Server, unofficial")
-}
-
-pub fn client_closed_request() -> (u16, &'static str) {
-  (499, "The client closed the connection before the server could provide a response, often due to client timeout or network interruption, nginx, unofficial")
+generate_responses_functions! {
+  "Client errors",
+    ResponsesClientCodes,
+  BadRequest => (400, "Bad Request", "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).", 400, "Bad Request"),
+  Unauthorized => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 401, "Unauthorized"),
+  PaymentRequired => (402, "Payment Required", "The initial purpose of this code was for digital payment systems, however this status code is rarely used and no standard convention exists.", 402, "Payment Required"),
+  Forbidden => (403, "Forbidden", "The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.", 403, "Forbidden"),
+  NotFound => (404, "Not Found", "The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client.", 404, "Not Found"),
+  MethodNotAllowed => (405, "Method Not Allowed", "The HTTP method is not supported for the target resource", 405, "Method Not Allowed"),
+  NotAcceptable => (406, "Not Acceptable", "This response is sent when the web server, after performing server-driven content negotiation, doesn't find any content that conforms to the criteria given by the user agent.", 406, "Not Acceptable"),
+  ProxyAuthenticationRequired => (407, "Proxy Authentication Required", "The client must authenticate with a proxy first", 407, "Proxy Authentication Required"),
+  RequestTimeout => (408, "Request Timeout", "This response is sent on an idle connection by some servers, even without any previous request by the client. It means that the server would like to shut down this unused connection. This response is used much more since some browsers use HTTP pre-connection mechanisms to speed up browsing. Some servers may shut down a connection without sending this message.", 408, "Request Timeout"),
+  Conflict => (409, "Conflict", "This response is sent when a request conflicts with the current state of the server. In WebDAV remote web authoring, 409 responses are errors sent to the client so that a user might be able to resolve a conflict and resubmit the request.", 409, "Conflict"),
+  Gone => (410, "Gone", "This response is sent when the requested content has been permanently deleted from server, with no forwarding address. Clients are expected to remove their caches and links to the resource. The HTTP specification intends this status code to be used for 'limited-time, promotional services'. APIs should not feel compelled to indicate resources that have been deleted with this status code.", 410, "Gone"),
+  LengthRequired => (411, "Length Required", "Server rejected the request because the Content-Length header field is not defined and the server requires it.", 411, "Length Required"),
+  PreconditionFailed => (412, "Precondition Failed", "In conditional requests, the client has indicated preconditions in its headers which the server does not meet.", 412, "Precondition Failed"),
+  ContentTooLarge => (413, "Payload Too Large", "The request or resource is too large for the server to handle", 413, "Content Too Large"),
+  URITooLong => (414, "URI Too Long", "The URI requested by the client is longer than the server is willing to interpret.", 414, "URI Too Long"),
+  UnsupportedMediaType => (415, "Unsupported Media Type", "The media format of the requested data is not supported by the server, so the server is rejecting the request.", 415, "Unsupported Media Type"),
+  RangeNotSatisfiable => (416, "Range Not Satisfiable", "The range specified by the request's Range header field cannot be satisfied; the range may exceed the size of the data coming from the targeted URI.", 416, "Range Not Satisfiable"),
+  ExpectationFailed => (417, "Expectation Failed", "This response code means that the expectations indicated by the Expect request header field could not be met by the server.", 417, "Expectation Failed"),
+  ImATeapot => (418, "I'm a teapot", "The waiter refuses to brew coffee with a teapot, RFC 2324.", 418, "I'm a teapot"),
+  PageExpired => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 419, "PageExpired"),
+  MethodFailure => (405, "Method Not Allowed", "The HTTP method is not supported for the target resource", 420, "MethodFailure"),
+  MisdirectedRequest => (421, "Misdirected Request", "The request was sent to a server unable to produce a response. This code may be sent by a server that has not been configured to produce responses subject to the combination of schemas and identities included in the request URI.", 421, "Misdirected Request"),
+  UnprocessableEntity => (422, "Unprocessable Entity", "The request was successfully created but could not be processed due to semantic errors, WebDAV RFC 4918.", 422, "Unprocessable Entity"),
+  Locked => (423, "Locked", "The resource that is currently being viewed is locked.", 423, "Locked"),
+  FailedDependency => (424, "Failed Dependency", "The query failed because a previous query failed.", 424, "Failed Dependency"),
+  TooEarly => (422, "Unprocessable Entity", "Indicate that the server does not want to process a request that could be replayed.", 425, "Too Early"),
+  UpgradeRequired => (426, "Upgrade Required", "The server refuses to process the request using the current protocol but may agree to do so if the client opts for another protocol. The server must send an Upgrade header in the 426 response to indicate the requested protocol(s) (Section 6.7 of [RFC7230]).", 426, "Upgrade Required"),
+  PreconditionRequired => (428, "Precondition Required", "The origin server requires the request to be conditional. This is intended to prevent the 'loss of update' problem, where a client retrieves the state of a resource with GET, modifies it, and returns it to the server with PUT while a third party modifies the state of the resource. server, which leads to a conflict.", 428, "Precondition Required"),
+  TooManyRequests => (429, "Too Many Requests", "The user has sent too many requests in a given amount of time (rate limiting).", 429, "Too Many Requests"),
+  RequestHeaderFieldsTooLarge => (431, "Request Header Fields Too Large", "The server is unwilling to process the request because the header fields are too long. The request can be returned after reducing the size of the headers.", 431, "Request Header Fields Too Large"),
+  LoginRequired => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 432, "Login Required"),
+  OriginError => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 433, "Origin Error"),
+  DestinationError => (400, "Bad Request", "The request was rejected due to a destination server/config issue", 434, "DestinationError"),
+  TooLarge => (413, "Payload Too Large", "The request or resource is too large for the server to handle", 435, "TooLarge"),
+  SSLCertificateError => (400, "Bad Request", "An invalid or untrusted SSL certificate was encountered", 436, "SSLCertificateError"),
+  SSLCertificateRequired => (400, "Bad Request", "The server requires a valid SSL certificate for secure connections", 437, "SSLCertificateRequired"),
+  NoCertificate => (400, "Bad Request", "No SSL certificate was provided by the client", 438, "NoCertificate"),
+  LoginTimeout => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 440, "LoginTimeout"),
+  OverDataQuota => (413, "Payload Too Large", "The request or resource is too large for the server to handle", 441, "OverDataQuota"),
+  NoResponse => (400, "Bad Request", "The server closed the connection without sending a response", 444, "NoResponse"),
+  TooManyForwardedIPAddresses => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 445, "TooManyForwardedIPAddresses"),
+  InternetSecurityError => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 446, "InternetSecurityError"),
+  RetryWith => (428, "Precondition Required", "The user has sent too many requests in a given amount of time (rate limiting).", 449, "RetryWith"),
+  BlockedByWindowsParentalControls => (403, "Forbidden", "A Microsoft extension. This error is given when Windows Parental Controls are turned on and are blocking access to the given webpage.", 450, "BlockedByWindowsParentalControls"),
+  UnavailableForLegalReasons => (451, "Unavailable For Legal Reasons", "A server operator has received a legal demand to deny access to a resource or to a set of resources that includes the requested resource.", 451, "UnavailableForLegalReasons"),
+  TooManyRecipients => (429, "Too Many Requests",  "The user has sent too many requests in a given amount of time (rate limiting) or too many recipients or addresses used", 452, "TooManyRecipients"),
+  MethodNotValidInThisState => (405, "Method Not Allowed", "The HTTP method is not supported for the target resource", 453, "MethodNotValidInThisState"),
+  UnrecoverableError => (400, "Bad Request", "The server has encountered a situation it doesn't know how to handle.", 456, "UnrecoverableError"),
+  ClientClosedConnexionPrematurely => (400, "Bad Request", "The client closed the connection before the server could send a response.", 493, "ClientClosedConnexionPrematurely"),
+  RequestHeaderTooLarge => (431, "Request Header Fields Too Large", "The server is unwilling to process the request because the header fields are too long. The request can be returned after reducing the size of the headers.", 494, "RequestHeaderTooLarge"),
+  CertError => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 495, "CertError"),
+  NoCert => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 496, "NoCert"),
+  HTTPToHTTPS => (400, "Bad Request", "The request was rejected due to an origin server/client IP issue", 497, "HTTPToHTTPS"),
+  InvalidToken => (401, "Unauthorized", "Although the HTTP standard specifies 'unauthorized', semantically this response means 'unauthenticated'. That is, the client must authenticate itself to get the requested response.", 498, "InvalidToken"),
+  ClientClosedRequest => (400, "Bad Request", "The client closed the connection before the server could send a response.", 499, "ClientClosedRequest"),
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesClientCodes;
+    use serde_json::{json, to_value};
 
-  #[test]
-  fn test_generated_function_bad_request() {
-    let response = ResponsesClientCodes::BadRequest;
-    let (code, description) = response.into();
-    assert_eq!(code, 400);
-    assert_eq!(description, "The server cannot process the request due to malformed syntax or invalid parameters in the client request");
-  }
+    #[test]
+    fn test_to_u16() {
+        assert_eq!(ResponsesClientCodes::BadRequest.to_u16(), 400);
+        assert_eq!(ResponsesClientCodes::Unauthorized.to_u16(), 401);
+        assert_eq!(ResponsesClientCodes::PaymentRequired.to_u16(), 402);
+        assert_eq!(ResponsesClientCodes::Forbidden.to_u16(), 403);
+    }
 
-  #[test]
-  fn test_to_u16_unauthorized() {
-    let response = ResponsesClientCodes::Unauthorized;
-    let code = response.to_u16();
-    assert_eq!(code, 401);
-  }
+    #[test]
+    fn test_client_codes_from_u16() {
+        assert_eq!(ResponsesClientCodes::from_u16(400), Some(ResponsesClientCodes::BadRequest));
+        assert_eq!(ResponsesClientCodes::from_u16(401), Some(ResponsesClientCodes::Unauthorized));
+        assert_eq!(ResponsesClientCodes::from_u16(441), Some(ResponsesClientCodes::OverDataQuota));
+        assert_eq!(ResponsesClientCodes::from_u16(9999), None);
+    }
 
-  #[test]
-  fn test_payment_required() {
-    assert_eq!(payment_required(), (402, "Payment is required to access the requested resource, though this is not widely used in practice"));
-  }
+    #[test]
+    fn test_client_codes_from_internal_code() {
+        assert_eq!(
+            ResponsesClientCodes::from_internal_code(400),
+            Some(ResponsesClientCodes::BadRequest)
+        );
+        assert_eq!(
+            ResponsesClientCodes::from_internal_code(401),
+            Some(ResponsesClientCodes::BadRequest)
+        );
+        assert_eq!(
+            ResponsesClientCodes::from_internal_code(441),
+            Some(ResponsesClientCodes::BadRequest)
+        );
+        assert_eq!(ResponsesClientCodes::from_internal_code(9999), None);
+    }
 
-  #[test]
-  fn tes_from_u16_not_found() {
-    let response = ResponsesClientCodes::from_u16(404);
-    assert_eq!(response, Some(ResponsesClientCodes::NotFound));
-  }
+    #[test]
+    fn test_client_closed_request_as_tuple() {
+        let code = ResponsesClientCodes::ClientClosedRequest;
+        let tuple = UnifiedTuple {
+            standard_code: 400,
+            standard_name: "Bad Request",
+            unified_description:
+                "The client closed the connection before the server could send a response.",
+            internal_code: Some(499),
+            internal_name: Option::from("ClientClosedRequest"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
+    }
+
+    #[test]
+    fn test_too_many_forward_ip_adresses_as_json() {
+        let response_code = ResponsesClientCodes::TooManyForwardedIPAddresses;
+        let json_result = response_code.as_json();
+        let expected_json = json!({
+            "type": "Client errors",
+            "details": {
+                "standard http code": {
+                    "code": 400,
+                    "name": "Bad Request"
+                },
+                "description": "The request was rejected due to an origin server/client IP issue",
+                "internal http code": {
+                    "code": 445,
+                    "name": "TooManyForwardedIPAddresses"
+                }
+            }
+        });
+
+        assert_eq!(json_result, expected_json);
+    }
+
+    #[test]
+    fn test_method_failure_into_two_fields_tuple() {
+        let response_code = ResponsesClientCodes::MethodFailure;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+
+        let expected_json = json!({
+            "code": 420,
+            "name": "MethodFailure"
+        });
+
+        assert_eq!(json_result, expected_json);
+    }
+
+    #[test]
+    fn test_bad_request_duplicate_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(ResponsesClientCodes::from_u16(444), Some(ResponsesClientCodes::NoResponse));
+        assert_eq!(ResponsesClientCodes::from_u16(438), Some(ResponsesClientCodes::NoCertificate));
+    }
 }

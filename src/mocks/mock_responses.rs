@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Copy, Clone, strum_macros::EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum MockResponses {
   Ok,
   BadRequest,

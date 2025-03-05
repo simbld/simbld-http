@@ -1,197 +1,119 @@
-/// The above Rust code defines an enum `ResponsesServiceCodes` with associated error codes and descriptions, along with conversion and helper functions for working with these error codes.
-use crate::helpers::{from_u16_helper::FromU16, to_u16_helper::ToU16};
-use num_enum::{IntoPrimitive, TryFromPrimitive};
-use strum::EnumProperty;
-use strum_macros::{Display, EnumIter, EnumProperty};
+use crate::generate_responses_functions;
+use crate::helpers::to_u16_trait::ToU16;
+use strum_macros::EnumIter;
 
-#[derive(
-  Display, IntoPrimitive, TryFromPrimitive, EnumProperty, EnumIter, Debug, Copy, Clone, PartialEq,
-)]
-#[repr(u16)]
-
-pub enum ResponsesServiceCodes {
-  #[strum(props(
-    Description = "An error occurred while reading the response or data from the server"
-  ))]
-  ReadingError = 611,
-  #[strum(props(
-    Description = "A connection issue occurred, preventing successful communication with the server"
-  ))]
-  ConnectionError = 612,
-  #[strum(props(
-    Description = "The reading operation exceeded the allowed time limit, resulting in a timeout"
-  ))]
-  ReadingTimeExpired = 613,
-  #[strum(props(
-    Description = "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols"
-  ))]
-  SSLHandshakeFailed = 614,
-  #[strum(props(Description = "A generic error occurred while reading the response or data"))]
-  AnotherReadingError = 615,
-  #[strum(props(
-    Description = "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input"
-  ))]
-  FBAAnomaly = 616,
-  #[strum(props(
-    Description = "An error in the implementation or logic caused the request to fail"
-  ))]
-  CodingError = 617,
-  #[strum(props(
-    Description = "The server issued a redirect response but did not provide a valid redirect URL"
-  ))]
-  RedirectWithoutRedirectURL = 618,
-  #[strum(props(
-    Description = "The DNS lookup for the specified domain failed, indicating a potential network or configuration issue"
-  ))]
-  DNSLookupFailed = 680,
-  #[strum(props(
-    Description = "The provided URL is syntactically incorrect and cannot be processed"
-  ))]
-  SyntacticallyIncorrectURL = 690,
-  #[strum(props(
-    Description = "The connection to the server was lost unexpectedly during communication"
-  ))]
-  LostConnection = 691,
-  #[strum(props(
-    Description = "The operation timed out while attempting to write data to the server"
-  ))]
-  WriteTimeout = 692,
-  #[strum(props(
-    Description = "The requested operation failed during a selection or matching process"
-  ))]
-  SelectionFailed = 693,
-  #[strum(props(
-    Description = "An error occurred while attempting to write data to the destination"
-  ))]
-  WriteError = 694,
-  #[strum(props(
-    Description = "A block header was incomplete or malformed, preventing further processing"
-  ))]
-  IncompleteBlockHeader = 695,
-  #[strum(props(
-    Description = "An unexpected error occurred, often indicative of an unforeseen issue or bug"
-  ))]
-  UnexpectedError = 699,
-}
-
-impl ToU16 for ResponsesServiceCodes {
-  fn to_u16(self) -> u16 {
-    self.into() // Conversion`Into<u16>`
-  }
-}
-
-impl FromU16 for ResponsesServiceCodes {
-  fn from_u16(code: u16) -> Option<Self> {
-    Self::try_from(code).ok() // Conversion`TryFrom<u16>`
-  }
-}
-
-impl Into<(u16, &'static str)> for ResponsesServiceCodes {
-  fn into(self) -> (u16, &'static str) {
-    let code: u16 = self.to_u16();
-    let description = self.get_str("Description").unwrap_or("No description");
-    (code, description) // Tuple
-  }
-}
-
-pub fn reading_error() -> (u16, &'static str) {
-  (611, "An error occurred while reading the response or data from the server")
-}
-
-pub fn connection_error() -> (u16, &'static str) {
-  (612, "A connection issue occurred, preventing successful communication with the server")
-}
-
-pub fn reading_time_expired() -> (u16, &'static str) {
-  (613, "The reading operation exceeded the allowed time limit, resulting in a timeout")
-}
-
-pub fn ssl_handshake_failed() -> (u16, &'static str) {
-  (
-    614,
-    "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols",
-  )
-}
-
-pub fn another_reading_error() -> (u16, &'static str) {
-  (615, "A generic error occurred while reading the response or data")
-}
-
-pub fn fba_anomaly() -> (u16, &'static str) {
-  (616, "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input")
-}
-
-pub fn coding_error() -> (u16, &'static str) {
-  (617, "An error in the implementation or logic caused the request to fail")
-}
-
-pub fn redirect_without_redirect_url() -> (u16, &'static str) {
-  (618, "The server issued a redirect response but did not provide a valid redirect URL")
-}
-
-pub fn dns_lookup_failed() -> (u16, &'static str) {
-  (680, "The DNS lookup for the specified domain failed, indicating a potential network or configuration issue")
-}
-
-pub fn syntactically_incorrect_url() -> (u16, &'static str) {
-  (690, "The provided URL is syntactically incorrect and cannot be processed")
-}
-
-pub fn lost_connection() -> (u16, &'static str) {
-  (691, "The connection to the server was lost unexpectedly during communication")
-}
-
-pub fn write_timeout() -> (u16, &'static str) {
-  (692, "The operation timed out while attempting to write data to the server")
-}
-
-pub fn selection_failed() -> (u16, &'static str) {
-  (693, "The requested operation failed during a selection or matching process")
-}
-
-pub fn write_error() -> (u16, &'static str) {
-  (694, "An error occurred while attempting to write data to the destination")
-}
-
-pub fn incomplete_block_header() -> (u16, &'static str) {
-  (695, "A block header was incomplete or malformed, preventing further processing")
-}
-
-pub fn unexpected_error() -> (u16, &'static str) {
-  (699, "An unexpected error occurred, often indicative of an unforeseen issue or bug")
+generate_responses_functions! {
+  "Service responses",
+  ResponsesServiceCodes,
+  ReadingError => (500, "Internal Server Error", "An error occurred while reading the response or data from the server", 611, "Reading Error"),
+  ConnectionError => (500, "Internal Server Error", "A connection issue occurred, preventing successful communication with the server", 612, "Connection Error"),
+  ReadingTimeExpired => (500, "Internal Server Error", "The reading operation exceeded the allowed time limit, resulting in a timeout", 613, "Reading Time Expired"),
+  SSLHandshakeFailed => (500, "Internal Server Error", "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols", 614, "SSL Handshake Failed"),
+  AnotherReadingError => (500, "Internal Server Error", "A generic error occurred while reading the response or data", 615, "Another Reading Error"),
+  FBAAnomaly => (500, "Internal Server Error", "An anomaly was detected in the Full Body Analyzer process, likely due to unexpected input", 616, "FBA Anomaly"),
+  CodingError => (500, "Internal Server Error", "An error in the implementation or logic caused the request to fail", 617, "Coding Error"),
+  RedirectWithoutRedirectURL => (500, "Internal Server Error", "The server issued a redirect response but did not provide a valid redirect URL", 618, "Redirect Without Redirect URL"),
+  DNSLookupFailed => (500, "Internal Server Error", "The DNS lookup for the specified domain failed, indicating a potential network or configuration issue", 680, "DNS Lookup Failed"),
+  SyntacticallyIncorrectURL => (500, "Internal Server Error", "The provided URL is syntactically incorrect and cannot be processed", 690, "Syntactically Incorrect URL"),
+  LostConnection => (500, "Internal Server Error", "The connection to the server was lost unexpectedly during communication", 691, "Lost Connection"),
+  WriteTimeout => (500, "Internal Server Error", "The operation timed out while attempting to write data to the server", 692, "Write Timeout"),
+  SelectionFailed => (500, "Internal Server Error", "The requested operation failed during a selection or matching process", 693, "Selection Failed"),
+  WriteError => (500, "Internal Server Error", "An error occurred while attempting to write data to the destination", 694, "Write Error"),
+  IncompleteBlockHeader => (500, "Internal Server Error", "A block header was incomplete or malformed, preventing further processing", 695, "Incomplete Block Header"),
+  UnexpectedError => (500, "Internal Server Error", "An unexpected error occurred, often indicative of an unforeseen issue or bug", 699, "Unexpected Error"),
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use crate::helpers::tuple_traits::IntoTwoFieldsTuple;
+    use crate::helpers::unified_tuple_helper::UnifiedTuple;
+    use crate::responses::ResponsesServiceCodes;
+    use serde_json::json;
+    use serde_json::to_value;
 
-  #[test]
-  fn test_generated_function_reading_error() {
-    let response = ResponsesServiceCodes::ReadingError;
-    let (code, description) = response.into();
-    assert_eq!(code, 611);
-    assert_eq!(description, "An error occurred while reading the response or data from the server");
-  }
+    #[test]
+    fn test_service_codes_to_u16() {
+        assert_eq!(ResponsesServiceCodes::ReadingError.to_u16(), 500);
+        assert_eq!(ResponsesServiceCodes::ConnectionError.to_u16(), 500);
+        assert_eq!(ResponsesServiceCodes::ReadingTimeExpired.to_u16(), 500);
+        assert_eq!(ResponsesServiceCodes::SSLHandshakeFailed.to_u16(), 500);
+    }
 
-  #[test]
-  fn test_to_u16_connection_error() {
-    let response = ResponsesServiceCodes::ConnectionError;
-    let code = response.to_u16();
-    assert_eq!(code, 612);
-  }
+    #[test]
+    fn test_service_codes_from_u16() {
+        assert_eq!(ResponsesServiceCodes::from_u16(611), Some(ResponsesServiceCodes::ReadingError));
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(613),
+            Some(ResponsesServiceCodes::ReadingTimeExpired)
+        );
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(614),
+            Some(ResponsesServiceCodes::SSLHandshakeFailed)
+        );
+        assert_eq!(ResponsesServiceCodes::from_u16(9999), None);
+    }
 
-  #[test]
-  fn test_from_u16_reading_time_expired() {
-    let response = ResponsesServiceCodes::from_u16(613);
-    assert_eq!(response, Some(ResponsesServiceCodes::ReadingTimeExpired));
-  }
+    #[test]
+    fn test_connection_error_codes_as_tuple() {
+        let code = ResponsesServiceCodes::ConnectionError;
+        let tuple = UnifiedTuple {
+            standard_code: 500,
+            standard_name: "Internal Server Error",
+            unified_description:
+                "A connection issue occurred, preventing successful communication with the server",
+            internal_code: Some(612),
+            internal_name: Option::from("Connection Error"),
+        };
+        let code_as_tuple = code.as_tuple();
+        assert_eq!(code_as_tuple, tuple);
+    }
 
-  #[test]
-  fn test_ssl_handshake_failed() {
-    assert_eq!
-    (ssl_handshake_failed(), (
-      614,
-      "The SSL handshake failed, potentially due to invalid certificates or incompatible protocols",
-    ));
-  }
+    #[test]
+    fn test_service_codes_as_json() {
+        let response_code = ResponsesServiceCodes::ReadingTimeExpired;
+        let json_result = response_code.as_json();
+        let expected_json = json!({
+            "type": "Service responses",
+            "details": {
+                "standard http code": {
+                    "code": 500,
+                    "name": "Internal Server Error"
+                },
+                "description": "The reading operation exceeded the allowed time limit, resulting in a timeout",
+                "internal http code": {
+                    "code": 613,
+                    "name": "Reading Time Expired"
+                }
+            }
+        });
+
+        assert_eq!(json_result, expected_json);
+    }
+
+    #[test]
+    fn test_service_codes_into_two_fields_tuple() {
+        let response_code = ResponsesServiceCodes::IncompleteBlockHeader;
+        let tuple = response_code.into_two_fields_tuple();
+        let json_result = to_value(&tuple).unwrap();
+
+        let expected_json = json!({
+            "code": 500,
+            "name": "Internal Server Error"
+        });
+
+        assert_eq!(json_result, expected_json);
+    }
+
+    #[test]
+    fn test_internal_server_error_duplicate_standard_codes() {
+        // These two codes have the same standard HTTP code (400) but different internal codes
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(695),
+            Some(ResponsesServiceCodes::IncompleteBlockHeader)
+        );
+        assert_eq!(
+            ResponsesServiceCodes::from_u16(699),
+            Some(ResponsesServiceCodes::UnexpectedError)
+        );
+    }
 }
