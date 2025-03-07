@@ -217,6 +217,13 @@ macro_rules! generate_responses_functions {
                 }
             }
         }
+
+        /// Implementation of the `From` trait for converting the enum into a tuple `(u16, &'static str)`.
+        impl From<$enum_name> for (u16, &'static str) {
+            fn from(value: $enum_name) -> Self {
+                (value.to_u16(), value.description())
+            }
+        }
     }
 }
 
