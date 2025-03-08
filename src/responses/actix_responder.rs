@@ -13,7 +13,9 @@ use serde_json::json;
 #[derive(Clone, Debug)]
 pub struct CustomResponse {
     pub http_code: HttpCode,
+    pub name: String,
     pub data: String,
+    pub description: String,
 }
 
 impl CustomResponse {
@@ -25,14 +27,18 @@ impl CustomResponse {
     /// use simbld_http::responses::CustomResponse;
     /// use simbld_http::helpers::http_code_helper::HttpCode;
     ///
-    /// let response = CustomResponse::new(200, "Success Message");
-    /// assert_eq!(response.http_code.standard_code, 200);
+    /// let response = CustomResponse::new(200, ("Ok"), ("Success Message"), ("Success"));
+    /// assert_eq!(response.http_code, 200);
+    /// assert_eq!(response.name, "OK".to_string());
     /// assert_eq!(response.data, "Success Message".to_string());
+    /// assert_eq!(response.description, "Success".to_string());
     /// ```
-    pub fn new(http_code: u16, data: impl Into<String>) -> Self {
-        let resolved_http_code = HttpCode::new(http_code, "OK", "Success", http_code, "OK");
-
-        Self { http_code: resolved_http_code, data: data.into() }
+    pub fn new(
+        code: u16,
+        name: impl Into<String>,
+        data: impl Into<String>,
+        description: Into<String>,
+    ) -> Self {
     }
 }
 
