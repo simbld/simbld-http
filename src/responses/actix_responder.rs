@@ -18,7 +18,7 @@ pub struct CustomResponse {
     pub description: String,
 }
 
-impl CustomResponse {
+impl<T> CustomResponse {
     /// Creates a new `CustomResponse` from an HTTP code (standard or internal)
     /// and some relevant data.
     ///
@@ -35,10 +35,19 @@ impl CustomResponse {
     /// ```
     pub fn new(
         code: u16,
-        name: impl Into<String>,
-        data: impl Into<String>,
-        description: Into<String>,
+        name: impl Into<String> + AsRef<T>,
+        data: impl Into<String> + AsRef<T>,
+        description: impl Into<String> + AsRef<T>,
     ) -> Self {
+        let resolved_http_code =
+            HttpCode::new(code, name.as_ref(), description.as_ref(), code, name.as_ref());
+
+        Self {
+            http_code: resolved_http_code,
+            name: name.into(),
+            data: data.into(),
+            description: description.into(),
+        }
     }
 }
 
@@ -49,13 +58,14 @@ impl Responder for CustomResponse {
 
     fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
         HttpResponse::build(
-            actix_web::http::StatusCode::from_u16(self.http_code.standard_code).unwrap(),
+            actix_web::http::StatusCode::from_u16(self.http_code.standard_code)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
         )
         .json(json!({
             "status": self.http_code.standard_code,
-            "name": self.http_code.standard_name,
-            "description": self.http_code.unified_description,
+            "name": self.name,
             "data": self.data,
+            "description": self.description,
         }))
     }
 }
@@ -76,7 +86,25 @@ pub async fn custom_response_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use actix_web::HttpServer;
     use actix_web::{http::StatusCode, test, web, App};
+
+    /// Example handler that uses the new constructor with four arguments.
+    async fn example_response() -> impl Responder {
+        CustomResponse::new(200, "Success", "Test data", "Request was successful")
+    }
+
+    #[actix_web::main]
+    async fn main() -> std::io::Result<()> {
+        HttpServer::new(|| {
+            App::new()
+                // votre middleware ou configuration
+                .default_service(web::route().to(example_response))
+        })
+        .bind("127.0.0.1:8090")?
+        .run()
+        .await
+    }
 
     #[actix_web::test]
     async fn test_custom_response_responder() {
@@ -89,7 +117,9 @@ mod tests {
                 internal_code: Some(200),
                 internal_name: Some("OK"),
             },
+            name: "".to_string(),
             data: "Test data".to_string(),
+            description: "".to_string(),
         };
 
         // Step 2: Initialize an Actix-Web application with a handler
