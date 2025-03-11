@@ -1,5 +1,6 @@
 use crate::helpers::http_code_helper::HttpCode;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use serde::Serialize;
 use serde_json::json;
 
 /// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
@@ -10,7 +11,7 @@ use serde_json::json;
 /// * `data`: Extra data payload included in the response (String).
 /// * `description`: A string describing the response further (String).
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Serialize, Clone)]
 pub struct CustomResponse {
     pub http_code: HttpCode,
     pub name: String,
@@ -35,12 +36,12 @@ impl<T> CustomResponse {
     /// ```
     pub fn new(
         code: u16,
-        name: impl Into<String> + AsRef<T>,
-        data: impl Into<String> + AsRef<T>,
-        description: impl Into<String> + AsRef<T>,
+        name: impl Into<String>,
+        data: impl Into<String>,
+        description: impl Into<String>,
     ) -> Self {
         let resolved_http_code =
-            HttpCode::new(code, name.as_ref(), description.as_ref(), code, name.as_ref());
+            HttpCode::new(code, &*name.into(), &*description.into(), code, &*name.into());
 
         Self {
             http_code: resolved_http_code,
