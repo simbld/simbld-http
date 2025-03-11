@@ -51,6 +51,23 @@ impl HttpCode {
         }
     }
 
+    pub trait IntoHttpCode {
+        fn into_http_code(self) -> HttpCode;
+    }
+
+    impl IntoHttpCode for (u16, &str, &str) {
+        fn into_http_code(self) -> HttpCode {
+            HttpCode::new(self.0, self.1, self.2, self.0, self.1)
+        }
+    }
+
+    impl IntoHttpCode for (u16, String, String) {
+        fn into_http_code(self) -> HttpCode {
+            HttpCode::new(self.0, &self.1, &self.2, self.0, &self.1)
+        }
+    }
+
+
     /// Returns a unified tuple representation of the HttpCode.
     /// Example: let tuple = code.as_unified_tuple();
     pub fn as_unified_tuple(&self) -> crate::helpers::unified_tuple_helper::UnifiedTuple {
