@@ -229,7 +229,7 @@ macro_rules! generate_responses_functions {
 
 #[cfg(test)]
 mod tests {
-    use crate::helpers::tuple_traits::{IntoThreeFieldsTuple, IntoTwoFieldsTuple};
+    use crate::helpers::traits::tuple_traits::{IntoThreeFieldsTuple, IntoTwoFieldsTuple};
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesClientCodes;
     use crate::ResponsesSuccessCodes;
