@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::helpers::traits::to_u16_trait::ToU16;
+use crate::traits::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -38,9 +38,9 @@ generate_responses_functions! {
 
 #[cfg(test)]
 mod tests {
-    use crate::helpers::traits::tuple_traits::IntoTwoFieldsTuple;
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesSuccessCodes;
+    use crate::traits::tuple_traits::IntoTwoFieldsTuple;
     use serde_json::{json, to_value};
 
     #[test]

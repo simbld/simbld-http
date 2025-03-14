@@ -19,7 +19,7 @@ pub struct CustomResponse {
     pub description: String,
 }
 
-impl<T> CustomResponse {
+impl CustomResponse {
     /// Creates a new `CustomResponse` from an HTTP code (standard or internal)
     /// and some relevant data.
     ///
@@ -28,7 +28,7 @@ impl<T> CustomResponse {
     /// use simbld_http::responses::CustomResponse;
     /// use simbld_http::helpers::http_code_helper::HttpCode;
     ///
-    /// let response = CustomResponse::new(200, ("Ok"), ("Success Message"), ("Success"));
+    /// let response = CustomResponse::new(200, "Ok", "Success Message", "Success");
     /// assert_eq!(response.http_code, 200);
     /// assert_eq!(response.name, "OK".to_string());
     /// assert_eq!(response.data, "Success Message".to_string());
@@ -40,14 +40,20 @@ impl<T> CustomResponse {
         data: impl Into<String>,
         description: impl Into<String>,
     ) -> Self {
-        let resolved_http_code =
-            HttpCode::new(code, &*name.into(), &*description.into(), code, &*name.into());
+        // Convertir les arguments en String
+        let name_str: String = name.into();
+        let description_str: String = description.into();
 
+        // Créer l'HttpCode
+        let resolved_http_code =
+            HttpCode::new(code, name_str.clone(), description_str.clone(), code, name_str);
+
+        // Retourner le CustomResponse en clonant name et description
         Self {
             http_code: resolved_http_code,
-            name: name.into(),
+            name: name_str, // Pas besoin de clonage ici, car on a déjà transféré ownership
             data: data.into(),
-            description: description.into(),
+            description: description_str, // Pas besoin de clonage ici non plus
         }
     }
 }
