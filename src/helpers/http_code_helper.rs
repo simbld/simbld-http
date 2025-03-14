@@ -1,9 +1,9 @@
+use crate::traits::into_http_code_trait::IntoHttpCode;
 /// This file defines the HttpCode struct which represents detailed HTTP code metadata.
 /// The as_unified_tuple method returns a UnifiedTuple struct with optional internal fields.
 /// If standard_code equals internal_code, the optional fields are None; otherwise they are Some(...).
 /// Example: HttpCode::new(202, "Accepted", "Success", 202, "Accepted") returns a UnifiedTuple with None for internal_code and internal_name.
 use serde::Serialize;
-
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub struct HttpCode {
@@ -19,9 +19,17 @@ pub struct HttpCode {
     pub internal_name: Option<&'static str>,
 }
 
-impl HttpCode {
-    pub fn to_u16(&self) -> u16 {
-        self.standard_code
+/// Implement IntoHttpCode for u16, converting it to an HttpCode with default values.
+impl IntoHttpCode for (u16, &'static str, &'static str) {
+    fn into_http_code(self) -> HttpCode {
+        let (standard_code, standard_name, unified_description) = self;
+        HttpCode {
+            standard_code,
+            standard_name,
+            unified_description,
+            internal_code: None,
+            internal_name: None,
+        }
     }
 }
 
@@ -51,22 +59,10 @@ impl HttpCode {
         }
     }
 
-    pub trait IntoHttpCode {
-        fn into_http_code(self) -> HttpCode;
+    /// Converts the HttpCode to a u16.
+    pub fn to_u16(&self) -> u16 {
+        self.standard_code
     }
-
-    impl IntoHttpCode for (u16, &str, &str) {
-        fn into_http_code(self) -> HttpCode {
-            HttpCode::new(self.0, self.1, self.2, self.0, self.1)
-        }
-    }
-
-    impl IntoHttpCode for (u16, String, String) {
-        fn into_http_code(self) -> HttpCode {
-            HttpCode::new(self.0, &self.1, &self.2, self.0, &self.1)
-        }
-    }
-
 
     /// Returns a unified tuple representation of the HttpCode.
     /// Example: let tuple = code.as_unified_tuple();
