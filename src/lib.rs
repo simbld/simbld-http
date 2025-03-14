@@ -4,6 +4,7 @@ pub mod helpers;
 
 pub mod mocks;
 pub mod responses;
+pub mod traits;
 pub mod utils;
 
 // Public exports for helpers
