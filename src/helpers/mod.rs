@@ -10,7 +10,6 @@ pub mod response_helpers;
 pub mod response_with_cookie_helper;
 pub mod response_with_headers_helper;
 pub mod three_fields_tuple_helper;
-pub(crate) mod traits;
 pub mod two_fields_tuple_helper;
 pub mod unified_middleware_helper;
 pub mod unified_tuple_helper;
