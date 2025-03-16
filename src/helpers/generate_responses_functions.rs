@@ -191,7 +191,7 @@ macro_rules! generate_responses_functions {
         }
 
         /// Implementation for converting the enum into a tuple `(u16, &'static str)`.
-        impl crate::helpers::tuple_traits::IntoTwoFieldsTuple for $enum_name {
+        impl crate::traits::tuple_traits::IntoTwoFieldsTuple for $enum_name {
             fn into_two_fields_tuple(self) -> crate::helpers::two_fields_tuple_helper::TwoFieldsTuple {
                 let http_code = self.to_http_code();
                 http_code.into_two_fields_tuple()
@@ -199,7 +199,7 @@ macro_rules! generate_responses_functions {
         }
 
         /// Implementation for converting the enum into a tuple '(u16, &'static str, &'static str)'.
-        impl crate::helpers::tuple_traits::IntoThreeFieldsTuple for $enum_name {
+        impl crate::traits::tuple_traits::IntoThreeFieldsTuple for $enum_name {
             fn into_three_fields_tuple(self) -> crate::helpers::three_fields_tuple_helper::ThreeFieldsTuple {
                 let http_code = self.to_http_code();
                 http_code.into_three_fields_tuple()
@@ -217,14 +217,21 @@ macro_rules! generate_responses_functions {
                 }
             }
         }
+
+        /// Implementation of the `From` trait for converting the enum into a tuple `(u16, &'static str)`.
+        impl From<$enum_name> for (u16, &'static str) {
+            fn from(value: $enum_name) -> Self {
+                (value.to_u16(), value.description())
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::helpers::tuple_traits::{IntoThreeFieldsTuple, IntoTwoFieldsTuple};
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use crate::responses::ResponsesClientCodes;
+    use crate::traits::tuple_traits::{IntoThreeFieldsTuple, IntoTwoFieldsTuple};
     use crate::ResponsesSuccessCodes;
     use serde_json::json;
 

@@ -7,6 +7,7 @@ use futures_util::future::{ok, LocalBoxFuture, Ready};
 use thiserror::Error;
 
 /// Middleware for Unified handling of requests
+#[derive(Debug)]
 pub struct UnifiedMiddleware {
     pub allowed_origins: Vec<String>,
     pub rate_limiters: std::sync::Arc<

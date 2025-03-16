@@ -1,5 +1,6 @@
 use crate::helpers::http_code_helper::HttpCode;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use serde::Serialize;
 use serde_json::json;
 
 /// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
@@ -10,10 +11,12 @@ use serde_json::json;
 /// * `data`: Extra data payload included in the response (String).
 /// * `description`: A string describing the response further (String).
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Serialize, Clone)]
 pub struct CustomResponse {
     pub http_code: HttpCode,
+    pub name: String,
     pub data: String,
+    pub description: String,
 }
 
 impl CustomResponse {
@@ -25,14 +28,33 @@ impl CustomResponse {
     /// use simbld_http::responses::CustomResponse;
     /// use simbld_http::helpers::http_code_helper::HttpCode;
     ///
-    /// let response = CustomResponse::new(200, "Success Message");
-    /// assert_eq!(response.http_code.standard_code, 200);
+    /// let response = CustomResponse::new(200, "Ok", "Success Message", "Success");
+    /// assert_eq!(response.http_code, 200);
+    /// assert_eq!(response.name, "OK".to_string());
     /// assert_eq!(response.data, "Success Message".to_string());
+    /// assert_eq!(response.description, "Success".to_string());
     /// ```
-    pub fn new(http_code: u16, data: impl Into<String>) -> Self {
-        let resolved_http_code = HttpCode::new(http_code, "OK", "Success", http_code, "OK");
+    pub fn new(
+        code: u16,
+        name: impl Into<String>,
+        data: impl Into<String>,
+        description: impl Into<String>,
+    ) -> Self {
+        // Convertir les arguments en String
+        let name_str: String = name.into();
+        let description_str: String = description.into();
 
-        Self { http_code: resolved_http_code, data: data.into() }
+        // Créer l'HttpCode
+        let resolved_http_code =
+            HttpCode::new(code, name_str.clone(), description_str.clone(), code, name_str);
+
+        // Retourner le CustomResponse en clonant name et description
+        Self {
+            http_code: resolved_http_code,
+            name: name_str, // Pas besoin de clonage ici, car on a déjà transféré ownership
+            data: data.into(),
+            description: description_str, // Pas besoin de clonage ici non plus
+        }
     }
 }
 
@@ -43,13 +65,14 @@ impl Responder for CustomResponse {
 
     fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
         HttpResponse::build(
-            actix_web::http::StatusCode::from_u16(self.http_code.standard_code).unwrap(),
+            actix_web::http::StatusCode::from_u16(self.http_code.standard_code)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
         )
         .json(json!({
             "status": self.http_code.standard_code,
-            "name": self.http_code.standard_name,
-            "description": self.http_code.unified_description,
+            "name": self.name,
             "data": self.data,
+            "description": self.description,
         }))
     }
 }
@@ -70,7 +93,25 @@ pub async fn custom_response_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use actix_web::HttpServer;
     use actix_web::{http::StatusCode, test, web, App};
+
+    /// Example handler that uses the new constructor with four arguments.
+    async fn example_response() -> impl Responder {
+        CustomResponse::new(200, "Success", "Test data", "Request was successful")
+    }
+
+    #[actix_web::main]
+    async fn main() -> std::io::Result<()> {
+        HttpServer::new(|| {
+            App::new()
+                // votre middleware ou configuration
+                .default_service(web::route().to(example_response))
+        })
+        .bind("127.0.0.1:8090")?
+        .run()
+        .await
+    }
 
     #[actix_web::test]
     async fn test_custom_response_responder() {
@@ -83,7 +124,9 @@ mod tests {
                 internal_code: Some(200),
                 internal_name: Some("OK"),
             },
+            name: "".to_string(),
             data: "Test data".to_string(),
+            description: "".to_string(),
         };
 
         // Step 2: Initialize an Actix-Web application with a handler

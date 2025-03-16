@@ -3,8 +3,9 @@ use serde_json::{json, Value};
 use simbld_http::helpers::{
     http_interceptor_helper::HttpInterceptor, response_helpers,
     response_with_cookie_helper::ok_with_cookie, response_with_headers_helper::ok_with_headers,
-    to_u16_trait::ToU16, unified_middleware_helper::UnifiedMiddleware,
+    unified_middleware_helper::UnifiedMiddleware,
 };
+use simbld_http::traits::to_u16_trait::ToU16;
 use simbld_http::responses::actix_responder::CustomResponse;
 use simbld_http::responses::{ResponsesSuccessCodes, ResponsesTypes};
 use simbld_http::ResponsesSuccessCodes::Ok;
@@ -68,7 +69,7 @@ fn examples_with_helpers() {
         "status": http_code.standard_code,
         "name": http_code.standard_name,
         "description": http_code.unified_description
-    });
+    }));
 
     // Example 4: Using helpers with cookies
     let ok_cookie = ("session_id", "abc123"); // Key-value for the cookie
@@ -85,13 +86,7 @@ fn examples_with_helpers() {
     println!("{}", ok_response_headers);
 
     // Example 6: Using helpers with unified middleware
-    let unified_middleware = UnifiedMiddleware {
-        allowed_origins: vec!["*".to_string()],
-        rate_limiters: Arc::new(Mutex::new(HashMap::new())),
-        max_requests: 100,
-        window_duration: Duration::from_secs(60),
-        intercept_dependencies: None,
-    };
+    let unified_middleware = UnifiedMiddleware::new(/* Vec<std::string::String> */, /* usize */, /* std::time::Duration */, /* Rc<(dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static)> */);
     println!("Created UnifiedMiddleware: {:?}", unified_middleware);
 
     // Example 7: Using helpers with http interceptor

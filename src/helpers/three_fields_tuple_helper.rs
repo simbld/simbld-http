@@ -1,5 +1,5 @@
 use crate::helpers::http_code_helper::HttpCode;
-use crate::helpers::tuple_traits::IntoThreeFieldsTuple;
+use crate::traits::tuple_traits::IntoThreeFieldsTuple;
 use serde::Serialize;
 
 /// SimpleTuple represents a simplified view of HttpCode with three fields.

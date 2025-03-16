@@ -29,8 +29,8 @@ async fn bad_request_route() -> HttpResponse {
 
 /// Route for the 201 Created response.
 async fn custom_created_route() -> HttpResponse {
-    let code = ResponsesSuccessCodes::Created;
-    let (code, description) = code.into();
+    let response_code = ResponsesSuccessCodes::Created;
+    let (code, description) = response_code.into();
     HttpResponse::Created()
         .json(json!({ "status": code, "name": "It's created !!!", "description": description }))
 }
