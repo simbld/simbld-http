@@ -50,7 +50,7 @@ impl UnifiedMiddleware {
         allowed_origins: Vec<String>,
         max_requests: usize,
         window_duration: std::time::Duration,
-        intercept_dependencies: std::rc::Rc<dyn Fn(&ServiceRequest) -> bool>,
+        intercept_dependencies: Vec<String>,
     ) -> Self {
         UnifiedMiddleware {
             allowed_origins,
