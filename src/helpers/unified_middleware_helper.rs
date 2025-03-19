@@ -7,9 +7,8 @@ use futures_util::future::{ok, LocalBoxFuture, Ready};
 use thiserror::Error;
 
 /// Middleware for Unified handling of requests
-#[derive(Debug)]
 pub struct UnifiedMiddleware {
-    pub allowed_origins: Vec<String>,
+    pub allowed_origins: String,
     pub rate_limiters: std::sync::Arc<
         std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
     >,
@@ -47,16 +46,17 @@ impl actix_web::ResponseError for UnifiedError {
 
 impl UnifiedMiddleware {
     pub fn new(
-        allowed_origins: Vec<String>,
+        allowed_origins: String,
+        rate_limiters: std::sync::Arc<
+            std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
+        >,
         max_requests: usize,
         window_duration: std::time::Duration,
-        intercept_dependencies: Vec<String>,
+        intercept_dependencies: std::rc::Rc<dyn Fn(&ServiceRequest) -> bool>,
     ) -> Self {
         UnifiedMiddleware {
             allowed_origins,
-            rate_limiters: std::sync::Arc::new(std::sync::Mutex::new(
-                std::collections::HashMap::new(),
-            )),
+            rate_limiters,
             max_requests,
             window_duration,
             intercept_dependencies,
@@ -89,7 +89,7 @@ where
 
 pub struct UnifiedMiddlewareService<S> {
     service: std::rc::Rc<S>,
-    allowed_origins: Vec<String>,
+    allowed_origins: String,
     rate_limiters: std::sync::Arc<
         std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
     >,
@@ -169,7 +169,7 @@ mod tests {
     async fn test_rate_limiting() {
         // Initialize middleware with only 2 requests allowed per 10 seconds
         let middleware = UnifiedMiddleware::new(
-            vec!["localhost".to_string()],
+            "localhost".to_string(),
             2,                                  // Max requests
             std::time::Duration::from_secs(10), // Time window
             std::rc::Rc::new(|_req| true),      // Always intercept
