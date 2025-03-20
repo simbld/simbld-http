@@ -40,20 +40,23 @@ impl CustomResponse {
         data: impl Into<String>,
         description: impl Into<String>,
     ) -> Self {
-        // Convertir les arguments en String
-        let name_str: String = name.into();
-        let description_str: String = description.into();
+        // Convert the input parameters into strings
+        let name_str = name.into();
+        let data_str = data.into();
+        let desc_str = description.into();
 
-        // Créer l'HttpCode
-        let resolved_http_code =
-            HttpCode::new(code, name_str.clone(), description_str.clone(), code, name_str);
+        // Leak the strings to create static references
+        let leaked_name: &'static str = Box::leak(name_str.clone().into_boxed_str());
+        let leaked_desc: &'static str = Box::leak(desc_str.clone().into_boxed_str());
 
-        // Retourner le CustomResponse en clonant name et description
+        // Create a new HttpCode instance
+        let resolved_http_code = HttpCode::new(code, leaked_name, leaked_desc, code, leaked_name);
+
         Self {
             http_code: resolved_http_code,
-            name: name_str, // Pas besoin de clonage ici, car on a déjà transféré ownership
-            data: data.into(),
-            description: description_str, // Pas besoin de clonage ici non plus
+            name: name_str,
+            data: data_str,
+            description: desc_str,
         }
     }
 }
