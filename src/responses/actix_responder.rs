@@ -147,4 +147,28 @@ mod tests {
         // Step 4: Assert the response
         assert_eq!(resp.status(), StatusCode::OK);
     }
+
+    #[actix_web::test]
+    async fn test_example_response() {
+        // La solution la plus simple : créer une app de test et utiliser la fonction
+        // comme gestionnaire de route
+
+        // Créer une app avec notre fonction comme handler
+        let app = test::init_service(App::new().route("/", web::get().to(example_response))).await;
+
+        // Simuler une requête à notre endpoint
+        let req = test::TestRequest::get().uri("/").to_request();
+        let resp = test::call_service(&app, req).await;
+
+        // Vérifier le code de statut
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        // Vérifier le contenu de la réponse
+        let body = test::read_body(resp).await;
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // S'assurer que le corps contient les données attendues
+        assert!(body_str.contains("Test data"));
+        assert!(body_str.contains("Request was successful"));
+    }
 }
