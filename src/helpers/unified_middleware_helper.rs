@@ -7,9 +7,8 @@ use futures_util::future::{ok, LocalBoxFuture, Ready};
 use thiserror::Error;
 
 /// Middleware for Unified handling of requests
-#[derive(Debug)]
 pub struct UnifiedMiddleware {
-    pub allowed_origins: Vec<String>,
+    pub allowed_origins: String,
     pub rate_limiters: std::sync::Arc<
         std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
     >,
@@ -47,16 +46,17 @@ impl actix_web::ResponseError for UnifiedError {
 
 impl UnifiedMiddleware {
     pub fn new(
-        allowed_origins: Vec<String>,
+        allowed_origins: String,
+        rate_limiters: std::sync::Arc<
+            std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
+        >,
         max_requests: usize,
         window_duration: std::time::Duration,
         intercept_dependencies: std::rc::Rc<dyn Fn(&ServiceRequest) -> bool>,
     ) -> Self {
         UnifiedMiddleware {
             allowed_origins,
-            rate_limiters: std::sync::Arc::new(std::sync::Mutex::new(
-                std::collections::HashMap::new(),
-            )),
+            rate_limiters,
             max_requests,
             window_duration,
             intercept_dependencies,
@@ -89,7 +89,7 @@ where
 
 pub struct UnifiedMiddlewareService<S> {
     service: std::rc::Rc<S>,
-    allowed_origins: Vec<String>,
+    allowed_origins: String,
     rate_limiters: std::sync::Arc<
         std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
     >,
@@ -164,15 +164,21 @@ mod tests {
     use super::*;
     use actix_web::test;
     use actix_web::{App, HttpResponse};
+    use std::{
+        collections::HashMap,
+        sync::{Arc, Mutex},
+        time::Duration,
+    };
 
     #[actix_web::test]
     async fn test_rate_limiting() {
         // Initialize middleware with only 2 requests allowed per 10 seconds
         let middleware = UnifiedMiddleware::new(
-            vec!["localhost".to_string()],
-            2,                                  // Max requests
-            std::time::Duration::from_secs(10), // Time window
-            std::rc::Rc::new(|_req| true),      // Always intercept
+            "localhost".to_string(),
+            Arc::new(Mutex::new(HashMap::new())),
+            2,                             // Max requests
+            Duration::from_secs(10),       // Time window
+            std::rc::Rc::new(|_req| true), // Always intercept
         );
 
         // Create Actix app with middleware applied
@@ -206,12 +212,12 @@ mod tests {
     async fn test_allowed_origins() {
         // Initialize middleware with "localhost" as the only allowed origin
         let middleware = UnifiedMiddleware::new(
-            vec!["localhost".to_string()],
-            10, // High request limit for testing (will not hit limit here)
-            std::time::Duration::from_secs(10),
+            "localhost".to_string(),
+            Arc::new(Mutex::new(HashMap::new())),
+            10, // High request limit for testing
+            Duration::from_secs(10),
             std::rc::Rc::new(|_req| true), // Always intercept
         );
-
         // Create Actix app with middleware applied
         let app = test::init_service(
             App::new()
@@ -237,10 +243,11 @@ mod tests {
     async fn test_reset_rate_limiting_window() {
         // Initialize middleware with a very short time window (2 seconds)
         let middleware = UnifiedMiddleware::new(
-            vec!["localhost".to_string()],
-            1,                                 // Only 1 request allowed per window
-            std::time::Duration::from_secs(2), // Very short window to test reset logic
-            std::rc::Rc::new(|_req| true),     // Always intercept
+            "localhost".to_string(),
+            Arc::new(Mutex::new(HashMap::new())),
+            1,                             // Only 1 request allowed per window
+            Duration::from_secs(2),        // Short window to test reset logic
+            std::rc::Rc::new(|_req| true), // Always intercept
         );
 
         // Create Actix app with middleware applied
@@ -257,16 +264,16 @@ mod tests {
         let resp = test::call_service(&app, req).await;
         assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
 
-        // Second request within same window: should fail
+        // Second request: should be rejected due to rate limiting
         let req =
             test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
         let resp = test::call_service(&app, req).await;
         assert_eq!(resp.status(), actix_web::http::StatusCode::TOO_MANY_REQUESTS);
 
-        // Wait for the window duration to pass
-        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        // Wait for the window to reset
+        tokio::time::sleep(Duration::from_secs(2)).await;
 
-        // Third request after window resets: should pass
+        // Third request: should pass again after the window reset
         let req =
             test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
         let resp = test::call_service(&app, req).await;

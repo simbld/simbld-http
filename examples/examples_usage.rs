@@ -5,7 +5,6 @@ use simbld_http::helpers::{
     response_with_cookie_helper::ok_with_cookie, response_with_headers_helper::ok_with_headers,
     unified_middleware_helper::UnifiedMiddleware,
 };
-use simbld_http::traits::to_u16_trait::ToU16;
 use simbld_http::responses::actix_responder::CustomResponse;
 use simbld_http::responses::{ResponsesSuccessCodes, ResponsesTypes};
 use simbld_http::ResponsesSuccessCodes::Ok;

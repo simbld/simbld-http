@@ -40,20 +40,23 @@ impl CustomResponse {
         data: impl Into<String>,
         description: impl Into<String>,
     ) -> Self {
-        // Convertir les arguments en String
-        let name_str: String = name.into();
-        let description_str: String = description.into();
+        // Convert the input parameters into strings
+        let name_str = name.into();
+        let data_str = data.into();
+        let desc_str = description.into();
 
-        // Créer l'HttpCode
-        let resolved_http_code =
-            HttpCode::new(code, name_str.clone(), description_str.clone(), code, name_str);
+        // Leak the strings to create static references
+        let leaked_name: &'static str = Box::leak(name_str.clone().into_boxed_str());
+        let leaked_desc: &'static str = Box::leak(desc_str.clone().into_boxed_str());
 
-        // Retourner le CustomResponse en clonant name et description
+        // Create a new HttpCode instance
+        let resolved_http_code = HttpCode::new(code, leaked_name, leaked_desc, code, leaked_name);
+
         Self {
             http_code: resolved_http_code,
-            name: name_str, // Pas besoin de clonage ici, car on a déjà transféré ownership
-            data: data.into(),
-            description: description_str, // Pas besoin de clonage ici non plus
+            name: name_str,
+            data: data_str,
+            description: desc_str,
         }
     }
 }
@@ -143,5 +146,29 @@ mod tests {
 
         // Step 4: Assert the response
         assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[actix_web::test]
+    async fn test_example_response() {
+        // La solution la plus simple : créer une app de test et utiliser la fonction
+        // comme gestionnaire de route
+
+        // Créer une app avec notre fonction comme handler
+        let app = test::init_service(App::new().route("/", web::get().to(example_response))).await;
+
+        // Simuler une requête à notre endpoint
+        let req = test::TestRequest::get().uri("/").to_request();
+        let resp = test::call_service(&app, req).await;
+
+        // Vérifier le code de statut
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        // Vérifier le contenu de la réponse
+        let body = test::read_body(resp).await;
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // S'assurer que le corps contient les données attendues
+        assert!(body_str.contains("Test data"));
+        assert!(body_str.contains("Request was successful"));
     }
 }
