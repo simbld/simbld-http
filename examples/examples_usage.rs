@@ -93,19 +93,27 @@ fn examples_with_helpers() {
     println!("Created HttpInterceptor: {:?}", http_interceptor);
 
     // Example 8: Using helpers with custom responses
+    let bad_request_code = 400;
+    let bad_request_name = "BadRequest";
+    let bad_request_desc = "Bad request example description";    
     let body_str = json!({
         "status": bad_request_code,
         "description": bad_request_desc
     })
     .to_string();
-    let bad_request_desc = "Bad request example description";
-    let custom_response = CustomResponse::new(bad_request_code, body_str);
+
+    let custom_response = CustomResponse::new(
+        bad_request_code,
+        bad_request_name,
+        body_str,
+        bad_request_desc
+    );
     println!("CustomResponse from bad_request: {:?}", custom_response);
 
     // Example 9: Using helpers with success codes
     let success_code = ResponsesSuccessCodes::Ok;
     let success_code_u16 = success_code.to_u16();
-    let success_code_str = success_code.get_str("Description").unwrap_or("No description");
+    let success_code_str = success_code.description();
     let success_code_json = json!({ "status": success_code_u16, "description": success_code_str });
     println!("{}", success_code_json);
 
@@ -119,13 +127,13 @@ fn examples_with_helpers() {
 ///
 async fn transform_bad_request_to_json() -> impl Responder {
     // XXX: We retrieve code, name, desc from the tuple
-    let (code, _name, desc) = bad_request_tuple();
-    // QUESTION: Do we want the `_name` included? We keep it minimal here.
+    let bad_request = ResponsesClientCodes::BadRequest;
+    let code = bad_request.to_u16();
+    let desc = bad_request.description();
     let data = r#"{"extraData":"someValue"}"#;
     let response_str = response_helpers::create_response(code, desc, data);
-
     let response_json: Value = match serde_json::from_str(&response_str) {
-        Ok(v) => v,
+        Ok =>
         Err(_e) => json!({"error": "Failed to parse response"}),
     };
     HttpResponse::Ok().json(response_json)
