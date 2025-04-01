@@ -10,6 +10,7 @@ use simbld_http::responses::{ResponsesSuccessCodes, ResponsesTypes};
 use simbld_http::ResponsesSuccessCodes::Ok;
 use simbld_http::{ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesServerCodes};
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::rc::Rc;
 use std::result::Result;
 use std::sync::{Arc, Mutex};
@@ -55,7 +56,8 @@ fn examples_with_helpers() {
     println!("ok() returns: {:?}", ok_value);
 
     // HACK: Extract data from the JSON
-    let code = ok_value["status"].as_u64().unwrap_or(200) as u16;
+    let code = ok_value.get_code();
+
     let name = ok_value["name"].as_str().unwrap_or("unknown");
     let desc = ok_value["description"].as_str().unwrap_or("No description");
     let ok_response = json!({ "status": code, "name": name, "description": desc });
@@ -92,6 +94,7 @@ fn examples_with_helpers() {
         100,                                  // Max requests
         Duration::from_secs(60),              // Window duration
         Rc::new(|_req| true),                 // Intercept dependencies
+        None,
     );
     println!("Created UnifiedMiddleware: {:?}", unified_middleware);
 
@@ -254,12 +257,16 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .wrap(UnifiedMiddleware {
-                allowed_origins: "*".to_string(),
+                allowed_origins: {
+                    let mut set = HashSet::new();
+                    set.insert("*".to_string());
+                    set
+                },
                 rate_limiters: Arc::new(Mutex::new(HashMap::new())),
                 max_requests: 100,
                 window_duration: std::time::Duration::from_secs(60),
                 intercept_dependencies: Rc::new(|_req| true),
-                condition: Box::new(|_req| true),
+                condition: Rc::new(Box::new(|_req| true)),
             })
             .wrap(HttpInterceptor) // Specific interceptor
             .route("/transform_bad_request_to_json", web::get().to(transform_bad_request_to_json))
