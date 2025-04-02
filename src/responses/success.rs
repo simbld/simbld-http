@@ -3,7 +3,7 @@ use crate::traits::to_u16_trait::ToU16;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
-  "Successful responses",
+  "Success responses",
   ResponsesSuccessCodes,
   Ok => (200, "OK", "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response", 200, "OK"),
   Created => (201, "Created", "Request processed successfully and document created, with a new resource created, and the URI of the new resource returned, if available", 201, "Created"),
@@ -81,7 +81,7 @@ mod tests {
         let response_code = ResponsesSuccessCodes::ContentTransferred;
         let json_result = response_code.as_json();
         let expected_json = json!({
-            "type": "Successful responses",
+            "type": "Success responses",
             "details": {
                 "standard http code": {
                     "code": 200,
