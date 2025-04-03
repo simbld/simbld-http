@@ -85,8 +85,8 @@ mod tests {
                 },
             "description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response",
                 "internal http code": {
-                    "code": 0,
-                    "name": "",
+                    "code": null,
+                    "name": null,
         }}});
 
         assert_eq!(json_result, expected);

@@ -21,7 +21,7 @@
 
 ---
 
-### 📚 Successful responses
+### 📚 Success responses
 
 `Ok` = **200**\
 `Created` = **201**\

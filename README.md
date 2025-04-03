@@ -14,7 +14,8 @@ _The complete list of http codes (official and unofficial) is available in the f
 
 ###### Standardized response functions across all families
 
-_All response families now include functions that return a tuple `(u16, &'static str)` for better consistency and ease of use._
+_All response families now include functions that return a tuple `(u16, &'static str)` for better consistency and ease
+of use._
 
 ### 📚 Full Documentation and Examples
 
@@ -97,7 +98,8 @@ _All response families now include functions that return a tuple `(u16, &'static
 
 ### 📚 Complete Documentation and Examples
 
-_Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub repository_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
+_Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub
+repository_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
 
 ##### Included Examples
 
@@ -112,7 +114,9 @@ _Complete examples, including detailed use cases and advanced integrations, are 
 
 ---
 
-**_`Simbld-HTTP`_** is a modular and comprehensive Rust library designed for managing HTTP response codes. Whether you're building APIs, handling custom response codes, or integrating middleware, Simbld-HTTP provides an organized and extensible framework to simplify your workflow.
+**_`Simbld-HTTP`_** is a modular and comprehensive Rust library designed for managing HTTP response codes. Whether
+you're building APIs, handling custom response codes, or integrating middleware, Simbld-HTTP provides an organized and
+extensible framework to simplify your workflow.
 
 ---
 
@@ -229,9 +233,9 @@ curl -i http://127.0.0.1:8080/
 ### ⚙️ Structure of Families
 
 | Family  | Description                                                             |
-| ------- | ----------------------------------------------------------------------- |
+|---------|-------------------------------------------------------------------------|
 | **1xx** | Informational responses (e.g., `ContinueRequest`, `Processing`)         |
-| **2xx** | Successful responses (e.g., `OK`, `Created`)                            |
+| **2xx** | Success responses (e.g., `OK`, `Created`)                               |
 | **3xx** | Redirection responses (e.g., `Moved Permanently`, `Temporary Redirect`) |
 | **4xx** | Client errors (e.g., `Bad Request`, `Unauthorized`)                     |
 | **5xx** | Server errors (e.g., `Internal Server Error`, `Service Unavailable`)    |
@@ -243,7 +247,8 @@ curl -i http://127.0.0.1:8080/
 
 ### 🤝 Contributing to Simbld-HTTP
 
-We welcome contributions to Simbld-HTTP! Help us make this library the go-to solution for HTTP response code management in Rust.
+We welcome contributions to Simbld-HTTP! Help us make this library the go-to solution for HTTP response code management
+in Rust.
 
 ###### `1` Fork this repository
 

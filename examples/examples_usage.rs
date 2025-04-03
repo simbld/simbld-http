@@ -10,9 +10,11 @@ use simbld_http::responses::{ResponsesSuccessCodes, ResponsesTypes};
 use simbld_http::ResponsesSuccessCodes::Ok;
 use simbld_http::{ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesServerCodes};
 use std::collections::HashMap;
+use std::collections::HashSet;
+use std::rc::Rc;
+use std::result::Result;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use strum::EnumProperty;
 
 fn examples_with_helpers() {
     println!("=== Examples with Helpers ===");
@@ -46,7 +48,7 @@ fn examples_with_helpers() {
     // Example 1: Using helpers to transform responses into JSON
     let bad_request = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
     let bad_request_json = response_helpers::transform_to_json(bad_request);
-    
+
     println!("{}", bad_request_json);
 
     // Example 2: Using the ok() helper (returns a JSON Value)
@@ -54,7 +56,8 @@ fn examples_with_helpers() {
     println!("ok() returns: {:?}", ok_value);
 
     // HACK: Extract data from the JSON
-    let code = ok_value["status"].as_u64().unwrap_or(200) as u16;
+    let code = ok_value.get_code();
+
     let name = ok_value["name"].as_str().unwrap_or("unknown");
     let desc = ok_value["description"].as_str().unwrap_or("No description");
     let ok_response = json!({ "status": code, "name": name, "description": desc });
@@ -63,7 +66,7 @@ fn examples_with_helpers() {
     // Example 3: Using the bad_request() helper
     let bad_request = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
     let http_code = bad_request.as_tuple();
-    
+
     HttpResponse::BadRequest().json(json!({
         "status": http_code.standard_code,
         "name": http_code.standard_name,
@@ -85,7 +88,14 @@ fn examples_with_helpers() {
     println!("{}", ok_response_headers);
 
     // Example 6: Using helpers with unified middleware
-    let unified_middleware = UnifiedMiddleware::new(/* Vec<std::string::String> */, /* usize */, /* std::time::Duration */, /* Rc<(dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static)> */);
+    let unified_middleware = UnifiedMiddleware::new(
+        "*".to_string(),                      // Allowed origins
+        Arc::new(Mutex::new(HashMap::new())), // Rate limiters
+        100,                                  // Max requests
+        Duration::from_secs(60),              // Window duration
+        Rc::new(|_req| true),                 // Intercept dependencies
+        None,
+    );
     println!("Created UnifiedMiddleware: {:?}", unified_middleware);
 
     // Example 7: Using helpers with http interceptor
@@ -93,19 +103,23 @@ fn examples_with_helpers() {
     println!("Created HttpInterceptor: {:?}", http_interceptor);
 
     // Example 8: Using helpers with custom responses
+    let bad_request_code = 400;
+    let bad_request_name = "BadRequest";
+    let bad_request_desc = "Bad request example description";
     let body_str = json!({
         "status": bad_request_code,
         "description": bad_request_desc
     })
     .to_string();
-    let bad_request_desc = "Bad request example description";
-    let custom_response = CustomResponse::new(bad_request_code, body_str);
+
+    let custom_response =
+        CustomResponse::new(bad_request_code, bad_request_name, body_str, bad_request_desc);
     println!("CustomResponse from bad_request: {:?}", custom_response);
 
     // Example 9: Using helpers with success codes
     let success_code = ResponsesSuccessCodes::Ok;
     let success_code_u16 = success_code.to_u16();
-    let success_code_str = success_code.get_str("Description").unwrap_or("No description");
+    let success_code_str = success_code.description();
     let success_code_json = json!({ "status": success_code_u16, "description": success_code_str });
     println!("{}", success_code_json);
 
@@ -119,15 +133,16 @@ fn examples_with_helpers() {
 ///
 async fn transform_bad_request_to_json() -> impl Responder {
     // XXX: We retrieve code, name, desc from the tuple
-    let (code, _name, desc) = bad_request_tuple();
-    // QUESTION: Do we want the `_name` included? We keep it minimal here.
+    let bad_request = ResponsesClientCodes::BadRequest;
+    let code = bad_request.to_u16();
+    let desc = bad_request.description();
     let data = r#"{"extraData":"someValue"}"#;
     let response_str = response_helpers::create_response(code, desc, data);
-
-    let response_json: Value = match serde_json::from_str(&response_str) {
-        Ok(v) => v,
+    let response_json: Value = match serde_json::from_str::<Value>(&response_str) {
+        Result::Ok(v) => v,
         Err(_e) => json!({"error": "Failed to parse response"}),
     };
+
     HttpResponse::Ok().json(response_json)
 }
 
@@ -145,22 +160,22 @@ async fn example_ok_with_metadata() -> impl Responder {
     );
 
     let enriched_value: Value = match serde_json::from_str(&enriched_response) {
-        Ok(v) => v,
+        Result::Ok(v) => v,
         Err(_e) => json!({"error": "Failed to parse metadata response"}),
     };
     HttpResponse::Ok().json(enriched_value)
 }
 
-// Route for success
-async fn example_handler() -> HttpResponse {
+// Route for success with metadata on actix web
+async fn example_success() -> HttpResponse {
     HttpResponse::Ok().content_type("application/json").json(json!({"message": "Hello, World!"}))
 }
 
-// Route for client error
+// Route for client error with 2 parameters fot CustomResponse
 async fn example_client_error() -> impl Responder {
-    let (code, name, description) = ResponsesClientCodes::BadRequest.into();
+    let (code, description) = ResponsesClientCodes::BadRequest.into();
     let body_str = json!({ "description": description }).to_string();
-    CustomResponse::new(code, body_str)
+    CustomResponse::new(code, body_str, "application/json", "")
 }
 
 // Route for Ok with cookies
@@ -194,7 +209,7 @@ async fn example_server_error() -> impl Responder {
     })
     .to_string();
 
-    CustomResponse::new(code, error_str)
+    CustomResponse::new(code, error_str, "application/json", "")
 }
 
 // Route to example JSON response
@@ -214,11 +229,11 @@ async fn example_json() -> impl Responder {
 async fn bad_request_route() -> HttpResponse {
     let bad_request = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
     let http_code = bad_request.as_tuple(); // `http_code` est de type `HttpCode`.
-    // QUESTION: Do we want to include the name in the response?
+                                            // QUESTION: Do we want to include the name in the response?
     let code = http_code.standard_code;
     let name = http_code.standard_name;
     let desc = http_code.unified_description;
-    
+
     HttpResponse::BadRequest().json(json!({
         "status": code,
         "name": name,
@@ -242,21 +257,27 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .wrap(UnifiedMiddleware {
-                allowed_origins: vec!["*".to_string()], // NOTE: ["*"] we authorize everything, otherwise we replace with our domain or localhost
+                allowed_origins: {
+                    let mut set = HashSet::new();
+                    set.insert("*".to_string());
+                    set
+                },
                 rate_limiters: Arc::new(Mutex::new(HashMap::new())),
                 max_requests: 100,
                 window_duration: std::time::Duration::from_secs(60),
-                intercept_dependencies: None,
+                intercept_dependencies: Rc::new(|_req| true),
+                condition: Rc::new(Box::new(|_req| true)),
             })
             .wrap(HttpInterceptor) // Specific interceptor
             .route("/transform_bad_request_to_json", web::get().to(transform_bad_request_to_json))
             .route("/example_success", web::get().to(example_success))
             .route("/success", web::get().to(example_ok_with_metadata))
             .route("/client_error", web::get().to(example_client_error))
-            .route("/server_error", web::get().to(example_server_error))
-            .route("/example_json", web::get().to(example_json))
             .route("/ok_with_cookie", web::get().to(example_ok_with_cookie))
             .route("/ok_with_headers", web::get().to(example_ok_with_headers))
+            .route("/server_error", web::get().to(example_server_error))
+            .route("/example_json", web::get().to(example_json))
+            .route("/bad_request", web::get().to(bad_request_route))
     }) // General middleware
     .bind("127.0.0.1:8083")?
     .run()

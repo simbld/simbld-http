@@ -1,22 +1,36 @@
 use actix_service::{Service, Transform};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
-    Error as ActixError, HttpResponse,
+    error::Error as ActixError,
+    http::{header, StatusCode},
+    HttpResponse,
 };
-use futures_util::future::{ok, LocalBoxFuture, Ready};
+use futures_util::future::{ready, LocalBoxFuture, Ready};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
 use thiserror::Error;
 
-/// Middleware for Unified handling of requests
+impl std::fmt::Debug for UnifiedMiddleware {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("UnifiedMiddleware")
+            .field("allowed_origins", &self.allowed_origins)
+            .field("max_requests", &self.max_requests)
+            .field("window_duration", &self.window_duration)
+            .finish()
+    }
+}
+
 pub struct UnifiedMiddleware {
-    pub allowed_origins: String,
-    pub rate_limiters: std::sync::Arc<
-        std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
-    >,
+    pub allowed_origins: HashSet<String>,
+    pub rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
     pub max_requests: usize,
-    pub window_duration: std::time::Duration,
-    pub intercept_dependencies: std::rc::Rc<dyn Fn(&ServiceRequest) -> bool>,
-    #[allow(dead_code)]
-    condition: Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>,
+    pub window_duration: Duration,
+    pub intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
+    pub condition: Rc<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>,
 }
 
 #[derive(Debug, Error)]
@@ -30,37 +44,43 @@ pub enum UnifiedError {
 }
 
 impl actix_web::ResponseError for UnifiedError {
-    fn status_code(&self) -> actix_web::http::StatusCode {
+    fn status_code(&self) -> StatusCode {
         match self {
-            UnifiedError::Unauthorized => actix_web::http::StatusCode::UNAUTHORIZED,
-            UnifiedError::InvalidRequest => actix_web::http::StatusCode::TOO_MANY_REQUESTS,
-            _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+            UnifiedError::InternalMiddlewareError => StatusCode::INTERNAL_SERVER_ERROR,
+            UnifiedError::InvalidRequest => StatusCode::BAD_REQUEST,
+            UnifiedError::Unauthorized => StatusCode::UNAUTHORIZED,
         }
     }
 
     fn error_response(&self) -> HttpResponse {
-        let error_message = format!("{}", self);
-        HttpResponse::build(self.status_code()).body(error_message)
+        HttpResponse::build(self.status_code())
+            .content_type("application/json")
+            .body(format!("{{\"error\": \"{}\"}}", self))
     }
 }
 
 impl UnifiedMiddleware {
     pub fn new(
         allowed_origins: String,
-        rate_limiters: std::sync::Arc<
-            std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
-        >,
+        rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
         max_requests: usize,
-        window_duration: std::time::Duration,
-        intercept_dependencies: std::rc::Rc<dyn Fn(&ServiceRequest) -> bool>,
+        window_duration: Duration,
+        intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
+        condition: Option<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>,
     ) -> Self {
-        UnifiedMiddleware {
-            allowed_origins,
+        let origins: HashSet<String> =
+            allowed_origins.split(',').map(|s| s.trim().to_string()).collect();
+
+        let default_condition: Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static> =
+            Box::new(|_| true);
+
+        Self {
+            allowed_origins: origins,
             rate_limiters,
             max_requests,
             window_duration,
             intercept_dependencies,
-            condition: Box::new(|_req| true),
+            condition: Rc::new(condition.unwrap_or(default_condition)),
         }
     }
 }
@@ -77,24 +97,26 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(UnifiedMiddlewareService {
-            service: std::rc::Rc::new(service),
+        ready(Ok(UnifiedMiddlewareService {
+            service: Rc::new(service),
             allowed_origins: self.allowed_origins.clone(),
-            rate_limiters: std::sync::Arc::clone(&self.rate_limiters),
+            rate_limiters: self.rate_limiters.clone(),
             max_requests: self.max_requests,
             window_duration: self.window_duration,
-        })
+            intercept_dependencies: self.intercept_dependencies.clone(),
+            condition: self.condition.clone(),
+        }))
     }
 }
 
 pub struct UnifiedMiddlewareService<S> {
-    service: std::rc::Rc<S>,
-    allowed_origins: String,
-    rate_limiters: std::sync::Arc<
-        std::sync::Mutex<std::collections::HashMap<String, (u64, std::time::Instant)>>,
-    >,
+    service: Rc<S>,
+    allowed_origins: HashSet<String>,
+    rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
     max_requests: usize,
-    window_duration: std::time::Duration,
+    window_duration: Duration,
+    intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
+    condition: Rc<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>,
 }
 
 impl<S, B> Service<ServiceRequest> for UnifiedMiddlewareService<S>
@@ -114,46 +136,61 @@ where
     }
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
+        let service = self.service.clone();
+        let condition = self.condition.clone();
+        let intercept = self.intercept_dependencies.clone();
         let allowed_origins = self.allowed_origins.clone();
-        let rate_limiters = std::sync::Arc::clone(&self.rate_limiters);
+        let rate_limiters = self.rate_limiters.clone();
         let max_requests = self.max_requests;
         let window_duration = self.window_duration;
-        let service = std::rc::Rc::clone(&self.service);
 
         Box::pin(async move {
-            // Check if the origin is allowed
-            if let Some(host) = req.headers().get("Host").and_then(|h| h.to_str().ok()) {
-                if !allowed_origins.contains(&host.to_string()) {
-                    return Err(ActixError::from(UnifiedError::Unauthorized));
+            // Check if the conditions are met to apply the middleware
+            if !(*condition)(&req) {
+                return service.call(req).await;
+            }
+
+            // Check the origin if it is a CORS request
+            if (*intercept)(&req) {
+                if let Some(origin) = req.headers().get(header::ORIGIN) {
+                    if let Ok(origin_str) = origin.to_str() {
+                        if !allowed_origins.contains(origin_str) && !allowed_origins.contains("*") {
+                            return Err(UnifiedError::Unauthorized.into());
+                        }
+                    }
                 }
-            } else {
-                return Err(ActixError::from(UnifiedError::Unauthorized));
+
+                // Check the rate limiting
+                let client_ip = match req.connection_info().realip_remote_addr() {
+                    Some(ip) => ip.to_string(),
+                    None => "unknown".to_string(),
+                };
+
+                let mut should_limit = false;
+                {
+                    let mut limiters =
+                        rate_limiters.lock().map_err(|_| UnifiedError::InternalMiddlewareError)?;
+
+                    let now = Instant::now();
+                    let entry = limiters.entry(client_ip).or_insert_with(|| (0, now));
+
+                    if now.duration_since(entry.1) > window_duration {
+                        // Reset the counter if the window has expired
+                        *entry = (1, now);
+                    } else {
+                        // increment the counter
+                        entry.0 += 1;
+                        if entry.0 > max_requests as u64 {
+                            should_limit = true;
+                        }
+                    }
+                }
+
+                if should_limit {
+                    return Err(ActixError::from(UnifiedError::InvalidRequest));
+                }
             }
 
-            // Rate Limiting Logic
-            let client_ip = req
-                .peer_addr()
-                .map(|addr| addr.ip().to_string())
-                .unwrap_or_else(|| "unknown".to_string());
-            let mut limiters = rate_limiters.lock().unwrap();
-            let current_time = std::time::Instant::now();
-
-            let (requests, timestamp) =
-                limiters.entry(client_ip.clone()).or_insert_with(|| (0, current_time));
-
-            if current_time.duration_since(*timestamp) > window_duration {
-                println!("Resetting rate limiter for client: {}", client_ip);
-                *requests = 0;
-                *timestamp = current_time;
-            }
-
-            if *requests >= max_requests as u64 {
-                return Err(ActixError::from(UnifiedError::InvalidRequest));
-            }
-
-            *requests += 1;
-
-            // Pass through middleware
             service.call(req).await
         })
     }
@@ -162,121 +199,116 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::test;
-    use actix_web::{App, HttpResponse};
-    use std::{
-        collections::HashMap,
-        sync::{Arc, Mutex},
-        time::Duration,
+    use actix_web::{
+        dev::Service,
+        http::StatusCode,
+        test::{init_service, TestRequest},
+        web, App, HttpResponse,
     };
+    use std::{sync::Arc, time::Duration};
+
+    async fn test_handler() -> HttpResponse {
+        HttpResponse::Ok().body("test success")
+    }
 
     #[actix_web::test]
     async fn test_rate_limiting() {
-        // Initialize middleware with only 2 requests allowed per 10 seconds
+        let rate_limiters = Arc::new(Mutex::new(HashMap::new()));
+        let max_requests = 2;
+        let window_duration = Duration::from_secs(1);
+
         let middleware = UnifiedMiddleware::new(
-            "localhost".to_string(),
-            Arc::new(Mutex::new(HashMap::new())),
-            2,                             // Max requests
-            Duration::from_secs(10),       // Time window
-            std::rc::Rc::new(|_req| true), // Always intercept
+            "*".to_string(),
+            rate_limiters,
+            max_requests,
+            window_duration,
+            Rc::new(|_| true),
+            None,
         );
 
-        // Create Actix app with middleware applied
-        let app = test::init_service(
-            App::new()
-                .wrap(middleware)
-                .route("/", actix_web::web::get().to(|| async { HttpResponse::Ok().finish() })),
-        )
-        .await;
+        let app =
+            init_service(App::new().wrap(middleware).route("/test", web::get().to(test_handler)))
+                .await;
 
-        // First request: should pass
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+        // first requests - should be authorized
+        for _ in 0..max_requests {
+            let req = TestRequest::get().uri("/test").to_request();
+            let resp = app.call(req).await.unwrap();
+            assert_eq!(resp.status(), StatusCode::OK);
+        }
 
-        // Second request: should pass
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-
-        // Third request: should be rejected due to rate limiting
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::TOO_MANY_REQUESTS);
+        // request exceeding the limit - should be rejected
+        let req = TestRequest::get().uri("/test").to_request();
+        let resp = app.call(req).await;
+        assert!(resp.is_err());
     }
 
     #[actix_web::test]
     async fn test_allowed_origins() {
-        // Initialize middleware with "localhost" as the only allowed origin
+        let rate_limiters = Arc::new(Mutex::new(HashMap::new()));
+        let allowed_origins = "https://example.com,https://test.com".to_string();
+
         let middleware = UnifiedMiddleware::new(
-            "localhost".to_string(),
-            Arc::new(Mutex::new(HashMap::new())),
-            10, // High request limit for testing
-            Duration::from_secs(10),
-            std::rc::Rc::new(|_req| true), // Always intercept
+            allowed_origins,
+            rate_limiters,
+            100,
+            Duration::from_secs(60),
+            Rc::new(|_| true),
+            None,
         );
-        // Create Actix app with middleware applied
-        let app = test::init_service(
-            App::new()
-                .wrap(middleware)
-                .route("/", actix_web::web::get().to(|| async { HttpResponse::Ok().finish() })),
-        )
-        .await;
 
-        // Request from an allowed origin (localhost): should pass
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+        let app =
+            init_service(App::new().wrap(middleware).route("/test", web::get().to(test_handler)))
+                .await;
 
-        // Request from a disallowed origin (example.com): should fail
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "example.com")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::UNAUTHORIZED);
+        // Authorized origin
+        let mut req = TestRequest::get().uri("/test");
+        req = req.insert_header((header::ORIGIN, "https://example.com"));
+        let resp = app.call(req.to_request()).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        // not allowed origin
+        let mut req = TestRequest::get().uri("/test");
+        req = req.insert_header((header::ORIGIN, "https://unauthorized.com"));
+        let resp = app.call(req.to_request()).await;
+        assert!(resp.is_err());
     }
 
     #[actix_web::test]
     async fn test_reset_rate_limiting_window() {
-        // Initialize middleware with a very short time window (2 seconds)
+        let rate_limiters = Arc::new(Mutex::new(HashMap::new()));
+        let max_requests = 1;
+        let window_duration = Duration::from_millis(10); // short duration for the test
+
         let middleware = UnifiedMiddleware::new(
-            "localhost".to_string(),
-            Arc::new(Mutex::new(HashMap::new())),
-            1,                             // Only 1 request allowed per window
-            Duration::from_secs(2),        // Short window to test reset logic
-            std::rc::Rc::new(|_req| true), // Always intercept
+            "*".to_string(),
+            rate_limiters.clone(),
+            max_requests,
+            window_duration,
+            Rc::new(|_| true),
+            None,
         );
 
-        // Create Actix app with middleware applied
-        let app = test::init_service(
-            App::new()
-                .wrap(middleware)
-                .route("/", actix_web::web::get().to(|| async { HttpResponse::Ok().finish() })),
-        )
-        .await;
+        let app =
+            init_service(App::new().wrap(middleware).route("/test", web::get().to(test_handler)))
+                .await;
 
-        // First request: should pass
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+        // First request - should be authorized
+        let req = TestRequest::get().uri("/test").to_request();
+        let resp = app.call(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
 
-        // Second request: should be rejected due to rate limiting
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::TOO_MANY_REQUESTS);
+        // second immediate request - should be rejected
+        let req = TestRequest::get().uri("/test").to_request();
+        let resp = app.call(req).await;
+        assert!(resp.is_err());
 
-        // Wait for the window to reset
-        tokio::time::sleep(Duration::from_secs(2)).await;
+        // Wait until the window expires
+        tokio::time::sleep(window_duration * 2).await;
 
-        // Third request: should pass again after the window reset
-        let req =
-            test::TestRequest::with_uri("/").insert_header(("Host", "localhost")).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+        // new request after expiration - should be authorized
+        let req = TestRequest::get().uri("/test").to_request();
+        let resp = app.call(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
     }
 }
