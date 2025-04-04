@@ -218,6 +218,17 @@ macro_rules! generate_responses_functions {
             }
         }
 
+        /// Implementation of the `get_name` method for the enum.
+        pub fn get_name(&self) -> &'static str {
+        match self {
+            Self::$first_variant => $std_name_first,
+            $(
+                Self::$variant => $std_name,
+            )*
+        }
+    }
+
+
         /// Implementation of the `From` trait for converting the enum into a tuple `(u16, &'static str)`.
         impl From<$enum_name> for (u16, &'static str) {
             fn from(value: $enum_name) -> Self {
