@@ -1,5 +1,4 @@
 use actix_web::{web, App, HttpServer};
-use simbld_http::helpers::to_u16_trait::ToU16;
 use simbld_http::responses::actix_responder::custom_response_handler;
 use simbld_http::responses::CustomResponse;
 use simbld_http::ResponsesSuccessCodes;
