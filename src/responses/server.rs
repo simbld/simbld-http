@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -42,11 +42,11 @@ mod tests {
     use serde_json::to_value;
 
     #[test]
-    fn test_server_codes_to_u16() {
-        assert_eq!(ResponsesServerCodes::InternalServerError.to_u16(), 500);
-        assert_eq!(ResponsesServerCodes::NotImplemented.to_u16(), 501);
-        assert_eq!(ResponsesServerCodes::BadGateway.to_u16(), 502);
-        assert_eq!(ResponsesServerCodes::ServiceUnavailable.to_u16(), 503);
+    fn test_server_codes_get_code() {
+        assert_eq!(ResponsesServerCodes::InternalServerError.get_code(), 500);
+        assert_eq!(ResponsesServerCodes::NotImplemented.get_code(), 501);
+        assert_eq!(ResponsesServerCodes::BadGateway.get_code(), 502);
+        assert_eq!(ResponsesServerCodes::ServiceUnavailable.get_code(), 503);
     }
 
     #[test]

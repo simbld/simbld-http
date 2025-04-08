@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -27,10 +27,10 @@ mod tests {
 
     #[test]
     fn test_to_16_switching_protocols() {
-        assert_eq!(ResponsesInformationalCodes::ContinueRequest.to_u16(), 100);
-        assert_eq!(ResponsesInformationalCodes::SwitchingProtocols.to_u16(), 101);
-        assert_eq!(ResponsesInformationalCodes::Processing.to_u16(), 102);
-        assert_eq!(ResponsesInformationalCodes::EarlyHints.to_u16(), 103);
+        assert_eq!(ResponsesInformationalCodes::ContinueRequest.get_code(), 100);
+        assert_eq!(ResponsesInformationalCodes::SwitchingProtocols.get_code(), 101);
+        assert_eq!(ResponsesInformationalCodes::Processing.get_code(), 102);
+        assert_eq!(ResponsesInformationalCodes::EarlyHints.get_code(), 103);
     }
 
     #[test]

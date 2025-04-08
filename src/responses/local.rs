@@ -1,5 +1,5 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -97,11 +97,11 @@ mod tests {
     use serde_json::to_value;
 
     #[test]
-    fn test_local_api_codes_to_u16() {
-        assert_eq!(ResponsesLocalApiCodes::Approved.to_u16(), 200);
-        assert_eq!(ResponsesLocalApiCodes::InvalidCardNumber.to_u16(), 400);
-        assert_eq!(ResponsesLocalApiCodes::InvalidCVV.to_u16(), 400);
-        assert_eq!(ResponsesLocalApiCodes::InvalidEmail.to_u16(), 400);
+    fn test_local_api_codes_get_code() {
+        assert_eq!(ResponsesLocalApiCodes::Approved.get_code(), 200);
+        assert_eq!(ResponsesLocalApiCodes::InvalidCardNumber.get_code(), 400);
+        assert_eq!(ResponsesLocalApiCodes::InvalidCVV.get_code(), 400);
+        assert_eq!(ResponsesLocalApiCodes::InvalidEmail.get_code(), 400);
     }
 
     #[test]
