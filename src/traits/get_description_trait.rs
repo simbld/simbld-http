@@ -15,7 +15,7 @@ macro_rules! impl_get_description {
         impl GetDescription for $type_name {
             fn get_description_field(&self, field: &str) -> Option<&'static str> {
                 match field {
-                    "Description" => Some(self.description()),
+                    "Description" => Some(self.get_description()),
                     _ => None,
                 }
             }
