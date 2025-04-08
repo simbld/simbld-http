@@ -190,7 +190,7 @@ The full documentation will be available on **docs.rs** after publishing. Stay t
 use simbld_http::responses::ResponsesTypes;
 
 let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
-println!("Code: {}, Description: {}", response.to_u16(), response.get_str("Description"));
+println!("Code: {}, Description: {}", response.get_code(), response.get_str("Description"));
 ```
 
 ##### Retrieve a Crawler Code
@@ -203,7 +203,7 @@ fn main() {
     let code = ResponsesCrawlerCodes::ParsingErrorHeader;
     println!(
         "Code: {}, Description: {}",
-        code.to_u16(),
+        code.get_code(),
         code.get_str("Description").unwrap()
     );
 }
@@ -233,7 +233,7 @@ curl -i http://127.0.0.1:8080/
 ### ⚙️ Structure of Families
 
 | Family  | Description                                                             |
-|---------|-------------------------------------------------------------------------|
+| ------- | ----------------------------------------------------------------------- |
 | **1xx** | Informational responses (e.g., `ContinueRequest`, `Processing`)         |
 | **2xx** | Success responses (e.g., `OK`, `Created`)                               |
 | **3xx** | Redirection responses (e.g., `Moved Permanently`, `Temporary Redirect`) |
