@@ -26,7 +26,7 @@ fn examples_with_helpers() {
     println!("{:?}", http_code);
 
     // Get the standard code in u16
-    let std_code = response.to_u16();
+    let std_code = response.get_code();
     println!("Standard code: {}", std_code);
 
     // Get the internal code from from_u16
@@ -55,11 +55,10 @@ fn examples_with_helpers() {
     let ok_value: ResponsesSuccessCodes = Ok;
     println!("ok() returns: {:?}", ok_value);
 
-    // HACK: Extract data from the JSON
+    // Extract data from the enum
     let code = ok_value.get_code();
-
-    let name = ok_value["name"].as_str().unwrap_or("unknown");
-    let desc = ok_value["description"].as_str().unwrap_or("No description");
+    let name = ok_value.get_name();
+    let desc = ok_value.get_description();
     let ok_response = json!({ "status": code, "name": name, "description": desc });
     println!("Extracted from ok(): {}", ok_response);
 
@@ -117,9 +116,9 @@ fn examples_with_helpers() {
     println!("CustomResponse from bad_request: {:?}", custom_response);
 
     // Example 9: Using helpers with success codes
-    let success_code = ResponsesSuccessCodes::Ok;
-    let success_code_u16 = success_code.to_u16();
-    let success_code_str = success_code.description();
+    let success_code = Ok;
+    let success_code_u16 = success_code.get_code();
+    let success_code_str = success_code.get_description();
     let success_code_json = json!({ "status": success_code_u16, "description": success_code_str });
     println!("{}", success_code_json);
 
@@ -134,8 +133,8 @@ fn examples_with_helpers() {
 async fn transform_bad_request_to_json() -> impl Responder {
     // XXX: We retrieve code, name, desc from the tuple
     let bad_request = ResponsesClientCodes::BadRequest;
-    let code = bad_request.to_u16();
-    let desc = bad_request.description();
+    let code = bad_request.get_code();
+    let desc = bad_request.get_description();
     let data = r#"{"extraData":"someValue"}"#;
     let response_str = response_helpers::create_response(code, desc, data);
     let response_json: Value = match serde_json::from_str::<Value>(&response_str) {
@@ -152,7 +151,7 @@ async fn transform_bad_request_to_json() -> impl Responder {
 /// @description Route: Affiche un enrichissement de métadonnées sur un code HTTP 200.
 ///
 async fn example_ok_with_metadata() -> impl Responder {
-    let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
+    let response = ResponsesTypes::Success(Ok);
     let enriched_response = response_helpers::get_enriched_response_with_metadata(
         response,
         Some("https://example.com"),
@@ -214,7 +213,7 @@ async fn example_server_error() -> impl Responder {
 
 // Route to example JSON response
 async fn example_json() -> impl Responder {
-    let code = ResponsesSuccessCodes::Ok.to_u16();
+    let code = Ok.get_code();
     let name = "Ok";
     let description = "A successful response (manually created)";
     let response = json!({
@@ -264,7 +263,7 @@ async fn main() -> std::io::Result<()> {
                 },
                 rate_limiters: Arc::new(Mutex::new(HashMap::new())),
                 max_requests: 100,
-                window_duration: std::time::Duration::from_secs(60),
+                window_duration: Duration::from_secs(60),
                 intercept_dependencies: Rc::new(|_req| true),
                 condition: Rc::new(Box::new(|_req| true)),
             })
