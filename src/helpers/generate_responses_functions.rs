@@ -5,7 +5,7 @@
 /// use simbld_http::generate_responses_functions;
 /// use simbld_http::helpers::unified_tuple_helper;
 /// use simbld_http::ResponsesClientCodes::*;
-/// use simbld_http::helpers::to_u16_trait::ToU16;
+/// use simbld_http::traits::get_code_trait::GetCode;
 /// use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
 /// use serde::Serialize;
 ///
@@ -17,9 +17,9 @@
 ///     UnrecoverableError => (456, "Unrecoverable Error", "Unrecoverable error.", 456, "UnrecoverableError"),
 ///     NoResponse => (444, "No Response", "No response from the server.", 444, "NoResponse"),
 /// }
-/// assert_eq!(BadRequest.to_u16(), 400);
+/// assert_eq!(BadRequest.get_code(), 400);
 /// assert_eq!(BadRequest.to_http_code().standard_name, "Bad Request");
-/// assert_eq!(BadRequest.description(), "Example of a bad request.");
+/// assert_eq!(BadRequest.get_description(), "Example of a bad request.");
 /// assert_eq!(BadRequest.internal_code(), 444);
 /// assert_eq!(BadRequest.as_tuple(), UnifiedTuple {
 ///    standard_code: 400,
@@ -55,7 +55,7 @@ macro_rules! generate_responses_functions {
             stringify!($enum_name),
             "`. This file defines the following methods:\n",
             "- `to_http_code`: Converts the enum variant to its corresponding `HttpCode`.\n",
-            "- `to_u16`: Returns the standard code as `u16`.\n",
+            "- `get_code`: Returns the standard code as `u16`.\n",
             "- `from_u16`: Constructs an enum variant from a given `u16` code (first matching standard, then internal).\n",
             "- `from_internal_code`: Constructs an enum variant from a given internal `u16` code.\n",
             "- `as_tuple`: Returns a unified tuple representation.\n",
@@ -66,7 +66,7 @@ macro_rules! generate_responses_functions {
             stringify!($enum_name),
             "::",
             stringify!($first_variant),
-            ";\nassert_eq!(example.to_u16(), ",
+            ";\nassert_eq!(example.get_code(), ",
             stringify!($std_code_first),
             ");\nassert_eq!(example.as_tuple(), (",
             stringify!($std_code_first), ", ",
@@ -102,11 +102,31 @@ macro_rules! generate_responses_functions {
 
         impl $enum_name {
             /// Returns the description associated with the response code.
-            pub fn description(&self) -> &'static str {
+            pub fn get_description(&self) -> &'static str {
                 match self {
                     Self::$first_variant => $desc_first,
                     $(
                         Self::$variant => $desc,
+                    )*
+                }
+            }
+
+            /// Returns the standard code (u16) of the response.
+            pub fn get_code(&self) -> u16 {
+                match self {
+                    Self::$first_variant => $std_code_first,
+                    $(
+                        Self::$variant => $std_code,
+                    )*
+                }
+            }
+
+            /// Implementation of the `get_name` method for the enum.
+            pub fn get_name(&self) -> &'static str {
+                match self {
+                    Self::$first_variant => $std_name_first,
+                    $(
+                        Self::$variant => $std_name,
                     )*
                 }
             }
@@ -133,12 +153,12 @@ macro_rules! generate_responses_functions {
                 }
             }
 
-            /// Returns the standard code (u16) of the response.
-            pub fn to_u16(&self) -> u16 {
+            /// Returns the internal code (u16) of the response.
+            pub fn internal_code(&self) -> u16 {
                 match self {
-                    Self::$first_variant => $std_code_first,
+                    Self::$first_variant => $int_code_first,
                     $(
-                        Self::$variant => $std_code,
+                        Self::$variant => $int_code,
                     )*
                 }
             }
@@ -169,16 +189,6 @@ macro_rules! generate_responses_functions {
               }
             }
 
-            /// Returns the internal code (u16) of the response.
-            pub fn internal_code(&self) -> u16 {
-                match self {
-                    Self::$first_variant => $int_code_first,
-                    $(
-                        Self::$variant => $int_code,
-                    )*
-                }
-            }
-
             /// Returns a unified tuple representation.
             pub fn as_tuple(&self) -> crate::helpers::unified_tuple_helper::UnifiedTuple {
                 self.to_http_code().as_unified_tuple()
@@ -206,9 +216,9 @@ macro_rules! generate_responses_functions {
             }
         }
 
-        /// Implementation of the `ToU16` trait for the enum.
-        impl ToU16 for $enum_name {
-            fn to_u16(&self) -> u16 {
+        /// Implementation of the `GetCode` trait for the enum.
+        impl GetCode for $enum_name {
+            fn get_code(&self) -> u16 {
                 match self {
                     Self::$first_variant => $std_code_first,
                     $(
@@ -218,21 +228,11 @@ macro_rules! generate_responses_functions {
             }
         }
 
-        /// Implementation of the `get_name` method for the enum.
-        pub fn get_name(&self) -> &'static str {
-        match self {
-            Self::$first_variant => $std_name_first,
-            $(
-                Self::$variant => $std_name,
-            )*
-        }
-    }
-
 
         /// Implementation of the `From` trait for converting the enum into a tuple `(u16, &'static str)`.
         impl From<$enum_name> for (u16, &'static str) {
             fn from(value: $enum_name) -> Self {
-                (value.to_u16(), value.description())
+                (value.get_code(), value.get_description())
             }
         }
     }
@@ -247,9 +247,20 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn test_description() {
+    fn test_get_description() {
         let ex = ResponsesClientCodes::BadRequest;
-        assert_eq!(ex.description(), "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing)." );
+        assert_eq!(ex.get_description(), "The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing)." );
+    }
+    #[test]
+    fn test_get_code() {
+        let ex = ResponsesClientCodes::BadRequest;
+        assert_eq!(ex.get_code(), 400);
+    }
+
+    #[test]
+    fn test_get_name() {
+        let ex = ResponsesClientCodes::BadRequest;
+        assert_eq!(ex.get_name(), "Bad Request");
     }
 
     #[test]
@@ -263,12 +274,6 @@ mod tests {
             "PageExpired");
 
         assert_eq!(ex.to_http_code(), expected);
-    }
-
-    #[test]
-    fn test_to_u16() {
-        let ex = ResponsesClientCodes::BadRequest;
-        assert_eq!(ex.to_u16(), 400);
     }
 
     #[test]
