@@ -4,7 +4,7 @@ use simbld_http::responses::{CustomResponse, ResponsesSuccessCodes::Ok};
 
 async fn example_response() -> impl Responder {
     CustomResponse::new(
-        Ok.to_u16(),
+        Ok.get_code(),
         format!("{} {} {}", "Success", "Test data", "Request was successful"),
     )
 }
