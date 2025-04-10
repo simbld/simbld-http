@@ -6,7 +6,7 @@ use simbld_http::ResponsesSuccessCodes;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let custom_response = CustomResponse::new(
-        ResponsesSuccessCodes::Ok.to_u16(),
+        ResponsesSuccessCodes::Ok.get_code(),
         "Success",
         "Test data",
         "Request was successful",
