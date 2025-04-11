@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -17,7 +17,7 @@ async fn main() -> std::io::Result<()> {
                 "allowed_origins".to_string(),
                 Arc::new(Mutex::new(HashMap::<String, (u64, Instant)>::new())),
                 100,
-                std::time::Duration::from_secs(60),
+                Duration::from_secs(60),
                 Rc::new(|req: &ServiceRequest| {
                     // Example of personalized condition: Check if the request is a GET request
                     req.method() == actix_web::http::Method::GET
