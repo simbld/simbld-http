@@ -1,4 +1,5 @@
 use crate::generate_responses_functions;
+use crate::responses::CustomResponse;
 use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
@@ -70,7 +71,7 @@ mod tests {
     fn test_robots_temporarily_unavailable_as_json() {
         let response_code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
         let json_result = response_code.as_json();
-        let expected_json = serde_json::json!({
+        let expected_json = json!({
             "type": "Crawler responses",
             "details": {
                 "standard http code": {

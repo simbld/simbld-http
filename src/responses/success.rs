@@ -1,4 +1,5 @@
 use crate::generate_responses_functions;
+use crate::responses::CustomResponse;
 use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
@@ -90,6 +91,7 @@ mod tests {
                 "description": "The response contains the transferred content, and the response body contains the content that was transferred, such as a file or document, and the response body may contain the requested resource, the response indicates that the content has been transferred successfully to another instance, thus ending the current instance",
                 "internal http code": {
                     "code": 219,
+                    "name": "Content Transferred"
                 }
             }
         });

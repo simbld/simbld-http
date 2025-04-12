@@ -1,4 +1,5 @@
 use crate::generate_responses_functions;
+use crate::responses::CustomResponse;
 use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
@@ -126,7 +127,7 @@ mod tests {
         let json_result = to_value(&tuple).unwrap();
 
         let expected_json = json!({
-            "code": "307",
+            "code": 307,
             "name": "Temporary Redirect"
         });
 

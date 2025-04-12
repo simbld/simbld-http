@@ -1,4 +1,5 @@
 use crate::generate_responses_functions;
+use crate::responses::CustomResponse;
 use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 

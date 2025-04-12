@@ -1,9 +1,10 @@
 use crate::generate_responses_functions;
+use crate::responses::CustomResponse;
 use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
-"Local responses",
+"Local API responses",
   ResponsesLocalApiCodes,
   ApprovedNoActionRequired => (200, "OK", "Operation approved, no action needed.", 900, "Approved No Action Required"),
   Approved => (200, "OK", "Operation successfully approved.", 901, "Approved"),

@@ -1,4 +1,5 @@
 use crate::generate_responses_functions;
+use crate::responses::CustomResponse;
 use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
@@ -146,8 +147,8 @@ mod tests {
         let json_result = to_value(&tuple).unwrap();
 
         let expected_json = json!({
-            "code": 420,
-            "name": "MethodFailure"
+            "code": 405,
+            "name": "Method Not Allowed"
         });
 
         assert_eq!(json_result, expected_json);
