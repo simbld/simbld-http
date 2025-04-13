@@ -60,7 +60,7 @@ impl HttpCode {
     }
 
     /// Converts the HttpCode to a u16.
-    pub fn to_u16(&self) -> u16 {
+    pub fn get_code(&self) -> u16 {
         self.standard_code
     }
 
@@ -128,9 +128,9 @@ mod tests {
     }
 
     #[test]
-    fn test_http_code_to_u16() {
+    fn test_http_code_get_code() {
         let http_code = HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted");
-        assert_eq!(http_code.to_u16(), 202);
+        assert_eq!(http_code.get_code(), 202);
     }
 
     #[test]
