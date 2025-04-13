@@ -131,8 +131,29 @@ macro_rules! generate_responses_functions {
                 }
             }
 
+            /// Returns the data associated with the response code.
+            pub fn get_data(&self) -> &'static str {
+                ""
+            }
+
+            /// Returns all data associated with the response code as a tuple.
+            pub fn get_all_data(&self) -> (u16, &'static str, &'static str, &'static str) {
+                (
+                    self.get_code(),
+                    self.get_name(),
+                    self.get_data(),
+                    self.get_description()
+                )
+            }
+
+            /// Converts the enum variant into a `CustomResponse`.
+            pub fn into_response(&self) -> CustomResponse {
+                let (code, name, data, desc) = self.get_all_data();
+                CustomResponse::new(code, name, data, desc)
+            }
+
             /// Converts the enum variant into its corresponding `HttpCode`.
-            pub fn to_http_code(&self) -> crate::helpers::http_code_helper::HttpCode {
+            pub fn to_http_code(&self) -> $crate::helpers::http_code_helper::HttpCode {
                 match self {
                     Self::$first_variant => crate::helpers::http_code_helper::HttpCode::new(
                         $std_code_first,
