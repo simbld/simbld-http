@@ -38,10 +38,10 @@ mod tests {
     use crate::ResponsesSuccessCodes;
     use serde_json::json;
 
-    /// Test `to_u16` method for `ResponsesCrawlerCodes`.
+    /// Test `get_code` method for `ResponsesCrawlerCodes`.
     #[test]
-    fn test_crawler_codes_to_u16() {
-        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.to_u16(), 400);
+    fn test_crawler_codes_get_code() {
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.get_code(), 400);
     }
 
     /// Test `from_u16` method for `ResponsesCrawlerCodes`.
