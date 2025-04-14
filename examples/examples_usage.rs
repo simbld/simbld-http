@@ -128,7 +128,7 @@ fn examples_with_helpers() {
 // Route to transform a response into JSON
 ///
 /// @function transform_bad_request_to_json
-/// @description Route: Retourne un JSON de type "BadRequest" via create_response.
+/// @description Route: Returns a "BadRequest" type JSON via create_response.
 ///
 async fn transform_bad_request_to_json() -> impl Responder {
     // XXX: We retrieve code, name, desc from the tuple
@@ -148,7 +148,7 @@ async fn transform_bad_request_to_json() -> impl Responder {
 // Route for ok with metadata
 ///
 /// @function example_ok_with_metadata
-/// @description Route: Affiche un enrichissement de métadonnées sur un code HTTP 200.
+/// @description Route: Displays metadata enrichment on HTTP code 200.
 ///
 async fn example_ok_with_metadata() -> impl Responder {
     let response = ResponsesTypes::Success(Ok);
@@ -227,8 +227,7 @@ async fn example_json() -> impl Responder {
 /// Route for the 400 Bad Request response.
 async fn bad_request_route() -> HttpResponse {
     let bad_request = ResponsesTypes::ClientError(ResponsesClientCodes::BadRequest);
-    let http_code = bad_request.as_tuple(); // `http_code` est de type `HttpCode`.
-                                            // QUESTION: Do we want to include the name in the response?
+    let http_code = bad_request.as_tuple();
     let code = http_code.standard_code;
     let name = http_code.standard_name;
     let desc = http_code.unified_description;
@@ -240,16 +239,36 @@ async fn bad_request_route() -> HttpResponse {
     }))
 }
 
-/// The above function sets up an Actix web server with various routes and middleware for handling different types of requests.
+/// # Actix Web Server with UnifiedMiddleware
 ///
-/// The `UnifiedMiddleware` struct is used to define a middleware that can be applied to all routes in the Actix web server.
+/// Sets up an Actix web server with various routes and middleware for handling
+/// different types of HTTP requests with standardized responses.
 ///
-///  let wildcard = self.allowed_origins.contains(&"*".to_string());
-///  if !(wildcard || self.allowed_origins.contains(&origin.to_string())) {
-///    warn!("Origin not allowed: {}", origin);
-///  }
+/// ## Middleware Configuration
+/// The server uses UnifiedMiddleware to provide:
+/// - CORS protection with allowed origin verification
+/// - Rate limiting for API protection
+/// - Standardized error responses
 ///
-/// The `main` function is returning a `std::io::Result<()>`, which indicates that it returns a result that may contain an `io::Error` if an I/O operation fails.
+/// ## CORS Implementation
+/// Origin verification is performed with the following logic:
+/// ```
+/// let wildcard = allowed_origins.contains(&"*".to_string());
+/// if !(wildcard || allowed_origins.contains(&origin.to_string())) {
+///   warn!("Origin not allowed: {}", origin);
+///   // Request is rejected or logged based on configuration
+/// }
+/// ```
+///
+/// ## Server Configuration
+/// The server is configured to:
+/// - Listen on a specified address and port
+/// - Apply middleware to all routes
+/// - Provide standardized responses for all endpoints
+///
+/// ## Error Handling
+/// Returns an `std::io::Result<()>` to properly handle any I/O errors during server startup or execution.
+///
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     examples_with_helpers();
