@@ -30,9 +30,9 @@ mod tests {
     use std::time::Duration;
 
     #[test]
-    fn test_to_u16() {
+    fn test_get_code() {
         let response = ResponsesInformationalCodes::Processing;
-        assert_eq!(response.to_u16(), 102);
+        assert_eq!(response.get_code(), 102);
     }
 
     #[test]
@@ -87,10 +87,10 @@ mod tests {
     }
 
     #[test]
-    fn test_get_advance_response_description() {
+    fn test_get_advance_response_get_description() {
         let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::SSLCertificateError);
         let (standard_code, unified_description) =
-            response_helpers::get_advance_response_description(client_error);
+            response_helpers::get_advance_response_get_description(client_error);
 
         assert_eq!(standard_code, 400);
         assert_eq!(unified_description, "An invalid or untrusted SSL certificate was encountered");
@@ -100,7 +100,7 @@ mod tests {
     fn test_get_response_by_code() {
         let response = get_response_by_code(200);
         assert!(response.is_some());
-        assert_eq!(response.unwrap().to_u16(), 200);
+        assert_eq!(response.unwrap().get_code(), 200);
     }
 
     #[test]
@@ -278,7 +278,7 @@ mod tests {
         let code = 200;
         let response_type = convert_to_enum(code);
         assert!(response_type.is_some());
-        assert_eq!(response_type.unwrap().to_u16(), 200);
+        assert_eq!(response_type.unwrap().get_code(), 200);
     }
 
     #[test]
