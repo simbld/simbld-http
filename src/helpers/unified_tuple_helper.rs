@@ -14,7 +14,6 @@
 use crate::responses::ResponsesTypes;
 use serde::Serialize;
 
-
 #[derive(Debug, PartialEq, Serialize)]
 pub struct UnifiedTuple {
     /// Standard HTTP code.
@@ -47,9 +46,9 @@ impl UnifiedTuple {
 
 impl From<ResponsesTypes> for UnifiedTuple {
     fn from(response: ResponsesTypes) -> Self {
-        let standard_code = response.to_u16();
-        let standard_name = response.description();
-        let unified_description = response.description();
+        let standard_code = response.get_code();
+        let standard_name = response.get_description();
+        let unified_description = response.get_description();
         UnifiedTuple {
             standard_code,
             standard_name,
