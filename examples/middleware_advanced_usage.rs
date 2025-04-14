@@ -62,6 +62,29 @@ async fn health_check() -> impl Responder {
     )
 }
 
+/// # Example Actix Web Application with UnifiedMiddleware
+///
+/// This application demonstrates the usage of UnifiedMiddleware and HttpInterceptor
+/// with Actix Web to create a secure API server with different access controls.
+///
+/// ## Features
+/// - API endpoints with strict CORS and rate limiting (/api/*)
+/// - Public endpoints with relaxed settings (/public/*)
+/// - Authentication endpoint example (/api/auth)
+/// - User data endpoint example (/api/users/{user_id})
+/// - Health check endpoint (/public/health)
+///
+/// ## Middleware Configuration
+/// Two different middleware configurations are demonstrated:
+/// 1. API routes: Strict CORS, content type validation, and higher rate limits
+/// 2. Public routes: Open CORS, lower rate limits, no content validation
+///
+/// ## Usage
+/// Run the application with `cargo run` and access the endpoints:
+/// - `POST http://127.0.0.1:8090/api/auth` (with Authorization header)
+/// - `GET http://127.0.0.1:8090/api/users/123`
+/// - `GET http://127.0.0.1:8090/public/health`
+///
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Configuration for API routes
