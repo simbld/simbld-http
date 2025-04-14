@@ -78,6 +78,7 @@ impl UnifiedMiddleware {
     /// * `Window_Duration` - Duration of the window for the rate limiter
     /// * `intercept_dependencies' - function that determines if the request must be intercepted
     /// * `Condition ' - Additional condition to apply the middleware
+    ///
     pub fn new(
         allowed_origins: String,
         rate_limiters: RateLimiters,
@@ -112,6 +113,7 @@ impl UnifiedMiddleware {
     /// * `Allowed_origins` - List of authorized Cors
     /// * `Max_requests' - Maximum number of requests authorized in the time window
     /// * `Window_Duration` - Duration of the window for the rate limiter
+    ///
     pub fn simple(
         allowed_origins: Vec<String>,
         max_requests: usize,
