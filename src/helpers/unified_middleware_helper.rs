@@ -14,6 +14,11 @@ use std::{
 };
 use thiserror::Error;
 
+pub type ConditionFunction = Rc<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>;
+pub type InterceptFunction = Rc<dyn Fn(&ServiceRequest) -> bool>;
+pub type RateLimiters = Arc<Mutex<HashMap<String, (u64, Instant)>>>;
+pub type AllowedOrigins = HashSet<String>;
+
 impl std::fmt::Debug for UnifiedMiddleware {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("UnifiedMiddleware")
@@ -25,12 +30,12 @@ impl std::fmt::Debug for UnifiedMiddleware {
 }
 
 pub struct UnifiedMiddleware {
-    pub allowed_origins: HashSet<String>,
-    pub rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
+    pub allowed_origins: AllowedOrigins,
+    pub rate_limiters: RateLimiters,
     pub max_requests: usize,
     pub window_duration: Duration,
-    pub intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
-    pub condition: Rc<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>,
+    pub intercept_dependencies: InterceptFunction,
+    pub condition: ConditionFunction,
 }
 
 #[derive(Debug, Error)]
@@ -59,16 +64,29 @@ impl actix_web::ResponseError for UnifiedError {
     }
 }
 
+pub type OptionalConditionFunction =
+    Option<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>;
+
 impl UnifiedMiddleware {
+    /// Creates a new middleware with complete and flexible configuration.
+    ///
+    /// # arguments
+    ///
+    /// * `Allowed_origins' - Authorized Kid Origins, separated by commas (ex:" http: //example.com,http: // Localhost: 3000 ")
+    /// * `rate_limiters` - Storage of rate limiters by IP
+    /// * `Max_requests' - Maximum number of requests authorized in the time window
+    /// * `Window_Duration` - Duration of the window for the rate limiter
+    /// * `intercept_dependencies' - function that determines if the request must be intercepted
+    /// * `Condition ' - Additional condition to apply the middleware
     pub fn new(
         allowed_origins: String,
-        rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
+        rate_limiters: RateLimiters,
         max_requests: usize,
         window_duration: Duration,
-        intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
-        condition: Option<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>,
+        intercept_dependencies: InterceptFunction,
+        condition: OptionalConditionFunction,
     ) -> Self {
-        let origins: HashSet<String> =
+        let origins: AllowedOrigins =
             allowed_origins.split(',').map(|s| s.trim().to_string()).collect();
 
         let default_condition: Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static> =
@@ -82,6 +100,31 @@ impl UnifiedMiddleware {
             intercept_dependencies,
             condition: Rc::new(condition.unwrap_or(default_condition)),
         }
+    }
+
+    /// Simplified version for current use cases.
+    ///
+    /// This function automatically initializes data and functions structures
+    /// necessary with reasonable default values.
+    ///
+    /// # arguments
+    ///
+    /// * `Allowed_origins` - List of authorized Cors
+    /// * `Max_requests' - Maximum number of requests authorized in the time window
+    /// * `Window_Duration` - Duration of the window for the rate limiter
+    pub fn simple(
+        allowed_origins: Vec<String>,
+        max_requests: usize,
+        window_duration: Duration,
+    ) -> Self {
+        Self::new(
+            allowed_origins.join(","),
+            Arc::new(Mutex::new(HashMap::new())),
+            max_requests,
+            window_duration,
+            Rc::new(|_| true),
+            Some(Box::new(|_| true)),
+        )
     }
 }
 
@@ -111,12 +154,12 @@ where
 
 pub struct UnifiedMiddlewareService<S> {
     service: Rc<S>,
-    allowed_origins: HashSet<String>,
-    rate_limiters: Arc<Mutex<HashMap<String, (u64, Instant)>>>,
+    allowed_origins: AllowedOrigins,
+    rate_limiters: RateLimiters,
     max_requests: usize,
     window_duration: Duration,
-    intercept_dependencies: Rc<dyn Fn(&ServiceRequest) -> bool>,
-    condition: Rc<Box<dyn for<'a> Fn(&'a ServiceRequest) -> bool + 'static>>,
+    intercept_dependencies: InterceptFunction,
+    condition: ConditionFunction,
 }
 
 impl<S, B> Service<ServiceRequest> for UnifiedMiddlewareService<S>
@@ -150,49 +193,73 @@ where
                 return service.call(req).await;
             }
 
-            // Check the origin if it is a CORS request
             if (*intercept)(&req) {
-                if let Some(origin) = req.headers().get(header::ORIGIN) {
-                    if let Ok(origin_str) = origin.to_str() {
-                        if !allowed_origins.contains(origin_str) && !allowed_origins.contains("*") {
-                            return Err(UnifiedError::Unauthorized.into());
-                        }
-                    }
-                }
+                // Check the origin if it is a CORS request
+                check_origin(&req, &allowed_origins)?;
 
                 // Check the rate limiting
-                let client_ip = match req.connection_info().realip_remote_addr() {
-                    Some(ip) => ip.to_string(),
-                    None => "unknown".to_string(),
-                };
-
-                let mut should_limit = false;
-                {
-                    let mut limiters =
-                        rate_limiters.lock().map_err(|_| UnifiedError::InternalMiddlewareError)?;
-
-                    let now = Instant::now();
-                    let entry = limiters.entry(client_ip).or_insert_with(|| (0, now));
-
-                    if now.duration_since(entry.1) > window_duration {
-                        // Reset the counter if the window has expired
-                        *entry = (1, now);
-                    } else {
-                        // increment the counter
-                        entry.0 += 1;
-                        if entry.0 > max_requests as u64 {
-                            should_limit = true;
-                        }
-                    }
-                }
-
-                if should_limit {
-                    return Err(ActixError::from(UnifiedError::InvalidRequest));
-                }
+                check_rate_limit(&req, rate_limiters, max_requests, window_duration)?;
             }
 
             service.call(req).await
         })
+    }
+}
+
+// Function to check the origin of the request
+fn check_origin(req: &ServiceRequest, allowed_origins: &AllowedOrigins) -> Result<(), ActixError> {
+    if let Some(origin) = req.headers().get(header::ORIGIN) {
+        if let Ok(origin_str) = origin.to_str() {
+            if !allowed_origins.contains(origin_str) && !allowed_origins.contains("*") {
+                return Err(UnifiedError::Unauthorized.into());
+            }
+        }
+    }
+    Ok(())
+}
+
+// Function to update the rate limiter for a specific client IP
+fn check_rate_limit(
+    req: &ServiceRequest,
+    rate_limiters: RateLimiters,
+    max_requests: usize,
+    window_duration: Duration,
+) -> Result<(), ActixError> {
+    let client_ip = match req.connection_info().realip_remote_addr() {
+        Some(ip) => ip.to_string(),
+        None => "unknown".to_string(),
+    };
+
+    let should_limit =
+        update_rate_limiter(&client_ip, rate_limiters, max_requests, window_duration)?;
+
+    if should_limit {
+        return Err(ActixError::from(UnifiedError::InvalidRequest));
+    }
+
+    Ok(())
+}
+
+// Function to update the rate limiter for a specific client IP
+fn update_rate_limiter(
+    client_ip: &str,
+    rate_limiters: RateLimiters,
+    max_requests: usize,
+    window_duration: Duration,
+) -> Result<bool, ActixError> {
+    let mut limiters = rate_limiters.lock().map_err(|_| UnifiedError::InternalMiddlewareError)?;
+
+    let now = Instant::now();
+    let entry = limiters.entry(client_ip.to_string()).or_insert_with(|| (0, now));
+
+    if now.duration_since(entry.1) > window_duration {
+        // Reinitialize the entry if the window has expired
+        *entry = (1, now);
+        Ok(false)
+    } else {
+        // Increment the request count
+        entry.0 += 1;
+        Ok(entry.0 > max_requests as u64)
     }
 }
 
