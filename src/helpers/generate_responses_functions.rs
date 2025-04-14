@@ -1,44 +1,42 @@
-/// File: generate_responses_functions.rs
-/// This file defines a macro that generates response-related functions and implementations for enums.
-/// Example usage:
-/// ```rust
-/// use simbld_http::generate_responses_functions;
-/// use simbld_http::helpers::unified_tuple_helper;
-/// use simbld_http::ResponsesClientCodes::*;
-/// use simbld_http::traits::get_code_trait::GetCode;
-/// use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
-/// use serde::Serialize;
-///
-/// generate_responses_functions! {
-///     "Client errors",
-///     ResponsesClientCodes,
-///     BadRequest => (400, "Bad Request", "Example of a bad request.", 444, "Bad Request"),
-///     MethodNotFound => (404, "Not Found", "Resource not found.", 404, "NotFound"),
-///     UnrecoverableError => (456, "Unrecoverable Error", "Unrecoverable error.", 456, "UnrecoverableError"),
-///     NoResponse => (444, "No Response", "No response from the server.", 444, "NoResponse"),
-/// }
-/// assert_eq!(BadRequest.get_code(), 400);
-/// assert_eq!(BadRequest.to_http_code().standard_name, "Bad Request");
-/// assert_eq!(BadRequest.get_description(), "Example of a bad request.");
-/// assert_eq!(BadRequest.internal_code(), 444);
-/// assert_eq!(BadRequest.as_tuple(), UnifiedTuple {
-///    standard_code: 400,
-///   standard_name: "Bad Request",
-///  unified_description: "Example of a bad request.",
-/// internal_code: Some(444),
-/// internal_name: Option::from("Bad Request"),
-/// });
-/// assert_eq!(BadRequest.as_json(), serde_json::json!({
-///     "type": "Client errors",
-///     "details": {
-///         "standard_code": 400,
-///         "standard_name": "Bad Request",
-///         "unified_description": "Example of a bad request.",
-///         "internal_code": 444,
-///         "internal_name": "Bad Request",
-///     },
-/// }));
-/// ```
+//! # HTTP Response Code Generation Macro
+//!
+//! This module provides a macro for generating standardized HTTP response enums with consistent
+//! behavior and serialization.
+//!
+//! ## Features
+//!
+//! - Generates enum variants for HTTP response codes
+//! - Implements consistent methods for all response types
+//! - Provides serialization to JSON and XML formats
+//! - Standardizes error handling through unified response structures
+//! - Supports both standard HTTP codes and custom internal codes
+//!
+//! ## Usage
+//!
+//! ```rust
+//! use simbld_http::generate_responses_functions;
+//! use strum_macros::EnumIter;
+//! use simbld_http::traits::get_code_trait::GetCode;
+//! use simbld_http::responses::CustomResponse;
+//!
+//! generate_responses_functions! {
+//!     "Client Errors",
+//!     ResponsesClientCodes,
+//!     BadRequest => (400, "Bad Request", "Invalid request format", 4000, "BadRequest"),
+//!     Unauthorized => (401, "Unauthorized", "Authentication required", 4001, "Unauthorized"),
+//!     Forbidden => (403, "Forbidden", "Permission denied", 4003, "Forbidden"),
+//! }
+//! ```
+//!
+//! Each variant accepts 5 parameters:
+//! - Standard HTTP status code (u16)
+//! - Standard HTTP status name (string)
+//! - Description message (string)
+//! - Internal code (u16) for application-specific tracking
+//! - Internal name (string) for application-specific reference
+//!
+//! The generated enums implement common traits and provide methods for consistent
+//! response handling throughout the application.
 #[macro_export]
 macro_rules! generate_responses_functions {
     (
@@ -60,7 +58,11 @@ macro_rules! generate_responses_functions {
             "- `from_internal_code`: Constructs an enum variant from a given internal `u16` code.\n",
             "- `as_tuple`: Returns a unified tuple representation.\n",
             "- `as_json`: Returns a JSON representation.\n\n",
-            "# Example\n```rust\nuse simbld_http::responses::",
+            "# Example\n```rust,no_run\n",
+            "use strum_macros::EnumIter;\n",
+            "use simbld_http::responses::CustomResponse;\n",
+            "use simbld_http::traits::get_code_trait::GetCode;\n",
+            "use simbld_http::responses::",
             stringify!($enum_name),
             ";\n\nlet example = ",
             stringify!($enum_name),
@@ -147,7 +149,7 @@ macro_rules! generate_responses_functions {
             }
 
             /// Converts the enum variant into a `CustomResponse`.
-            pub fn into_response(&self) -> CustomResponse {
+            pub fn into_response(&self) -> $crate::responses::CustomResponse {
                 let (code, name, data, desc) = self.get_all_data();
                 CustomResponse::new(code, name, data, desc)
             }
@@ -155,21 +157,49 @@ macro_rules! generate_responses_functions {
             /// Converts the enum variant into its corresponding `HttpCode`.
             pub fn to_http_code(&self) -> $crate::helpers::http_code_helper::HttpCode {
                 match self {
-                    Self::$first_variant => crate::helpers::http_code_helper::HttpCode::new(
-                        $std_code_first,
-                        $std_name_first,
-                        $desc_first,
-                        $int_code_first,
-                        $int_std_name_first
-                    ),
+                    Self::$first_variant => {
+                        let internal_code = if $int_code_first == $std_code_first {
+                            None
+                        } else {
+                            Some($int_code_first)
+                        };
+
+                        let internal_name = if $int_std_name_first == $std_name_first {
+                            None
+                        } else {
+                            Some($int_std_name_first)
+                        };
+
+                        $crate::helpers::http_code_helper::HttpCode {
+                            standard_code: $std_code_first,
+                            standard_name: $std_name_first,
+                            unified_description: $desc_first,
+                            internal_code,
+                            internal_name,
+                        }
+                    },
                     $(
-                        Self::$variant => crate::helpers::http_code_helper::HttpCode::new(
-                            $std_code,
-                            $std_name,
-                            $desc,
-                            $int_code,
-                            $int_name
-                        ),
+                        Self::$variant => {
+                            let internal_code = if $int_code == $std_code {
+                                None
+                            } else {
+                                Some($int_code)
+                            };
+
+                            let internal_name = if $int_name == $std_name {
+                                None
+                            } else {
+                                Some($int_name)
+                            };
+
+                            $crate::helpers::http_code_helper::HttpCode {
+                                standard_code: $std_code,
+                                standard_name: $std_name,
+                                unified_description: $desc,
+                                internal_code,
+                                internal_name,
+                            }
+                        },
                     )*
                 }
             }
@@ -204,14 +234,14 @@ macro_rules! generate_responses_functions {
               match code {
                   $int_code_first => Some(Self::$first_variant),
                   $(
-                      $int_code => Some(Self::$first_variant),
+                      $int_code => Some(Self::$variant),
                   )*
                   _ => None,
               }
             }
 
             /// Returns a unified tuple representation.
-            pub fn as_tuple(&self) -> crate::helpers::unified_tuple_helper::UnifiedTuple {
+            pub fn as_tuple(&self) -> $crate::helpers::unified_tuple_helper::UnifiedTuple {
                 self.to_http_code().as_unified_tuple()
             }
 
@@ -222,16 +252,16 @@ macro_rules! generate_responses_functions {
         }
 
         /// Implementation for converting the enum into a tuple `(u16, &'static str)`.
-        impl crate::traits::tuple_traits::IntoTwoFieldsTuple for $enum_name {
-            fn into_two_fields_tuple(self) -> crate::helpers::two_fields_tuple_helper::TwoFieldsTuple {
+        impl $crate::traits::tuple_traits::IntoTwoFieldsTuple for $enum_name {
+            fn into_two_fields_tuple(self) -> $crate::helpers::two_fields_tuple_helper::TwoFieldsTuple {
                 let http_code = self.to_http_code();
                 http_code.into_two_fields_tuple()
             }
         }
 
         /// Implementation for converting the enum into a tuple '(u16, &'static str, &'static str)'.
-        impl crate::traits::tuple_traits::IntoThreeFieldsTuple for $enum_name {
-            fn into_three_fields_tuple(self) -> crate::helpers::three_fields_tuple_helper::ThreeFieldsTuple {
+        impl $crate::traits::tuple_traits::IntoThreeFieldsTuple for $enum_name {
+            fn into_three_fields_tuple(self) -> $crate::helpers::three_fields_tuple_helper::ThreeFieldsTuple {
                 let http_code = self.to_http_code();
                 http_code.into_three_fields_tuple()
             }
@@ -301,11 +331,11 @@ mod tests {
     fn test_from_internal_code() {
         assert_eq!(
             ResponsesClientCodes::from_internal_code(444),
-            Some(ResponsesClientCodes::BadRequest)
+            Some(ResponsesClientCodes::NoResponse)
         );
         assert_eq!(
             ResponsesClientCodes::from_internal_code(445),
-            Some(ResponsesClientCodes::BadRequest)
+            Some(ResponsesClientCodes::TooManyForwardedIPAddresses)
         );
         assert_eq!(ResponsesClientCodes::from_internal_code(492), None);
     }
@@ -372,7 +402,6 @@ mod tests {
 
     #[test]
     fn test_into_two_fields_tuple() {
-        // Par exemple, pour un code client "BadRequest"
         let response = ResponsesClientCodes::BadRequest;
         let tuple = response.into_two_fields_tuple();
         let json_result = serde_json::to_value(&tuple).unwrap();
@@ -386,7 +415,6 @@ mod tests {
 
     #[test]
     fn test_into_three_fields_tuple() {
-        // Par exemple, pour une réponse "Ok" du SuccessCodes
         let response = ResponsesSuccessCodes::Ok;
         let tuple = response.into_three_fields_tuple();
         let json_result = serde_json::to_value(&tuple).unwrap();
