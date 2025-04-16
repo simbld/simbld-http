@@ -127,8 +127,14 @@ impl Responder for CustomResponse {
     type Body = actix_web::body::BoxBody;
 
     fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
-        let mut response = HttpResponse::build(StatusCode::from_u16(self.http_code.code).unwrap());
+        // Utiliser standard_code au lieu de code
+        let mut response =
+            HttpResponse::build(StatusCode::from_u16(self.http_code.standard_code).unwrap());
+
+        // Ajouter les headers pertinents
         response.content_type("application/json");
+
+        // Construire la réponse avec les données
         response.body(self.data)
     }
 }
@@ -162,7 +168,12 @@ mod tests {
 
     /// Example handler that uses the new constructor with four arguments.
     async fn example_response() -> impl Responder {
-        CustomResponse::new(200, "Success", "Test data", "Request was successful")
+        CustomResponse::new(
+            200,
+            "Success",
+            "{\"message\": \"Request was successful\", \"data\": \"Test data\"}",
+            "Test response description",
+        )
     }
 
     #[actix_web::main]
