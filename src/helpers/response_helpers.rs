@@ -1,3 +1,19 @@
+//! # HTTP Response Utilities
+//!
+//! This module provides comprehensive utilities for working with HTTP responses.
+//! It includes functions for creating, manipulating, transforming, and filtering
+//! HTTP response codes and messages in various formats (JSON, XML).
+//!
+//! The module supports:
+//! - Looking up response information by code or type
+//! - Transforming responses to JSON and XML formats
+//! - Filtering responses by code ranges
+//! - Creating enriched responses with metadata
+//! - CORS validation for responses
+//!
+//! These utilities are designed to provide a consistent API for handling
+//! HTTP responses throughout the application.
+
 use crate::responses::ResponsesTypes;
 use crate::responses::{
     ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesInformationalCodes,
@@ -13,18 +29,14 @@ use std::time::Duration;
 use std::time::SystemTime;
 use strum::IntoEnumIterator;
 
-/// Takes an input of type `ResponsesTypes`, extracts the associated response code and description,
-/// and returns a tuple containing the code as a `u16` and the description as a static string reference (`&'static str`).
+/// Returns the standard code and description for a given response type.
 pub fn get_response_get_description(response: ResponsesTypes) -> (u16, &'static str) {
     let code = response.get_code();
     let description = response.get_description_field("Description").unwrap_or("No description");
     (code, description)
 }
 
-/// This advanced implementation includes additional features:
-/// - Logs the response code and the timestamp for debugging and tracking purposes.
-/// - Simulates a CORS validation by checking the `ALLOWED_ORIGIN` environment variable.
-/// - Logs warnings or debug information based on the state of the environment variable.
+/// Returns the code and extended description for a given response type.
 pub fn get_advance_response_get_description(response: ResponsesTypes) -> (u16, &'static str) {
     if let Some(normalized_response) = get_response_by_type(&response) {
         (normalized_response.get_code(), normalized_response.get_description())
@@ -55,7 +67,7 @@ pub fn get_advance_response_get_description(response: ResponsesTypes) -> (u16, &
     (code, description)
 }
 
-/// Matches an HTTP code and returns the corresponding `ResponsesTypes` enum.
+/// Retrieves a response type based on its HTTP status code.
 pub fn get_response_by_code(code: u16) -> Option<ResponsesTypes> {
     ResponsesTypes::from_u16(code)
 }
@@ -279,6 +291,13 @@ pub fn filter_codes_by_range(start: u16, end: u16) -> Vec<(u16, &'static str)> {
     filtered_codes
 }
 
+/// Helper function to add filtered codes to a result collection.
+///
+/// # Arguments
+/// * `start` - Starting code (inclusive)
+/// * `end` - Ending code (inclusive)
+/// * `codes_iter` - Iterator of response types to filter
+/// * `filtered_codes` - Output collection for filtered codes
 fn add_filtered_codes<I>(
     start: u16,
     end: u16,
@@ -295,10 +314,12 @@ fn add_filtered_codes<I>(
     }
 }
 
-/// Filters predefined response codes based on a specified range and includes additional metadata. The function takes three input parameters: `start`, `end`, and `request_metadata`. The `start` and `end` parameters represent the lower and upper bounds of the range, respectively. The `request_metadata` parameter is an optional `HashMap` containing additional metadata to include in the response. The function returns a vector containing tuples of response codes, descriptions, and metadata that fall within the specified range.
+/// Type alias
 pub type ResponseCodeWithMetadata = (u16, &'static str, HashMap<String, String>);
 pub type ResponseCodeIterator = Box<dyn Iterator<Item = ResponseCodeWithMetadata>>;
 pub type RequestMetadata = Option<HashMap<&'static str, &'static str>>;
+
+/// Returns response codes within the specified range, with additional metadata.
 pub fn filter_codes_by_range_with_metadata(
     start: u16,
     end: u16,
