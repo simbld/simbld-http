@@ -17,7 +17,6 @@ pub use helpers::unified_middleware_helper::UnifiedMiddleware;
 pub use mocks::mock_responses::MockResponses;
 
 // External crates re-exported for convenience
-pub use inflector::Inflector;
 pub use serde_json::{json, Value};
 
 // Public exports for response modules
