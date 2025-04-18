@@ -1,10 +1,20 @@
+//! # HTTP Status Code Representation
+//!
+//! This module provides a standardized way to represent and work with HTTP status codes.
+//! It defines the `HttpCode` struct which encapsulates both standard HTTP status codes
+//! and custom internal codes used for application-specific error tracking.
+//!
+//! The module supports conversion between different representations of HTTP codes and
+//! provides utilities for serializing them in a consistent format.
+
 use crate::traits::into_http_code_trait::IntoHttpCode;
-/// This file defines the HttpCode struct which represents detailed HTTP code metadata.
-/// The as_unified_tuple method returns a UnifiedTuple struct with optional internal fields.
-/// If standard_code equals internal_code, the optional fields are None; otherwise they are Some(...).
-/// Example: HttpCode::new(202, "Accepted", "Success", 202, "Accepted") returns a UnifiedTuple with None for internal_code and internal_name.
 use serde::Serialize;
 
+/// Represents an HTTP status code with standard and internal identifiers.
+///
+/// This structure combines standard HTTP status codes (like 200, 404) with optional
+/// internal application-specific codes for more detailed error tracking and reporting.
+///
 #[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub struct HttpCode {
     /// Standard HTTP status code.
@@ -21,6 +31,7 @@ pub struct HttpCode {
 
 /// Implement IntoHttpCode for u16, converting it to an HttpCode with default values.
 impl IntoHttpCode for (u16, &'static str, &'static str) {
+    /// Converts a tuple of (code, name, description) into an HttpCode.
     fn into_http_code(self) -> HttpCode {
         let (standard_code, standard_name, unified_description) = self;
         HttpCode {
@@ -34,10 +45,14 @@ impl IntoHttpCode for (u16, &'static str, &'static str) {
 }
 
 impl HttpCode {
-    /// Creates a new HttpCode instance.
-    /// If `standard_code` equals `internal_code`, then internal fields are set to None.
-    /// Example:
-    /// let code = HttpCode::new(200, "OK", "Successful request", 200, "OK");
+    /// Creates a new HttpCode with both standard and internal identifiers.
+    ///
+    /// # Arguments
+    /// * `standard_code` - The standard HTTP status code
+    /// * `standard_name` - The standard HTTP status name
+    /// * `unified_description` - Human-readable description
+    /// * `internal_code` - Application-specific status code
+    /// * `internal_name` - Application-specific status name
     pub fn new(
         standard_code: u16,
         standard_name: &'static str,
@@ -59,13 +74,12 @@ impl HttpCode {
         }
     }
 
-    /// Converts the HttpCode to a u16.
-    pub fn to_u16(&self) -> u16 {
+    /// Returns the standard HTTP status code.
+    pub fn get_code(&self) -> u16 {
         self.standard_code
     }
 
-    /// Returns a unified tuple representation of the HttpCode.
-    /// Example: let tuple = code.as_unified_tuple();
+    /// Converts the HttpCode to a UnifiedTuple representation for consistent formatting.
     pub fn as_unified_tuple(&self) -> crate::helpers::unified_tuple_helper::UnifiedTuple {
         crate::helpers::unified_tuple_helper::UnifiedTuple {
             standard_code: self.standard_code,
@@ -83,6 +97,7 @@ mod tests {
     use crate::helpers::unified_tuple_helper::UnifiedTuple;
     use serde_json::json;
 
+    /// Tests the creation of an HttpCode with the new() constructor.
     #[test]
     fn test_http_code_new() {
         let http_code = HttpCode::new(200, "ContentDeleted", "File deleted", 215, "Accepted");
@@ -93,6 +108,7 @@ mod tests {
         assert_eq!(http_code.internal_name, Some("Accepted"));
     }
 
+    /// Tests conversion to UnifiedTuple with only standard fields.
     #[test]
     fn test_http_code_as_unified_tuple() {
         let http_code = HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted");
@@ -107,6 +123,7 @@ mod tests {
         assert_eq!(unified_tuple, expected_tuple);
     }
 
+    /// Tests conversion to UnifiedTuple with both standard and internal fields.
     #[test]
     fn test_http_code_as_unified_tuple_with_internal() {
         let http_code = HttpCode::new(
@@ -127,12 +144,14 @@ mod tests {
         assert_eq!(unified_tuple, expected_tuple);
     }
 
+    /// Tests the get_code method returns the correct standard code.
     #[test]
-    fn test_http_code_to_u16() {
+    fn test_http_code_get_code() {
         let http_code = HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted");
-        assert_eq!(http_code.to_u16(), 202);
+        assert_eq!(http_code.get_code(), 202);
     }
 
+    /// Tests JSON serialization of HttpCode instances.
     #[test]
     fn test_http_code_as_json() {
         let http_code = HttpCode::new(202, "Accepted", "Request processed", 202, "Accepted");

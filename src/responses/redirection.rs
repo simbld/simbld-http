@@ -1,5 +1,6 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::responses::CustomResponse;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -59,11 +60,11 @@ mod tests {
     use serde_json::to_value;
 
     #[test]
-    fn test_redirection_codes_to_u16() {
-        assert_eq!(ResponsesRedirectionCodes::MultipleChoices.to_u16(), 300);
-        assert_eq!(ResponsesRedirectionCodes::MovedPermanently.to_u16(), 301);
-        assert_eq!(ResponsesRedirectionCodes::SeeOther.to_u16(), 303);
-        assert_eq!(ResponsesRedirectionCodes::TemporaryRedirect.to_u16(), 307);
+    fn test_redirection_codes_get_code() {
+        assert_eq!(ResponsesRedirectionCodes::MultipleChoices.get_code(), 300);
+        assert_eq!(ResponsesRedirectionCodes::MovedPermanently.get_code(), 301);
+        assert_eq!(ResponsesRedirectionCodes::SeeOther.get_code(), 303);
+        assert_eq!(ResponsesRedirectionCodes::TemporaryRedirect.get_code(), 307);
     }
 
     #[test]
@@ -126,7 +127,7 @@ mod tests {
         let json_result = to_value(&tuple).unwrap();
 
         let expected_json = json!({
-            "code": "307",
+            "code": 307,
             "name": "Temporary Redirect"
         });
 

@@ -1,14 +1,13 @@
-/// This module organizes and provides enums for various HTTP response status codes and categories.
-/// It includes the following categories:
-/// - Informational (1xx)
-/// - Success (2xx)
-/// - Redirection (3xx)
-/// - Client (4xx)
-/// - Server (5xx)
-/// - Local API codes (9xx)
-/// - Service responses (6xx)
-/// - Crawler-specific responses (7xx)
-
+//! This module organizes and provides enums for various HTTP response status codes and categories.
+//! It includes the following categories:
+//! - Informational (1xx)
+//! - Success (2xx)
+//! - Redirection (3xx)
+//! - Client (4xx)
+//! - Server (5xx)
+//! - Local API codes (9xx)
+//! - Service responses (6xx)
+//! - Crawler-specific responses (7xx)
 #[macro_use]
 pub mod actix_responder;
 pub mod client;
@@ -21,8 +20,8 @@ pub mod service;
 pub mod success;
 
 // Public exports for response codes
-use crate::helpers::get_description_field_helper::GetDescription;
 use crate::helpers::response_helpers;
+use crate::traits::get_description_trait::GetDescription;
 pub use actix_responder::CustomResponse;
 pub use client::ResponsesClientCodes;
 pub use crawler::ResponsesCrawlerCodes;
@@ -38,10 +37,9 @@ use crate::helpers::http_code_helper::HttpCode;
 
 /// Enum representing the main categories of HTTP response codes.
 /// Combines multiple categories into a unified type for simplified handling.
-
-/// Enum representing all HTTP response families.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ResponsesTypes {
+    /// Enum representing all HTTP response families.
     Informational(ResponsesInformationalCodes),
     Success(ResponsesSuccessCodes),
     Redirection(ResponsesRedirectionCodes),
@@ -54,16 +52,16 @@ pub enum ResponsesTypes {
 
 impl ResponsesTypes {
     /// Converts the enum variant to its corresponding HTTP status code as `u16`.
-    pub fn to_u16(&self) -> u16 {
+    pub fn get_code(&self) -> u16 {
         match self {
-            ResponsesTypes::Informational(code) => code.to_u16(),
-            ResponsesTypes::Success(code) => code.to_u16(),
-            ResponsesTypes::Redirection(code) => code.to_u16(),
-            ResponsesTypes::ClientError(code) => code.to_u16(),
-            ResponsesTypes::ServerError(code) => code.to_u16(),
-            ResponsesTypes::ServiceError(code) => code.to_u16(),
-            ResponsesTypes::CrawlerError(code) => code.to_u16(),
-            ResponsesTypes::LocalApiError(code) => code.to_u16(),
+            ResponsesTypes::Informational(code) => code.get_code(),
+            ResponsesTypes::Success(code) => code.get_code(),
+            ResponsesTypes::Redirection(code) => code.get_code(),
+            ResponsesTypes::ClientError(code) => code.get_code(),
+            ResponsesTypes::ServerError(code) => code.get_code(),
+            ResponsesTypes::ServiceError(code) => code.get_code(),
+            ResponsesTypes::CrawlerError(code) => code.get_code(),
+            ResponsesTypes::LocalApiError(code) => code.get_code(),
         }
     }
 
@@ -125,7 +123,7 @@ impl ResponsesTypes {
     }
 
     /// Returns the description associated with a response code.
-    pub fn description(&self) -> &'static str {
+    pub fn get_description(&self) -> &'static str {
         match self {
             ResponsesTypes::Informational(code_enum) => {
                 code_enum.get_description_field("Description").unwrap_or("No description")
@@ -155,31 +153,31 @@ impl ResponsesTypes {
     }
 
     /// Returns the code and description associated with a response code.
-    pub fn get_response_description(&self) -> (u16, &'static str) {
+    pub fn get_response_get_description(&self) -> (u16, &'static str) {
         match self {
             ResponsesTypes::Informational(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
             ResponsesTypes::Success(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
             ResponsesTypes::Redirection(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
             ResponsesTypes::ClientError(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
             ResponsesTypes::ServerError(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
             ResponsesTypes::ServiceError(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
             ResponsesTypes::CrawlerError(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
             ResponsesTypes::LocalApiError(code) => {
-                (code.to_u16(), code.get_description_field("Description").unwrap_or(""))
+                (code.get_code(), code.get_description_field("Description").unwrap_or(""))
             }
         }
     }
@@ -206,10 +204,10 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn test_to_u16() {
+    fn test_get_code() {
         assert_eq!(
             ResponsesTypes::CrawlerError(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader)
-                .to_u16(),
+                .get_code(),
             400
         );
     }
@@ -286,9 +284,10 @@ mod tests {
     }
 
     #[test]
-    fn test_get_advance_response_description() {
+    fn test_get_advance_response_get_description() {
         let client_error = ResponsesTypes::ClientError(ResponsesClientCodes::SSLCertificateError);
-        let (code, description) = response_helpers::get_advance_response_description(client_error);
+        let (code, description) =
+            response_helpers::get_advance_response_get_description(client_error);
 
         assert_eq!(code, 400);
         assert_eq!(description, "An invalid or untrusted SSL certificate was encountered");

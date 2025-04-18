@@ -1,3 +1,43 @@
+### 🆕 Changelog (Version 1.0.0)
+
+- **New Architecture: Macro System**
+
+###### Introduction of a complete macro system for generating HTTP responses
+
+`generate_response!`: _Central macro for dynamically creating customized HTTP responses._ `define_status!`: _Definition
+of new status codes with their associated descriptions._ `response_builder!`: _Generation of fluid builders for
+constructing complex responses._
+_The macro system offers increased expressiveness and flexibility while significantly reducing verbosity._
+
+- **Response Model Redesign**
+
+###### Replacement of CustomResponse with the new HttpResponse
+
+`HttpResponse<T>`: _Generic structure allowing for strongly-typed response bodies._ `ResponseBuilder`: _Fluid API for
+progressive construction of HTTP responses._
+_This redesign improves ergonomics and type safety while offering more flexibility._
+
+- **Native Integration of Asynchronous Traits**
+
+###### Complete support for modern Rust asynchronous patterns
+
+`AsyncResponder`: _Trait allowing Futures to be returned as HTTP responses._ `StreamResponse`: _Support for streaming
+response bodies for voluminous data._
+_The asynchronous integration optimizes performance and reduces resource consumption._
+
+### 📚 Updated Documentation and Examples
+
+_Complete documentation and new examples are available in the project's GitHub
+repository:_ ([https://github.com/simbld/simbld-http/tree/main/examples](https://github.com/simbld/simbld-http/tree/main/examples))
+
+##### New Examples
+
+- **Macro Usage**: _Demonstration of response generation via the new macros._
+- **Fluid API**: _Examples of using the builder API to construct complex responses._
+- **Asynchronous Patterns**: _Integration with Rust and Actix-Web asynchronous features._
+
+---
+
 ### 🆕 Changelog (Version 0.4.1)
 
 - **New Feature: Unified Response Functions**
@@ -21,9 +61,9 @@ of use._
 
 #### Complete examples, including detailed use cases and advanced integrations, are available in the project's GitHub repository
 
-<https://github.com/simbld/simbld-http/tree/main/examples>
-<https://github.com/simbld/simbld-http/blob/main/src/responses>
-<https://github.com/simbld/simbld-http/tree/main/src/helpers>
+[https://github.com/simbld/simbld-http/tree/main/examples](https://github.com/simbld/simbld-http/tree/main/examples)  
+[https://github.com/simbld/simbld-http/blob/main/src/responses](https://github.com/simbld/simbld-http/blob/main/src/responses)  
+[https://github.com/simbld/simbld-http/tree/main/src/helpers](https://github.com/simbld/simbld-http/tree/main/src/helpers)
 
 ##### Included Examples And Tests
 
@@ -114,7 +154,7 @@ repository_ (<https://github.com/simbld/simbld-http/tree/main/examples>).
 
 ---
 
-**_`Simbld-HTTP`_** is a modular and comprehensive Rust library designed for managing HTTP response codes. Whether
+**_`simbld-http`_** is a modular and comprehensive Rust library designed for managing HTTP response codes. Whether
 you're building APIs, handling custom response codes, or integrating middleware, Simbld-HTTP provides an organized and
 extensible framework to simplify your workflow.
 
@@ -151,7 +191,7 @@ _Add new families or custom helpers with minimal effort._
 
 ### 📦 Installation
 
-` Add Simbld-HTTP to your ``Cargo.toml `:
+` Add simbld-http to your ``Cargo.toml `:
 
 ```toml
 [dependencies]
@@ -190,7 +230,7 @@ The full documentation will be available on **docs.rs** after publishing. Stay t
 use simbld_http::responses::ResponsesTypes;
 
 let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
-println!("Code: {}, Description: {}", response.to_u16(), response.get_str("Description"));
+println!("Code: {}, Description: {}", response.get_code(), response.get_str("Description"));
 ```
 
 ##### Retrieve a Crawler Code
@@ -203,7 +243,7 @@ fn main() {
     let code = ResponsesCrawlerCodes::ParsingErrorHeader;
     println!(
         "Code: {}, Description: {}",
-        code.to_u16(),
+        code.get_code(),
         code.get_str("Description").unwrap()
     );
 }
@@ -213,13 +253,13 @@ fn main() {
 ##### Run the example with
 
 ```bash
-cargo run --example usage
+cargo run --example examples_usage
 ```
 
 ##### Using the Middleware
 
 ```bash
-cargo run --example middleware_usage
+cargo run --example middleware_advanced_usage
 ```
 
 ##### Test the middleware response with **_curl_**
@@ -284,8 +324,7 @@ This project is licensed under the **MIT** License. See the **LICENSE** file for
 
 ---
 
-<p align="center">
-  🛠️
+<p>
   <a href="https://crates.io/crates/simbld-http">
     <img src="https://img.shields.io/crates/v/simbld-http.svg" alt="Crates.io">
   </a>

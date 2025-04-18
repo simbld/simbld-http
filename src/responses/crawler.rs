@@ -1,5 +1,6 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::responses::CustomResponse;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -31,11 +32,11 @@ mod tests {
     use serde_json::{json, to_value};
 
     #[test]
-    fn test_crawler_codes_to_u16() {
-        assert_eq!(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.to_u16(), 400);
-        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.to_u16(), 400);
-        assert_eq!(ResponsesCrawlerCodes::InvalidURL.to_u16(), 400);
-        assert_eq!(ResponsesCrawlerCodes::ProgrammableRedirection.to_u16(), 302);
+    fn test_crawler_codes_get_code() {
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorUnfinishedHeader.get_code(), 400);
+        assert_eq!(ResponsesCrawlerCodes::ParsingErrorHeader.get_code(), 400);
+        assert_eq!(ResponsesCrawlerCodes::InvalidURL.get_code(), 400);
+        assert_eq!(ResponsesCrawlerCodes::ProgrammableRedirection.get_code(), 302);
     }
 
     #[test]
@@ -70,7 +71,7 @@ mod tests {
     fn test_robots_temporarily_unavailable_as_json() {
         let response_code = ResponsesCrawlerCodes::RobotsTemporarilyUnavailable;
         let json_result = response_code.as_json();
-        let expected_json = serde_json::json!({
+        let expected_json = json!({
             "type": "Crawler responses",
             "details": {
                 "standard http code": {

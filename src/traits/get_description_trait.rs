@@ -9,13 +9,13 @@ pub trait GetDescription {
     fn get_description_field(&self, field: &str) -> Option<&'static str>;
 }
 
-// Macro pour générer l'implémentation pour chaque type de réponse
+/// This macro implements the `GetDescription` trait for a given type.
 macro_rules! impl_get_description {
     ($type_name:ty) => {
         impl GetDescription for $type_name {
             fn get_description_field(&self, field: &str) -> Option<&'static str> {
                 match field {
-                    "Description" => Some(self.description()),
+                    "Description" => Some(self.get_description()),
                     _ => None,
                 }
             }

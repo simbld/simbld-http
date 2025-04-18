@@ -1,20 +1,39 @@
-/// This file defines the UnifiedTuple struct used to represent HTTP response codes uniformly.
-/// Example:
-/// ```rust
-/// use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
-/// let tuple = UnifiedTuple {
-///     standard_code: 200,
-///     standard_name: "OK",
-///     unified_description: "Successful request",
-///     internal_code: None,
-///     internal_name: None,
-/// };
-/// assert_eq!(tuple.as_json()["description"], "Successful request");
-/// ```
+//! # Unified HTTP Response Representation
+//!
+//! This module provides the `UnifiedTuple` structure which offers a standardized
+//! way to represent HTTP responses across the application.
+//!
+//! The `UnifiedTuple` combines standard HTTP status information with optional
+//! application-specific internal codes and names, enabling consistent handling
+//! of both standard HTTP responses and custom application responses.
+//!
+//! ## Example
+//!
+//! ```rust
+//! use simbld_http::helpers::unified_tuple_helper::UnifiedTuple;
+//!
+//! let tuple = UnifiedTuple {
+//!     standard_code: 200,
+//!     standard_name: "OK",
+//!     unified_description: "Successful request",
+//!     internal_code: None,
+//!     internal_name: None,
+//! };
+//!
+//! // Convert to JSON for serialization
+//! let json = tuple.as_json();
+//! assert_eq!(json["description"], "Successful request");
+//! ```
+
 use crate::responses::ResponsesTypes;
 use serde::Serialize;
 
-
+/// A standardized representation of HTTP response codes and metadata.
+///
+/// This structure provides a unified way to represent both standard HTTP
+/// response codes and application-specific internal codes, making it easier
+/// to handle responses consistently throughout the application.
+///
 #[derive(Debug, PartialEq, Serialize)]
 pub struct UnifiedTuple {
     /// Standard HTTP code.
@@ -30,6 +49,17 @@ pub struct UnifiedTuple {
 }
 
 impl UnifiedTuple {
+    /// Converts the UnifiedTuple to a structured JSON representation.
+    ///
+    /// The resulting JSON structure includes:
+    /// - Standard HTTP code information (code and name)
+    /// - Description text
+    /// - Internal HTTP code information if available (code and name)
+    ///
+    /// # Returns
+    ///
+    /// A `serde_json::Value` containing the structured JSON representation
+    ///
     pub fn as_json(&self) -> serde_json::Value {
         serde_json::json!({
             "standard http code": {
@@ -45,11 +75,16 @@ impl UnifiedTuple {
     }
 }
 
+/// Implements automatic conversion from ResponsesTypes to UnifiedTuple.
+///
+/// This allows for seamless integration between the enum-based response types
+/// and the structured tuple representation.
+///
 impl From<ResponsesTypes> for UnifiedTuple {
     fn from(response: ResponsesTypes) -> Self {
-        let standard_code = response.to_u16();
-        let standard_name = response.description();
-        let unified_description = response.description();
+        let standard_code = response.get_code();
+        let standard_name = response.get_description();
+        let unified_description = response.get_description();
         UnifiedTuple {
             standard_code,
             standard_name,

@@ -1,5 +1,6 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::responses::CustomResponse;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -70,11 +71,11 @@ mod tests {
     use serde_json::{json, to_value};
 
     #[test]
-    fn test_to_u16() {
-        assert_eq!(ResponsesClientCodes::BadRequest.to_u16(), 400);
-        assert_eq!(ResponsesClientCodes::Unauthorized.to_u16(), 401);
-        assert_eq!(ResponsesClientCodes::PaymentRequired.to_u16(), 402);
-        assert_eq!(ResponsesClientCodes::Forbidden.to_u16(), 403);
+    fn test_get_code() {
+        assert_eq!(ResponsesClientCodes::BadRequest.get_code(), 400);
+        assert_eq!(ResponsesClientCodes::Unauthorized.get_code(), 401);
+        assert_eq!(ResponsesClientCodes::PaymentRequired.get_code(), 402);
+        assert_eq!(ResponsesClientCodes::Forbidden.get_code(), 403);
     }
 
     #[test]
@@ -146,8 +147,8 @@ mod tests {
         let json_result = to_value(&tuple).unwrap();
 
         let expected_json = json!({
-            "code": 420,
-            "name": "MethodFailure"
+            "code": 405,
+            "name": "Method Not Allowed"
         });
 
         assert_eq!(json_result, expected_json);

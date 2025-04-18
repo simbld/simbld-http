@@ -1,5 +1,6 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::responses::CustomResponse;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -32,11 +33,11 @@ mod tests {
     use serde_json::to_value;
 
     #[test]
-    fn test_service_codes_to_u16() {
-        assert_eq!(ResponsesServiceCodes::ReadingError.to_u16(), 500);
-        assert_eq!(ResponsesServiceCodes::ConnectionError.to_u16(), 500);
-        assert_eq!(ResponsesServiceCodes::ReadingTimeExpired.to_u16(), 500);
-        assert_eq!(ResponsesServiceCodes::SSLHandshakeFailed.to_u16(), 500);
+    fn test_service_codes_get_code() {
+        assert_eq!(ResponsesServiceCodes::ReadingError.get_code(), 500);
+        assert_eq!(ResponsesServiceCodes::ConnectionError.get_code(), 500);
+        assert_eq!(ResponsesServiceCodes::ReadingTimeExpired.get_code(), 500);
+        assert_eq!(ResponsesServiceCodes::SSLHandshakeFailed.get_code(), 500);
     }
 
     #[test]

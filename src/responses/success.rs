@@ -1,5 +1,6 @@
 use crate::generate_responses_functions;
-use crate::traits::to_u16_trait::ToU16;
+use crate::responses::CustomResponse;
+use crate::traits::get_code_trait::GetCode;
 use strum_macros::EnumIter;
 
 generate_responses_functions! {
@@ -44,11 +45,11 @@ mod tests {
     use serde_json::{json, to_value};
 
     #[test]
-    fn test_success_codes_to_u16() {
-        assert_eq!(ResponsesSuccessCodes::Ok.to_u16(), 200);
-        assert_eq!(ResponsesSuccessCodes::Created.to_u16(), 201);
-        assert_eq!(ResponsesSuccessCodes::Accepted.to_u16(), 202);
-        assert_eq!(ResponsesSuccessCodes::NonAuthoritativeInformation.to_u16(), 203);
+    fn test_success_codes_get_code() {
+        assert_eq!(ResponsesSuccessCodes::Ok.get_code(), 200);
+        assert_eq!(ResponsesSuccessCodes::Created.get_code(), 201);
+        assert_eq!(ResponsesSuccessCodes::Accepted.get_code(), 202);
+        assert_eq!(ResponsesSuccessCodes::NonAuthoritativeInformation.get_code(), 203);
     }
 
     #[test]
@@ -90,6 +91,7 @@ mod tests {
                 "description": "The response contains the transferred content, and the response body contains the content that was transferred, such as a file or document, and the response body may contain the requested resource, the response indicates that the content has been transferred successfully to another instance, thus ending the current instance",
                 "internal http code": {
                     "code": 219,
+                    "name": "Content Transferred"
                 }
             }
         });

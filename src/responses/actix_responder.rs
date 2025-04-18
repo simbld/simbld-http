@@ -1,39 +1,97 @@
+//! # Custom HTTP Response Implementation
+//!
+//! This module provides a customizable HTTP response structure for Actix Web applications.
+//! The `CustomResponse` type implements Actix's `Responder` trait, allowing it to be
+//! directly returned from route handlers with full control over status codes, headers,
+//! and response content.
+//!
+//! ## Usage
+//!
+//! Create a custom response with your desired status code, name, data, and description:
+//!
+//! ```no_run
+//! use simbld_http::responses::CustomResponse;
+//!
+//! // Create a custom success response
+//! let success_response = CustomResponse::new(
+//!     200,
+//!     "Success",
+//!     "{\"message\": \"Operation completed\"}",
+//!     "Request was successful"
+//! );
+//!
+//! // Create a custom error response
+//! let error_response = CustomResponse::new(
+//!     404,
+//!     "NotFound",
+//!     "{\"error\": \"Resource not available\"}",
+//!     "The requested resource could not be found"
+//! );
+//! ```
+//!
+//! Use it in Actix Web handlers:
+//!
+//! ```no_run
+//! # use actix_web::{web, Responder};
+//! # use simbld_http::responses::CustomResponse;
+//!
+//! async fn success_handler() -> impl Responder {
+//!     CustomResponse::new(
+//!         200,
+//!         "Success",
+//!         "{\"message\": \"Operation completed\"}",
+//!         "Request was successful"
+//!     )
+//! }
+//!
+//! async fn not_found_handler() -> impl Responder {
+//!     CustomResponse::new(
+//!         404,
+//!         "NotFound",
+//!         "{\"error\": \"Resource not found\"}",
+//!         "The requested resource could not be found"
+//!     )
+//! }
+//! ```
+
 use crate::helpers::http_code_helper::HttpCode;
+use actix_web::http::StatusCode;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde::Serialize;
-use serde_json::json;
 
-/// The code defines a custom response struct in Rust for handling HTTP responses in Actix-web.
+/// A customizable HTTP response for Actix Web applications.
 ///
-/// Properties (explanation in English for clarity):
-/// * `code`: The HTTP status code (u16).
-/// * `name`: The name associated with the response (String).
-/// * `data`: Extra data payload included in the response (String).
-/// * `description`: A string describing the response further (String).
-
+/// `CustomResponse` provides a flexible way to create HTTP responses with
+/// custom status codes, data payloads, and metadata. It implements Actix's
+/// `Responder` trait, making it directly returnable from route handlers.
 #[derive(Debug, Serialize, Clone)]
 pub struct CustomResponse {
+    /// The HTTP status code and associated metadata
     pub http_code: HttpCode,
+
+    /// Name identifier for the response (useful for logging and debugging)
     pub name: String,
+
+    /// The response payload (typically JSON or XML formatted as a string)
     pub data: String,
+
+    /// Human-readable description of the response
     pub description: String,
 }
 
 impl CustomResponse {
-    /// Creates a new `CustomResponse` from an HTTP code (standard or internal)
-    /// and some relevant data.
+    /// Creates a new CustomResponse with the provided information.
     ///
-    /// # Example
-    /// ```
-    /// use simbld_http::responses::CustomResponse;
-    /// use simbld_http::helpers::http_code_helper::HttpCode;
+    /// # Arguments
     ///
-    /// let response = CustomResponse::new(200, "Ok", "Success Message", "Success");
-    /// assert_eq!(response.http_code, 200);
-    /// assert_eq!(response.name, "OK".to_string());
-    /// assert_eq!(response.data, "Success Message".to_string());
-    /// assert_eq!(response.description, "Success".to_string());
-    /// ```
+    /// * `code` - HTTP status code (e.g., 200, 404, 500)
+    /// * `name` - Name identifier for the response
+    /// * `data` - Response payload (typically JSON or XML)
+    /// * `description` - Human-readable description
+    ///
+    /// # Returns
+    ///
+    /// A new CustomResponse instance
     pub fn new(
         code: u16,
         name: impl Into<String>,
@@ -61,30 +119,39 @@ impl CustomResponse {
     }
 }
 
-/// We implement the `Responder` trait for `CustomResponse`,
-/// so that we can return `CustomResponse` directly in Actix handlers.
+/// Implements Actix's Responder trait for CustomResponse.
+///
+/// This allows CustomResponse instances to be returned directly from
+/// route handlers, with automatic conversion to HttpResponse.
 impl Responder for CustomResponse {
     type Body = actix_web::body::BoxBody;
 
     fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
-        HttpResponse::build(
-            actix_web::http::StatusCode::from_u16(self.http_code.standard_code)
-                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
-        )
-        .json(json!({
-            "status": self.http_code.standard_code,
-            "name": self.name,
-            "data": self.data,
-            "description": self.description,
-        }))
+        // Utiliser standard_code au lieu de code
+        let mut response =
+            HttpResponse::build(StatusCode::from_u16(self.http_code.standard_code).unwrap());
+
+        // Ajouter les headers pertinents
+        response.content_type("application/json");
+
+        // Construire la réponse avec les données
+        response.body(self.data)
     }
 }
 
-/// Handler compatible with Actix-Web.
+/// A handler that returns a pre-configured CustomResponse.
 ///
-/// * Takes a `web::Data<CustomResponse>` (shared state) and a `HttpRequest`
-/// * Clones the `CustomResponse`
-/// * Calls `.respond_to(&req)` to build the final `HttpResponse`.
+/// This handler can be used with a shared CustomResponse provided via
+/// the app's application data.
+///
+/// # Arguments
+///
+/// * `custom_response` - A shared CustomResponse injected via web::Data
+/// * `req` - The HTTP request
+///
+/// # Returns
+///
+/// An HttpResponse based on the provided CustomResponse
 pub async fn custom_response_handler(
     custom_response: web::Data<CustomResponse>,
     req: HttpRequest,
@@ -101,19 +168,20 @@ mod tests {
 
     /// Example handler that uses the new constructor with four arguments.
     async fn example_response() -> impl Responder {
-        CustomResponse::new(200, "Success", "Test data", "Request was successful")
+        CustomResponse::new(
+            200,
+            "Success",
+            "{\"message\": \"Request was successful\", \"data\": \"Test data\"}",
+            "Test response description",
+        )
     }
 
     #[actix_web::main]
     async fn main() -> std::io::Result<()> {
-        HttpServer::new(|| {
-            App::new()
-                // votre middleware ou configuration
-                .default_service(web::route().to(example_response))
-        })
-        .bind("127.0.0.1:8090")?
-        .run()
-        .await
+        HttpServer::new(|| App::new().default_service(web::route().to(example_response)))
+            .bind("127.0.0.1:8090")?
+            .run()
+            .await
     }
 
     #[actix_web::test]
@@ -150,24 +218,21 @@ mod tests {
 
     #[actix_web::test]
     async fn test_example_response() {
-        // La solution la plus simple : créer une app de test et utiliser la fonction
-        // comme gestionnaire de route
-
-        // Créer une app avec notre fonction comme handler
+        // Create an app with our function like handler
         let app = test::init_service(App::new().route("/", web::get().to(example_response))).await;
 
-        // Simuler une requête à notre endpoint
+        // Simulate a request to our endpoint
         let req = test::TestRequest::get().uri("/").to_request();
         let resp = test::call_service(&app, req).await;
 
-        // Vérifier le code de statut
+        // Check the status code
         assert_eq!(resp.status(), StatusCode::OK);
 
-        // Vérifier le contenu de la réponse
+        // Check the content of the answer
         let body = test::read_body(resp).await;
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        // S'assurer que le corps contient les données attendues
+        // Make sure the body contains the expected data
         assert!(body_str.contains("Test data"));
         assert!(body_str.contains("Request was successful"));
     }

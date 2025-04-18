@@ -1,11 +1,27 @@
-/// The code provides functions for handling HTTP response codes, including retrieving descriptions, converting to JSON/XML, filtering by range, and adding metadata.
-use crate::helpers::get_description_field_helper::GetDescription;
+//! # HTTP Response Utilities
+//!
+//! This module provides comprehensive utilities for working with HTTP responses.
+//! It includes functions for creating, manipulating, transforming, and filtering
+//! HTTP response codes and messages in various formats (JSON, XML).
+//!
+//! The module supports:
+//! - Looking up response information by code or type
+//! - Transforming responses to JSON and XML formats
+//! - Filtering responses by code ranges
+//! - Creating enriched responses with metadata
+//! - CORS validation for responses
+//!
+//! These utilities are designed to provide a consistent API for handling
+//! HTTP responses throughout the application.
+
 use crate::responses::ResponsesTypes;
 use crate::responses::{
     ResponsesClientCodes, ResponsesCrawlerCodes, ResponsesInformationalCodes,
     ResponsesLocalApiCodes, ResponsesRedirectionCodes, ResponsesServerCodes, ResponsesServiceCodes,
     ResponsesSuccessCodes,
 };
+/// The code provides functions for handling HTTP response codes, including retrieving descriptions, converting to JSON/XML, filtering by range, and adding metadata.
+use crate::traits::get_description_trait::GetDescription;
 use crate::utils::populate_metadata::populate_metadata;
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -13,46 +29,45 @@ use std::time::Duration;
 use std::time::SystemTime;
 use strum::IntoEnumIterator;
 
-
-/// Takes an input of type `ResponsesTypes`, extracts the associated response code and description,
-/// and returns a tuple containing the code as a `u16` and the description as a static string reference (`&'static str`).
-pub fn get_response_description(response: ResponsesTypes) -> (u16, &'static str) {
-    let code = response.to_u16();
+/// Returns the standard code and description for a given response type.
+pub fn get_response_get_description(response: ResponsesTypes) -> (u16, &'static str) {
+    let code = response.get_code();
     let description = response.get_description_field("Description").unwrap_or("No description");
     (code, description)
 }
 
-/// This advanced implementation includes additional features:
-/// - Logs the response code and the timestamp for debugging and tracking purposes.
-/// - Simulates a CORS validation by checking the `ALLOWED_ORIGIN` environment variable.
-/// - Logs warnings or debug information based on the state of the environment variable.
-pub fn get_advance_response_description(response: ResponsesTypes) -> (u16, &'static str) {
+/// Returns the code and extended description for a given response type.
+pub fn get_advance_response_get_description(response: ResponsesTypes) -> (u16, &'static str) {
     if let Some(normalized_response) = get_response_by_type(&response) {
-        (normalized_response.to_u16(), normalized_response.description())
+        (normalized_response.get_code(), normalized_response.get_description())
     } else {
-        (response.to_u16(), response.description())
+        (response.get_code(), response.get_description())
     };
 
     let timestamp = SystemTime::now();
 
     // Simulate a middleware call here to record logs
-    log::info!("Fetching description for code: {}, timestamp: {:?}", response.to_u16(), timestamp);
+    log::info!(
+        "Fetching description for code: {}, timestamp: {:?}",
+        response.get_code(),
+        timestamp
+    );
 
     // Simulate a CORS check or any other advanced security logic
-    if let Some(origin) = std::env::var("ALLOWED_ORIGIN").ok() {
+    if let Ok(origin) = std::env::var("ALLOWED_ORIGIN") {
         log::debug!("Applying CORS check for origin: {}", origin);
     } else {
         log::warn!("No ALLOWED_ORIGIN set; defaulting to open.");
     }
 
     // Provide a fallback description if not present
-    let code = response.to_u16();
+    let code = response.get_code();
     let description = response.get_description_field("Description").unwrap_or("No description");
 
     (code, description)
 }
 
-/// Matches an HTTP code and returns the corresponding `ResponsesTypes` enum.
+/// Retrieves a response type based on its HTTP status code.
 pub fn get_response_by_code(code: u16) -> Option<ResponsesTypes> {
     ResponsesTypes::from_u16(code)
 }
@@ -64,13 +79,13 @@ pub fn get_response_by_code(code: u16) -> Option<ResponsesTypes> {
 /// refers:
 /// * `Option <A responsibility>` corresponding to the code `U16 'of the` rtype`, or `non -` if no match.
 pub fn get_response_by_type(rtype: &ResponsesTypes) -> Option<ResponsesTypes> {
-    let (code, _) = get_response_description(*rtype);
+    let (code, _) = get_response_get_description(*rtype);
     get_response_by_code(code)
 }
 
 /// Fetches the description for a specific HTTP code.
 pub fn get_description_by_code(code: u16) -> Option<&'static str> {
-    get_response_by_code(code).and_then(|r| r.description().into())
+    get_response_by_code(code).and_then(|r| r.get_description().into())
 }
 
 /// Matches the input code with predefined HTTP response codes and returns the corresponding description as a static string if a match is found.
@@ -93,7 +108,7 @@ pub fn get_advance_description_by_code(code: u16) -> Option<&'static str> {
 
 /// Converts a `ResponsesTypes` into a short JSON string. Includes a fallback if the response is not found.
 pub fn transform_to_json_short(response: ResponsesTypes) -> String {
-    let (code, description) = get_response_description(response);
+    let (code, description) = get_response_get_description(response);
     json!({
         "code": code,
         "description": description
@@ -103,8 +118,8 @@ pub fn transform_to_json_short(response: ResponsesTypes) -> String {
 
 /// Converts a `ResponsesTypes` into a detailed JSON string with fallback for missing descriptions.
 pub fn transform_to_json(response: ResponsesTypes) -> String {
-    let code = response.to_u16();
-    let description = response.description();
+    let code = response.get_code();
+    let description = response.get_description();
     json!({
         "code": code,
         "description": description
@@ -113,8 +128,8 @@ pub fn transform_to_json(response: ResponsesTypes) -> String {
 }
 /// Converts a `ResponsesTypes` into JSON only for standard HTTP codes (100–599). Returns `None` for invalid codes.
 pub fn transform_to_json_filtered(response: ResponsesTypes) -> Option<String> {
-    let (code, description) = get_response_description(response);
-    if code < 100 || code > 599 {
+    let (code, description) = get_response_get_description(response);
+    if !(100..=599).contains(&code) {
         None
     } else {
         Some(
@@ -130,7 +145,7 @@ pub fn transform_to_json_filtered(response: ResponsesTypes) -> Option<String> {
 
 /// Converts a `ResponsesTypes` into JSON, enriched with metadata like timestamps and status families.
 pub fn transform_to_json_with_metadata(response: ResponsesTypes) -> String {
-    let (code, description) = get_response_description(response);
+    let (code, description) = get_response_get_description(response);
     let timestamp = chrono::Utc::now();
     let metadata = json!({
         "requested_at": timestamp.to_rfc3339(),
@@ -158,7 +173,7 @@ pub fn transform_to_json_with_metadata(response: ResponsesTypes) -> String {
 
 /// Converts a `ResponsesTypes` into a simple XML string. Includes a fallback for missing responses.
 pub fn transform_to_xml_short(response: ResponsesTypes) -> String {
-    let (code, description) = get_response_description(response);
+    let (code, description) = get_response_get_description(response);
     format!(
         r#"<response><code>{}</code><description>{}</description></response>"#,
         code, description
@@ -167,15 +182,15 @@ pub fn transform_to_xml_short(response: ResponsesTypes) -> String {
 
 /// Converts a `ResponsesTypes` into a detailed XML string. Handles missing descriptions gracefully.
 pub fn transform_to_xml(response: ResponsesTypes) -> String {
-    let code = response.to_u16();
-    let description = response.description();
+    let code = response.get_code();
+    let description = response.get_description();
     format!("<response><code>{}</code><description>{}</description></response>", code, description)
 }
 
 /// Converts a `ResponsesTypes` into an XML string for valid HTTP codes (100–599). Returns `None` for invalid codes.
 pub fn transform_to_xml_filtered(response: ResponsesTypes) -> Option<String> {
-    let (code, description) = get_response_description(response);
-    if code < 100 || code > 599 {
+    let (code, description) = get_response_get_description(response);
+    if !(100..=599).contains(&code) {
         None
     } else {
         Some(format!(
@@ -187,7 +202,7 @@ pub fn transform_to_xml_filtered(response: ResponsesTypes) -> Option<String> {
 
 /// Converts a `ResponsesTypes` into an XML string enriched with metadata such as timestamps and status families.
 pub fn transform_to_xml_with_metadata(response: ResponsesTypes) -> String {
-    let (code, description) = get_response_description(response);
+    let (code, description) = get_response_get_description(response);
     let timestamp = chrono::Utc::now();
     let status_family = match code {
         100..=199 => "Informational",
@@ -276,6 +291,13 @@ pub fn filter_codes_by_range(start: u16, end: u16) -> Vec<(u16, &'static str)> {
     filtered_codes
 }
 
+/// Helper function to add filtered codes to a result collection.
+///
+/// # Arguments
+/// * `start` - Starting code (inclusive)
+/// * `end` - Ending code (inclusive)
+/// * `codes_iter` - Iterator of response types to filter
+/// * `filtered_codes` - Output collection for filtered codes
 fn add_filtered_codes<I>(
     start: u16,
     end: u16,
@@ -285,61 +307,80 @@ fn add_filtered_codes<I>(
     I: Iterator<Item = ResponsesTypes>,
 {
     for response in codes_iter {
-        let (code, description) = get_response_description(response);
-        if code >= start && code <= end {
-            if !filtered_codes.iter().any(|(c, _)| *c == code) {
-                filtered_codes.push((code, description));
-            }
+        let (code, description) = get_response_get_description(response);
+        if code >= start && code <= end && !filtered_codes.iter().any(|(c, _)| *c == code) {
+            filtered_codes.push((code, description));
         }
     }
 }
 
-/// Filters predefined response codes based on a specified range and includes additional metadata. The function takes three input parameters: `start`, `end`, and `request_metadata`. The `start` and `end` parameters represent the lower and upper bounds of the range, respectively. The `request_metadata` parameter is an optional `HashMap` containing additional metadata to include in the response. The function returns a vector containing tuples of response codes, descriptions, and metadata that fall within the specified range.
+/// Type alias
+pub type ResponseCodeWithMetadata = (u16, &'static str, HashMap<String, String>);
+pub type ResponseCodeIterator = Box<dyn Iterator<Item = ResponseCodeWithMetadata>>;
+pub type RequestMetadata = Option<HashMap<&'static str, &'static str>>;
+
+/// Returns response codes within the specified range, with additional metadata.
 pub fn filter_codes_by_range_with_metadata(
     start: u16,
     end: u16,
-    request_metadata: Option<HashMap<&str, &str>>,
-) -> Vec<(u16, &'static str, HashMap<String, String>)> {
-    let iterators: Vec<Box<dyn Iterator<Item = (u16, &'static str, HashMap<String, String>)>>> = vec![
-        Box::new(ResponsesInformationalCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::Informational(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+    request_metadata: RequestMetadata,
+) -> Vec<ResponseCodeWithMetadata> {
+    let iterators: Vec<ResponseCodeIterator> = vec![
+        Box::new(ResponsesInformationalCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::Informational(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
-        Box::new(ResponsesSuccessCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::Success(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+        Box::new(ResponsesSuccessCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::Success(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
-        Box::new(ResponsesRedirectionCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::Redirection(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+        Box::new(ResponsesRedirectionCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::Redirection(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
-        Box::new(ResponsesClientCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::ClientError(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+        Box::new(ResponsesClientCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::ClientError(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
-        Box::new(ResponsesServerCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::ServerError(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+        Box::new(ResponsesServerCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::ServerError(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
-        Box::new(ResponsesServiceCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::ServiceError(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+        Box::new(ResponsesServiceCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::ServiceError(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
-        Box::new(ResponsesCrawlerCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::CrawlerError(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+        Box::new(ResponsesCrawlerCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::CrawlerError(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
-        Box::new(ResponsesLocalApiCodes::iter().map(|code| {
-            let rtype = ResponsesTypes::LocalApiError(code);
-
-            create_tuple_with_metadata(rtype, &request_metadata)
+        Box::new(ResponsesLocalApiCodes::iter().map({
+            let request_metadata = request_metadata.clone();
+            move |code| {
+                let rtype = ResponsesTypes::LocalApiError(code);
+                create_tuple_with_metadata(rtype, &request_metadata)
+            }
         })),
     ];
 
@@ -355,53 +396,53 @@ pub fn filter_codes_by_range_with_metadata(
     results
 }
 
-/// Construit le triple (code_u16, description, metadata) pour une entrée donnée.
+/// Constructs a basic response tuple (status_code, description, metadata) from the given response type.
 fn create_tuple_with_metadata(
     rtype: ResponsesTypes,
-    request_metadata: &Option<HashMap<&str, &str>>,
-) -> (u16, &'static str, HashMap<String, String>) {
+    request_metadata: &RequestMetadata,
+) -> ResponseCodeWithMetadata {
     let metadata = request_metadata.clone().map_or_else(HashMap::new, |meta| {
         meta.into_iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
     });
 
-    (rtype.to_u16(), rtype.description(), metadata)
+    (rtype.get_code(), rtype.get_description(), metadata)
 }
 
-/// Build the triple (code_u16, description, metadata) for a given entry.
+/// Transforms a response type into a complete response tuple with contextual metadata from the request.
 pub fn list_codes_and_descriptions_short(family: &str) -> Vec<(u16, &'static str)> {
     #[allow(clippy::type_complexity)]
     let iterator: Box<dyn Iterator<Item = (u16, &'static str)>> = match family {
         "Informational" => Box::new(
             ResponsesInformationalCodes::iter()
-                .map(|c: ResponsesInformationalCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesInformationalCodes| (c.get_code(), c.get_description())),
         ),
         "Success" => Box::new(
             ResponsesSuccessCodes::iter()
-                .map(|c: ResponsesSuccessCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesSuccessCodes| (c.get_code(), c.get_description())),
         ),
         "Redirection" => Box::new(
             ResponsesRedirectionCodes::iter()
-                .map(|c: ResponsesRedirectionCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesRedirectionCodes| (c.get_code(), c.get_description())),
         ),
         "ClientError" => Box::new(
             ResponsesClientCodes::iter()
-                .map(|c: ResponsesClientCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesClientCodes| (c.get_code(), c.get_description())),
         ),
         "ServerError" => Box::new(
             ResponsesServerCodes::iter()
-                .map(|c: ResponsesServerCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesServerCodes| (c.get_code(), c.get_description())),
         ),
         "Service" => Box::new(
             ResponsesServiceCodes::iter()
-                .map(|c: ResponsesServiceCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesServiceCodes| (c.get_code(), c.get_description())),
         ),
         "Crawler" => Box::new(
             ResponsesCrawlerCodes::iter()
-                .map(|c: ResponsesCrawlerCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesCrawlerCodes| (c.get_code(), c.get_description())),
         ),
         "LocalApi" => Box::new(
             ResponsesLocalApiCodes::iter()
-                .map(|c: ResponsesLocalApiCodes| (c.to_u16(), c.description())),
+                .map(|c: ResponsesLocalApiCodes| (c.get_code(), c.get_description())),
         ),
         _ => Box::new(std::iter::empty()),
     };
@@ -412,31 +453,31 @@ pub fn list_codes_and_descriptions_short(family: &str) -> Vec<(u16, &'static str
 pub fn list_codes_and_descriptions_with_metadata(
     family: &str,
     request_metadata: Option<HashMap<&str, &str>>,
-) -> Vec<(u16, &'static str, HashMap<String, String>)> {
+) -> Vec<ResponseCodeWithMetadata> {
     let iterator: Box<dyn Iterator<Item = (u16, &'static str)>> = match family {
         "Informational" => Box::new(ResponsesInformationalCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         "Success" => Box::new(ResponsesSuccessCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         "Redirection" => Box::new(ResponsesRedirectionCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         "ClientError" => Box::new(ResponsesClientCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         "ServerError" => Box::new(ResponsesServerCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         "ServiceError" => Box::new(ResponsesServiceCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         "CrawlerError" => Box::new(ResponsesCrawlerCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         "LocalApiError" => Box::new(ResponsesLocalApiCodes::iter().map(|c| {
-            (c.to_u16(), c.get_description_field("Description").unwrap_or("No description"))
+            (c.get_code(), c.get_description_field("Description").unwrap_or("No description"))
         })),
         _ => return vec![],
     };
@@ -479,8 +520,8 @@ pub fn create_response_with_types(
 ) -> String {
     let mut map = serde_json::Map::new();
     if let Some(rt) = response_type {
-        map.insert("code".to_string(), json!(rt.to_u16()));
-        let description = rt.description();
+        map.insert("code".to_string(), json!(rt.get_code()));
+        let description = rt.get_description();
         map.insert("description".to_string(), json!(description));
     }
     if let Some(d) = data {
@@ -496,7 +537,7 @@ pub fn get_enriched_response_with_metadata(
     cors_origin: Option<&str>,
     duration: Duration,
 ) -> String {
-    let (code, description) = get_response_description(response);
+    let (code, description) = get_response_get_description(response);
     let timestamp = chrono::Utc::now();
 
     // Add CORS headers
@@ -544,7 +585,7 @@ mod tests {
     fn test_get_response_by_code() {
         let response = get_response_by_code(200);
         assert!(response.is_some());
-        assert_eq!(response.unwrap().to_u16(), 200);
+        assert_eq!(response.unwrap().get_code(), 200);
     }
 
     #[test]
@@ -728,7 +769,7 @@ mod tests {
         let code = 200;
         let response_type = convert_to_enum(code);
         assert!(response_type.is_some());
-        assert_eq!(response_type.unwrap().to_u16(), 200);
+        assert_eq!(response_type.unwrap().get_code(), 200);
     }
 
     #[test]
@@ -759,6 +800,6 @@ mod tests {
         let _unknown_response = ResponsesTypes::from_u16(9999);
 
         assert!(result.is_some());
-        assert_eq!(result.unwrap().to_u16(), 400);
+        assert_eq!(result.unwrap().get_code(), 400);
     }
 }
