@@ -62,7 +62,7 @@ macro_rules! generate_responses_functions {
             "use strum_macros::EnumIter;\n",
             "use simbld_http::responses::CustomResponse;\n",
             "use simbld_http::traits::get_code_trait::GetCode;\n",
-            "use simbld_http::responses::",
+           "use simbld_http::responses::",
             stringify!($enum_name),
             ";\n\nlet example = ",
             stringify!($enum_name),
@@ -70,13 +70,11 @@ macro_rules! generate_responses_functions {
             stringify!($first_variant),
             ";\nassert_eq!(example.get_code(), ",
             stringify!($std_code_first),
-            ");\nassert_eq!(example.as_tuple(), (",
-            stringify!($std_code_first), ", ",
-            stringify!($std_name_first), ", ",
-            stringify!($desc_first), ", ",
-            stringify!($int_code_first), ", ",
-            stringify!($int_std_name_first),
-            "));\n```"
+            ");\n// L'as_tuple retourne une structure UnifiedTuple avec les données du code de réponse\nlet tuple = example.as_tuple();\nassert_eq!(tuple.standard_code, ",
+            stringify!($std_code_first),
+            ");\nassert_eq!(tuple.standard_name, ",
+            stringify!($std_name_first),
+            ");\n```"
         )]
         pub enum $enum_name {
             $first_variant,
@@ -242,8 +240,21 @@ macro_rules! generate_responses_functions {
 
             /// Returns a unified tuple representation.
             pub fn as_tuple(&self) -> $crate::helpers::unified_tuple_helper::UnifiedTuple {
-                self.to_http_code().as_unified_tuple()
+                $crate::helpers::unified_tuple_helper::UnifiedTuple {
+                    standard_code: self.get_code(),
+                    standard_name: self.get_name(),
+                    unified_description: self.get_description(),
+                    internal_code: Some(match self {
+                        Self::$first_variant => $int_code_first,
+                        $(Self::$variant => $int_code,)*
+                    }),
+                    internal_name: Some(match self {
+                        Self::$first_variant => $int_std_name_first,
+                        $(Self::$variant => $int_name,)*
+                    }),
+                }
             }
+
 
             /// Returns a JSON representation of the response code.
             pub fn as_json(&self) -> serde_json::Value {
@@ -351,8 +362,8 @@ mod tests {
                 that is perceived to be a client error (e.g., malformed request \
                 syntax, invalid request message framing, or deceptive request \
                 routing).",
-            internal_code: None,
-            internal_name: None,
+            internal_code: Some(400),
+            internal_name: Some("Bad Request"),
         };
 
         assert_eq!(ex.as_tuple(), expected);
