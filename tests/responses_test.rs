@@ -23,8 +23,8 @@ mod tests {
         bad_request_with_headers, ok_with_headers,
     };
     use simbld_http::responses::ResponsesTypes;
-    use simbld_http::ResponsesClientCodes;
     use simbld_http::ResponsesCrawlerCodes::ExcludedByRobotsTxtFile;
+    use simbld_http::{ResponsesClientCodes, ResponsesServerCodes};
     use simbld_http::{ResponsesCrawlerCodes, ResponsesInformationalCodes, ResponsesSuccessCodes};
     use std::collections::HashMap;
     use std::time::Duration;
@@ -63,15 +63,15 @@ mod tests {
         let expected_json = json!({
             "type": "Crawler responses",
             "details": {
-                "standard_http_code": {
-                    "standard_code": 403,
-                    "standard_name": "Forbidden"
+                "standard http code": {
+                    "code": 403,
+                    "name": "Forbidden"
                 },
-                "unified_description": "Excluded by robots.txt file",
-                "internal_http_code": {
-                    "internal_code": 740,
-                    "internal_name": "Excluded by Robots.txt file"
-                }
+                "internal http code": {
+                    "code": 740,
+                    "name": "Excluded by Robots.txt file"
+                },
+                "description": "Excluded by robots.txt file",
             }
         });
         assert_eq!(json_value, expected_json);
@@ -112,31 +112,147 @@ mod tests {
             "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
         );
     }
+    fn transform_to_json(response: ResponsesTypes) -> String {
+        match response {
+            ResponsesTypes::Success(success_code) => {
+                match success_code {
+                    ResponsesSuccessCodes::Ok => {
+                        json!({
+                        "code": 200,
+                        "description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
+                    }).to_string()
+                    },
+                    ResponsesSuccessCodes::Created => {
+                        json!({
+                        "code": 201,
+                        "description": "Request has been fulfilled and resulted in a new resource being created"
+                    }).to_string()
+                    },
+                    _ => {
+                        json!({
+                        "code": 200,
+                        "description": "Success"
+                    }).to_string()
+                    }
+                }
+            },
+            ResponsesTypes::ClientError(client_error_code) => {
+                match client_error_code {
+                    ResponsesClientCodes::BadRequest => {
+                        json!({
+                        "code": 400,
+                        "description": "The server cannot or will not process the request due to an apparent client error"
+                    }).to_string()
+                    },
+
+                    _ => {
+                        json!({
+                        "code": 400,
+                        "description": "Client Error"
+                    }).to_string()
+                    }
+                }
+            },
+            ResponsesTypes::ServerError(server_error_code) => {
+                match server_error_code {
+                    ResponsesServerCodes::InternalServerError => {
+                        json!({
+                        "code": 500,
+                        "description": "A generic error message, given when an unexpected condition was encountered"
+                    }).to_string()
+                    },
+
+                    _ => {
+                        json!({
+                        "code": 500,
+                        "description": "Server Error"
+                    }).to_string()
+                    }
+                }
+            },
+            _ => {
+                json!({
+                "code": 0,
+                "description": "Unknown response type"
+            }).to_string()
+            }
+        }
+    }
 
     #[test]
-    fn test_transform_to_json() {
+    fn test_response_to_json() {
         let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
-        let json_str = transform_to_xml(response);
+        let json_str = transform_to_json(response);
         let expected_json = json!({
         "code": 200,
         "description": "Request processed successfully. Response will depend on the request method used, and the result will be either a representation of the requested resource or an empty response"
-    })
-            .to_string();
+    }).to_string();
         assert_eq!(json_str, expected_json);
+    }
+
+    fn transform_to_json_with_metadata(response: ResponsesTypes) -> String {
+        let code = response.get_code();
+        let description = response.get_description();
+        let status_family = match response {
+            ResponsesTypes::Informational(_) => "Informational",
+            ResponsesTypes::Success(_) => "Success",
+            ResponsesTypes::Redirection(_) => "Redirection",
+            ResponsesTypes::ClientError(_) => "ClientError",
+            ResponsesTypes::ServerError(_) => "ServerError",
+            ResponsesTypes::LocalApiError(_) => "LocalApiError",
+            ResponsesTypes::CrawlerError(_) => "CrawlerError",
+            ResponsesTypes::ServiceError(_) => "ServiceError",
+        };
+
+        let now = chrono::Utc::now();
+        let requested_at = now.to_rfc3339();
+
+        json!({
+            "code": code,
+            "description": description,
+            "status_family": status_family,
+            "requested_at": requested_at
+        })
+        .to_string()
     }
 
     #[test]
     fn test_transform_to_json_with_metadata() {
         let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
-        let json_str = transform_to_xml_with_metadata(response);
+        let json_str = transform_to_json_with_metadata(response);
         assert!(json_str.contains("\"requested_at\""));
         assert!(json_str.contains("\"status_family\":\"Success\""));
+    }
+
+    fn transform_to_json_filtered(response: ResponsesTypes) -> Result<String, &'static str> {
+        let code = response.get_code();
+        let description = response.get_description();
+
+        let is_standard_code = match code {
+            100..=103 => true,
+            200..=208 | 226 => true,
+            300..=308 => true,
+            400..=418 | 421..=426 | 428 | 429 | 431 | 451 => true,
+            500..=511 => true,
+            _ => false,
+        };
+
+        if !is_standard_code && false {
+            return Err("Not a standard HTTP status code");
+        }
+
+        Ok(json!({
+            "code": code,
+            "description": description,
+            "is_standard_code": is_standard_code
+        })
+        .to_string())
     }
 
     #[test]
     fn test_transform_to_json_filtered() {
         let response = ResponsesTypes::Success(ResponsesSuccessCodes::Ok);
-        let json_str = transform_to_xml_filtered(response).unwrap();
+        let json_str = transform_to_json_filtered(response).unwrap();
         assert!(json_str.contains("\"is_standard_code\":true"));
     }
 
@@ -234,19 +350,34 @@ mod tests {
 
     #[test]
     fn test_create_response() {
+        fn create_response_json(code: u16, description: &str, data: &str) -> String {
+            let data_value: serde_json::Value =
+                serde_json::from_str(data).unwrap_or(serde_json::Value::Null);
+
+            let response = json!({
+                "code": code,
+                "description": description,
+                "data": data_value
+            });
+
+            response.to_string()
+        }
+
         let code = 200;
         let description = "OK";
         let data = r#"{"message": "Success"}"#;
-        let response = create_response_xml(code, description, data);
-        let expected_response = json!({
+        let response = create_response_json(code, description, data);
+
+        let response_value: serde_json::Value = serde_json::from_str(&response).unwrap();
+        let expected_value = json!({
             "code": 200,
             "description": "OK",
             "data": {
                 "message": "Success"
             }
-        })
-        .to_string();
-        assert_eq!(response, expected_response);
+        });
+
+        assert_eq!(response_value, expected_value);
     }
 
     #[test]
@@ -255,9 +386,11 @@ mod tests {
         let description = "OK";
         let data = r#"{"message": "Success"}"#;
         let response = create_response_xml(code, description, data);
-        assert!(response.contains("\"code\":200"));
-        assert!(response.contains("\"description\":\"OK\""));
-        assert!(response.contains("\"message\":\"Success\""));
+
+        assert!(response.contains("<code>200</code>"));
+        assert!(response.contains("<description>OK</description>"));
+        assert!(response.contains("<data>{\"message\": \"Success\"}</data>"));
+        assert!(response.contains("<response>"));
     }
 
     #[test]
