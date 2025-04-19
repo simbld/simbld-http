@@ -1,6 +1,6 @@
 [package]
 name = "simbld-http"
-version = "0.4.1"
+version = "1.0.0"
 edition = "2021"
 license = "MIT"
 authors = ["Simon Bullado <s_bullado51@hotmail.com>"]
@@ -20,16 +20,12 @@ serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.66"
 actix-web = "4.9.0"
 strum = "0.27.1"
-strum_macros = { version = "0.26.4" }
+strum_macros = { version = "0.27.1" }
 futures-util = "0.3"
 actix-service = "2.0"
-serde_urlencoded = "0.7.1"
-url = "2.1.0"
-inflector = { version = "0.11", package = "Inflector" }
 uuid = { version = "1.11.0", features = ["v4"] }
 log = "0.4.8"
 chrono = "0.4.39"
-paste = "1.0.15"
 lazy_static = "1.5.0"
 thiserror = "2.0.11"
 tokio = "1.42.0"

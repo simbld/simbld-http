@@ -94,11 +94,11 @@ mod tests {
         );
         assert_eq!(
             ResponsesClientCodes::from_internal_code(401),
-            Some(ResponsesClientCodes::BadRequest)
+            Some(ResponsesClientCodes::Unauthorized)
         );
         assert_eq!(
             ResponsesClientCodes::from_internal_code(441),
-            Some(ResponsesClientCodes::BadRequest)
+            Some(ResponsesClientCodes::OverDataQuota)
         );
         assert_eq!(ResponsesClientCodes::from_internal_code(9999), None);
     }

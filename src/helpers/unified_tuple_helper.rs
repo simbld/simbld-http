@@ -73,6 +73,22 @@ impl UnifiedTuple {
             },
         })
     }
+
+    pub fn new(
+        standard_code: u16,
+        standard_name: &'static str,
+        unified_description: &'static str,
+        internal_code: u16,
+        internal_name: &'static str,
+    ) -> Self {
+        Self {
+            standard_code,
+            standard_name,
+            unified_description,
+            internal_code: Some(internal_code),
+            internal_name: Some(internal_name),
+        }
+    }
 }
 
 /// Implements automatic conversion from ResponsesTypes to UnifiedTuple.
